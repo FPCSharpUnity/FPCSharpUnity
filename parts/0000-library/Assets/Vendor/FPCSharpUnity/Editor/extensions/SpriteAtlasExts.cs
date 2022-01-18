@@ -14,6 +14,18 @@ namespace FPCSharpUnity.unity.Editor.extensions {
     /// <summary>Removes everything from the atlas.</summary>
     [Obsolete("Use SpriteAtlasV2Helper to interact with Sprite Atlas V2 system")]
     public static void clear(this SpriteAtlas atlas) => atlas.Remove(atlas.GetPackables());
+    
+    static readonly string[] imageExtensions = {
+      // List taken from https://docs.unity3d.com/Manual/ImportingTextures.html
+      ".bmp", ".exr", ".gif", ".hdr", ".iff", ".jpg", ".pict", ".png", ".psd", ".tga", ".tiff"
+    };
+
+    public static bool isPathAnImage(string path) {
+      foreach (var extension in imageExtensions) {
+        if (path.EndsWithFast(extension)) return true;
+      }
+      return false;
+    }
 
     [Obsolete("Use SpriteAtlasV2Helper to interact with Sprite Atlas V2 system")]
     public static ImmutableHashSet<Sprite> getPackedSprites(this SpriteAtlas atlas) {
@@ -27,10 +39,10 @@ namespace FPCSharpUnity.unity.Editor.extensions {
       var sprites = ImmutableHashSet.CreateBuilder<Sprite>();
       var texturePaths = new List<string>();
       AssetDatabase.Refresh();
-      var allImagePaths = AssetDatabase.GetAllAssetPaths().Select(_ => _.ToLowerInvariant()).Where(
-        // this is not a complete list, but it is what we use for our project
-        p => p.EndsWithFast(".psd") || p.EndsWithFast(".png")
-      ).ToArray();
+      var allImagePaths = AssetDatabase.GetAllAssetPaths()
+        .Select(_ => _.ToLowerInvariant())
+        .Where(isPathAnImage)
+        .ToArray();
       foreach (var packable in packables) {
         switch (packable) {
           case Sprite sprite:
