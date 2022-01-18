@@ -1,0 +1,26 @@
+{
+    "name": "FPCSharpUnity.unity.editor",
+    "references": [
+        "FPCSharpUnity.unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "FPCSharpUnity.core.dll",
+        "GenerationAttributes.dll",
+        "Macros.dll",
+        "System.Collections.Immutable.dll",
+        "Sirenix.OdinInspector.Editor.dll",
+        "Sirenix.Utilities.Editor.dll",
+        "Sirenix.OdinInspector.Attributes.dll",
+        "Sirenix.Utilities.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

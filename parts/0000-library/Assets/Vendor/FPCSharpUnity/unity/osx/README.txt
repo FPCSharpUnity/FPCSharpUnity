@@ -1,0 +1,1 @@
+﻿fp_csharp_unity_osx.bundle is built from source folder repo_root/osx_plugin

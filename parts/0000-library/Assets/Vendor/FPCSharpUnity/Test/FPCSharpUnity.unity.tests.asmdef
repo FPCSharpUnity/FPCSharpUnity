@@ -1,0 +1,31 @@
+{
+    "name": "FPCSharpUnity.unity.tests",
+    "references": [
+        "FPCSharpUnity.unity",
+        "FPCSharpUnity.unity.editor",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "FPCSharpUnity.core.dll",
+        "FPCSharpUnity.core.test_framework.dll",
+        "FPCSharpUnity.core.test.dll",
+        "System.Collections.Immutable.dll",
+        "GenerationAttributes.dll",
+        "0Harmony.dll",
+        "Macros.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,15 @@
+# Backup files
+*~
+
+# Binary VS files
+bin
+obj
+
+# Solution User Options
+*.suo
+
+# Intellij IDEA
+.idea
+
+/parts/incremental-compiler/Roslyn/net472/CodeGeneratorSob.*
+/parts/incremental-compiler/Roslyn/net472/sob.codegen.attributes.*

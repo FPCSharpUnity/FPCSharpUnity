@@ -1,0 +1,23 @@
+{
+    "name": "FPCSharpUnity.unity.ios",
+    "rootNamespace": "",
+    "references": [
+        "FPCSharpUnity.unity"
+    ],
+    "includePlatforms": [
+        "Editor",
+        "iOS"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "FPCSharpUnity.core.dll",
+        "Macros.dll",
+        "GenerationAttributes.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
