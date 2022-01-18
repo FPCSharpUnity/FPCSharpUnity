@@ -262,10 +262,13 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     #region Missing References
 
     // There is no such thing as editor resources folder, so we have to resort to this hack
-    [LazyProperty] static PathStr testPrefabsDirectory =>
-      AssetDatabase.GetAllAssetPaths().find(s =>
-        s.EndsWithFast($"TLPLib/Test/Utilities/{nameof(ObjectValidatorTest)}.cs")
-      ).map(p => PathStr.a(p).dirname).get;
+    [LazyProperty] static PathStr testPrefabsDirectory {
+      get {
+        var name = $"Test/Utilities/{nameof(ObjectValidatorTest)}.cs";
+        return AssetDatabase.GetAllAssetPaths().find(s => s.EndsWithFast(name)).map(p => PathStr.a(p).dirname)
+          .getOrThrow($"Can't find this file ({name}) in assets database.");
+      }
+    }
 
     static Object getPrefab(string prefabName) =>
       AssetDatabase.LoadMainAssetAtPath($"{testPrefabsDirectory}/{prefabName}");
