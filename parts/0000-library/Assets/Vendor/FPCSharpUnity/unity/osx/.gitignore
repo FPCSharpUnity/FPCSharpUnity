@@ -1,0 +1,5 @@
+# Ignore `.meta` files that Unity automatically generates for us in the `.bundle`.
+#
+# Unity can't have any meaningful metadata for the files inside the bundle, thus we can safely
+# ignore them.
+/*.bundle/**/*.meta
