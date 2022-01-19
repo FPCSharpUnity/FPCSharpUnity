@@ -8,12 +8,12 @@ using FPCSharpUnity.core.exts;
 namespace FPCSharpUnity.unity.osx {
   public class SetWindowTitle : ISetWindowTitle {
     public bool setWindowTitle(string title) {
-      FPCSharpUnityOSXWindowSetTitle(title);
+      FPCSharpUnityMacOSWindowSetTitle(title);
       return true;
     }
 
-    [DllImport("fp_csharp_unity_osx")]
-    static extern void FPCSharpUnityOSXWindowSetTitle(string title);
+    [DllImport("fp_csharp_unity_macos")]
+    static extern void FPCSharpUnityMacOSWindowSetTitle(string title);
   }
 }
 #endif

@@ -13,7 +13,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		978B2D1C262EF48800075575 /* fp_csharp_unity_osx.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fp_csharp_unity_osx.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
+		978B2D1C262EF48800075575 /* fp_csharp_unity_macos.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = fp_csharp_unity_macos.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		978B2D1F262EF48800075575 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		978B2D2A262EF5DA00075575 /* functions.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = functions.mm; sourceTree = "<group>"; };
 		978B2D2E262EFA3A00075575 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = System/Library/Frameworks/CoreFoundation.framework; sourceTree = SDKROOT; };
@@ -36,7 +36,7 @@
 		978B2D13262EF48800075575 = {
 			isa = PBXGroup;
 			children = (
-				978B2D1E262EF48800075575 /* fp_csharp_unity_osx */,
+				978B2D1E262EF48800075575 /* fp_csharp_unity_macos */,
 				978B2D1D262EF48800075575 /* Products */,
 				978B2D2D262EFA3A00075575 /* Frameworks */,
 			);
@@ -45,18 +45,18 @@
 		978B2D1D262EF48800075575 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				978B2D1C262EF48800075575 /* fp_csharp_unity_osx.bundle */,
+				978B2D1C262EF48800075575 /* fp_csharp_unity_macos.bundle */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		978B2D1E262EF48800075575 /* fp_csharp_unity_osx */ = {
+		978B2D1E262EF48800075575 /* fp_csharp_unity_macos */ = {
 			isa = PBXGroup;
 			children = (
 				978B2D2A262EF5DA00075575 /* functions.mm */,
 				978B2D1F262EF48800075575 /* Info.plist */,
 			);
-			path = fp_csharp_unity_osx;
+			path = fp_csharp_unity_macos;
 			sourceTree = "<group>";
 		};
 		978B2D2D262EFA3A00075575 /* Frameworks */ = {
@@ -71,9 +71,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		978B2D1B262EF48800075575 /* fp_csharp_unity_osx */ = {
+		978B2D1B262EF48800075575 /* fp_csharp_unity_macos */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 978B2D22262EF48800075575 /* Build configuration list for PBXNativeTarget "fp_csharp_unity_osx" */;
+			buildConfigurationList = 978B2D22262EF48800075575 /* Build configuration list for PBXNativeTarget "fp_csharp_unity_macos" */;
 			buildPhases = (
 				978B2D18262EF48800075575 /* Sources */,
 				978B2D19262EF48800075575 /* Frameworks */,
@@ -83,9 +83,9 @@
 			);
 			dependencies = (
 			);
-			name = fp_csharp_unity_osx;
-			productName = fp_csharp_unity_osx;
-			productReference = 978B2D1C262EF48800075575 /* fp_csharp_unity_osx.bundle */;
+			name = fp_csharp_unity_macos;
+			productName = fp_csharp_unity_macos;
+			productReference = 978B2D1C262EF48800075575 /* fp_csharp_unity_macos.bundle */;
 			productType = "com.apple.product-type.bundle";
 		};
 /* End PBXNativeTarget section */
@@ -101,7 +101,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 978B2D17262EF48800075575 /* Build configuration list for PBXProject "fp_csharp_unity_osx" */;
+			buildConfigurationList = 978B2D17262EF48800075575 /* Build configuration list for PBXProject "fp_csharp_unity_macos" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -114,7 +114,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				978B2D1B262EF48800075575 /* fp_csharp_unity_osx */,
+				978B2D1B262EF48800075575 /* fp_csharp_unity_macos */,
 			);
 		};
 /* End PBXProject section */
@@ -257,10 +257,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 9X4C85TW9F;
-				INFOPLIST_FILE = fp_csharp_unity_osx/Info.plist;
+				DEVELOPMENT_TEAM = SBFD85N4R2;
+				INFOPLIST_FILE = fp_csharp_unity_macos/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = unity.tlp;
+				PRODUCT_BUNDLE_IDENTIFIER = FPCSharpUnity.unity.macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
@@ -272,10 +272,10 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 9X4C85TW9F;
-				INFOPLIST_FILE = fp_csharp_unity_osx/Info.plist;
+				DEVELOPMENT_TEAM = SBFD85N4R2;
+				INFOPLIST_FILE = fp_csharp_unity_macos/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = unity.tlp;
+				PRODUCT_BUNDLE_IDENTIFIER = FPCSharpUnity.unity.macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
@@ -285,7 +285,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		978B2D17262EF48800075575 /* Build configuration list for PBXProject "fp_csharp_unity_osx" */ = {
+		978B2D17262EF48800075575 /* Build configuration list for PBXProject "fp_csharp_unity_macos" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				978B2D20262EF48800075575 /* Debug */,
@@ -294,7 +294,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		978B2D22262EF48800075575 /* Build configuration list for PBXNativeTarget "fp_csharp_unity_osx" */ = {
+		978B2D22262EF48800075575 /* Build configuration list for PBXNativeTarget "fp_csharp_unity_macos" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				978B2D23262EF48800075575 /* Debug */,

@@ -4,7 +4,7 @@
 
 extern "C"
 {
-    void FPCSharpUnityOSXWindowSetTitle(const char* title) {
+    void FPCSharpUnityMacOSWindowSetTitle(const char* title) {
         NSApp.mainWindow.title = [NSString stringWithUTF8String:title];
     }
 }

@@ -1,6 +1,9 @@
 # Backup files
 *~
 
+# MacOS crap
+.DS_Store
+
 # Binary VS files
 bin
 obj
