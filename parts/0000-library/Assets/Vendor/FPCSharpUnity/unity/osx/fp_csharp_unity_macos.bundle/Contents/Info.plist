@@ -9,7 +9,7 @@
 	<key>CFBundleExecutable</key>
 	<string>fp_csharp_unity_macos</string>
 	<key>CFBundleIdentifier</key>
-	<string>FPCSharpUnity.unity.macos</string>
+	<string>fp_csharp_unity_macos</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>

@@ -195,7 +195,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -260,7 +260,7 @@
 				DEVELOPMENT_TEAM = SBFD85N4R2;
 				INFOPLIST_FILE = fp_csharp_unity_macos/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = FPCSharpUnity.unity.macos;
+				PRODUCT_BUNDLE_IDENTIFIER = fp_csharp_unity_macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
@@ -275,7 +275,7 @@
 				DEVELOPMENT_TEAM = SBFD85N4R2;
 				INFOPLIST_FILE = fp_csharp_unity_macos/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
-				PRODUCT_BUNDLE_IDENTIFIER = FPCSharpUnity.unity.macos;
+				PRODUCT_BUNDLE_IDENTIFIER = fp_csharp_unity_macos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				WRAPPER_EXTENSION = bundle;
