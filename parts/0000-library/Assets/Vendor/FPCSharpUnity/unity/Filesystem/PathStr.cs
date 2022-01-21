@@ -51,7 +51,24 @@ namespace FPCSharpUnity.unity.Filesystem {
     public PathStr dirname => new PathStr(Path.GetDirectoryName(path));
     public PathStr basename => new PathStr(Path.GetFileName(path));
     public string extension => Path.GetExtension(path);
+    
+    /// <summary>Removes a single file extension from the path.</summary>
     public PathStr withoutExtension => a(_path.Substring(0, _path.Length - extension.Length));
+
+    /// <summary>Removes all file extensions from the path.</summary>
+    public PathStr withoutExtensions {
+      get {
+        // TODO: optimize
+        var current = this;
+        while (true) {
+          var updated = current.withoutExtension;
+          
+          if (current == updated) return current;
+          else current = updated;
+        }
+      }
+    }
+
     public PathStr ensureBeginsWith(PathStr p) => path.StartsWithFast(p.path) ? this : p / path;
     public override string ToString() => asString();
     public string asString() => path;
