@@ -92,6 +92,11 @@ namespace FPCSharpUnity.unity.Concurrent {
       return new UnityCoroutine(behaviour, enumerator);
     }
 
+    public static Future<Unit> WithDelayFuture(
+      float seconds, MonoBehaviour behaviour = null, TimeScale timeScale = TimeScale.Unity
+    ) => WithDelay(seconds, () => { }, behaviour: behaviour, timeScale: timeScale)
+      .toFuture().discardValue();
+
     public static void OnMainThread(Action action, bool runNowIfOnMainThread = true) =>
       Threads.OnMainThread.run(action, runNowIfOnMainThread);
 
