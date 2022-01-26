@@ -1,3 +1,5 @@
+using System;
+using GenerationAttributes;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
@@ -11,5 +13,13 @@ namespace FPCSharpUnity.unity.Extensions {
       );
 
     public static int GetMaterialCountReflected(this Renderer r) => GetMaterialCount(r);
+    
+    [LazyProperty] static MaterialPropertyBlock cachedMpb => new();
+  
+    public static void updatePropertyBlock<A>(this Renderer renderer, A data, Action<MaterialPropertyBlock, A> modifier) {
+      renderer.GetPropertyBlock(cachedMpb);
+      modifier(cachedMpb, data);
+      renderer.SetPropertyBlock(cachedMpb);
+    }
   }
 }
