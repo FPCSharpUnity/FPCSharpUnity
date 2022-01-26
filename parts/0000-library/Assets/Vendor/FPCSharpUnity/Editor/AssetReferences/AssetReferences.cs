@@ -15,6 +15,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using Sirenix.Utilities;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.unity.Editor.extensions;
 using UnityEditor;
 using ImmutableList = System.Collections.Immutable.ImmutableList;
 
@@ -125,13 +126,17 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       Ref<float> progress, ILog log
     ) {
       progress.value = 0;
-      Func<string, bool> predicate = p =>
-        p.EndsWithFast(".asset")
-        || p.EndsWithFast(".prefab")
-        || p.EndsWithFast(".unity")
-        || p.EndsWithFast(".mat")
-        || p.EndsWithFast(".spriteatlas")
-        || p.EndsWithFast(".spriteatlasv2");
+      Func<string, bool> predicate = p => {
+        // Sometimes images have uppercase extensions.
+        var lower = p.ToLowerInvariant();
+        return lower.EndsWithFast(".asset")
+               || lower.EndsWithFast(".prefab")
+               || lower.EndsWithFast(".unity")
+               || lower.EndsWithFast(".mat")
+               || lower.EndsWithFast(".spriteatlas")
+               || lower.EndsWithFast(".spriteatlasv2")
+               || SpriteAtlasExts.isPathAnImage(lower);
+      };
       
       var assets = data.filter(predicate, _ => predicate(_.fromPath));
       var firstScan = children.isEmpty() && parents.isEmpty();
@@ -240,16 +245,31 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// Optimized version of <see cref="parseFileUnoptimized"/>. This works at least 10x faster.
     /// </summary>
     static Option<ParseFileResult> parseFileOptimized(ILog log, string assetPath) {
-      if (!getGuid(assetPath, out var guid, log)) return None._;
+      if (!getGuid(assetPath, out var guid, out var metaFileContentsBuffer, log)) return None._;
 
       var guidsInFile = new HashSet<string>();
 
-      var buffer = parseFileOptimized_bufferCache.Value;
+      if (SpriteAtlasExts.isPathAnImage(assetPath.ToLowerInvariant())) {
+        // Parse meta file only locally. Currently we have no use to parse it with custom resolvers.
+        parseBufferLocally(new SimpleBuffer(metaFileContentsBuffer, metaFileContentsBuffer.Length), guidsInFile);
+      }
+      else {
+        // Parse main file only if it is not an image asset.
+        
+        var buffer = parseFileOptimized_bufferCache.Value;
 
-      {
         var length = readAllBytesFast(assetPath, ref buffer);
         var simpleBuffer = new SimpleBuffer(buffer, length);
-        for (var i = 0; i < length; i++) {
+        parseBufferLocally(simpleBuffer, guidsInFile);
+        parseBufferWithResolvers(simpleBuffer, guidsInFile);
+
+        parseFileOptimized_bufferCache.Value = buffer;
+      }
+
+      return Some.a(new ParseFileResult(assetGuid: guid, assetPath: assetPath, guidsInFile));
+
+      static void parseBufferLocally(SimpleBuffer simpleBuffer, HashSet<string> guidsInFile) {
+        for (var i = 0; i < simpleBuffer.length; i++) {
           // Regex for reference: @"{fileID:\s+(\d+),\s+guid:\s+(\w+),\s+type:\s+\d+}",
           if (!simpleBuffer.match(i, STRING_FILE_ID)) continue;
           i += STRING_FILE_ID.Length;
@@ -266,15 +286,13 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
           guidsInFile.Add(childGuid);
         }
-        
-        guidsInFile.AddRange(
-          extraResolvers.SelectMany(p => p.parseBuffer(buffer, length: length))
-        );
       }
 
-      parseFileOptimized_bufferCache.Value = buffer;
-
-      return Some.a(new ParseFileResult(assetGuid: guid, assetPath: assetPath, guidsInFile));
+      static void parseBufferWithResolvers(SimpleBuffer simpleBuffer, HashSet<string> guidsInFile) {
+        foreach (var resolver in extraResolvers) {
+          guidsInFile.AddRange(resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length));
+        }
+      }
     }
     
     /// <summary>
@@ -285,7 +303,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       string assetPath,
       Dictionary<string, HashSet<string>> updatedChildren
     ) {
-      if (!getGuid(assetPath, out var guid, log)) return;
+      if (!getGuid(assetPath, out var guid, out _, log)) return;
 
       lock (pathToGuid) pathToGuid[assetPath] = guid;
       
@@ -347,15 +365,17 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     ///
     /// I tried to optimize this method similarly to <see cref="parseFileOptimized"/>, but the improvement was too small.
     /// </summary>
-    static bool getGuid(string assetPath, out string guid, ILog log) {
+    static bool getGuid(string assetPath, out string guid, out byte[] metaFileContents, ILog log) {
       if (assetPath.StartsWithFast("ProjectSettings/")) {
         guid = null;
+        metaFileContents = null;
         return false;
       }
 
       var metaPath = $"{assetPath}.meta";
       if (File.Exists(metaPath)) {
-        var fileContents = Encoding.ASCII.GetString(File.ReadAllBytes(metaPath));
+        metaFileContents = File.ReadAllBytes(metaPath);
+        var fileContents = Encoding.ASCII.GetString(metaFileContents);
         var m = metaGuid.Match(fileContents);
         if (m.Success) {
           guid = m.Groups[1].Value;
@@ -370,6 +390,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       else {
         log.error($"Meta file not found for: {assetPath}");
         guid = null;
+        metaFileContents = null;
         return false;
       }
     }
@@ -384,11 +405,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// It also has methods that we need for parsing guids from asset files.
     /// </summary>
     public readonly struct SimpleBuffer {
-      readonly byte[] buffer;
+      public readonly byte[] buffer;
       /// <summary>
       /// Length of the data in buffer. Actual <see cref="buffer"/> length may be larger.
       /// </summary>
-      readonly int length;
+      public readonly int length;
 
       public SimpleBuffer(byte[] buffer, int length) {
         this.buffer = buffer;

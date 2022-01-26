@@ -210,7 +210,13 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
             }
           }
           else {
-            GUILayout.Label(AssetDatabase.GUIDToAssetPath(guid));
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            if (path.isNullOrEmpty()) {
+              GUILayout.Label($"Unknown guid: {guid}");
+            }
+            else {
+              GUILayout.Label(AssetDatabase.GUIDToAssetPath(guid));
+            }
           }
         }
       }
