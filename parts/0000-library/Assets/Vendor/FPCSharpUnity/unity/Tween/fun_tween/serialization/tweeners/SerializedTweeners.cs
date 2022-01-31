@@ -1,6 +1,7 @@
 ﻿using System;
 using FPCSharpUnity.unity.Components.gradient;
 using FPCSharpUnity.unity.Components.ui;
+using FPCSharpUnity.unity.core.Utilities;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
@@ -179,6 +180,12 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 #endif
   }
 
+  public abstract class SerializedTweenerVector4<T> : SerializedTweenerV2<T, Vector4> {
+    protected override Vector4 lerp(float percentage) => Vector4.LerpUnclamped(_start, _end, percentage);
+    protected override Vector4 add(Vector4 a, Vector4 b) => a + b;
+    protected override Vector4 subtract(Vector4 a, Vector4 b) => a - b;
+  }
+  
   public abstract class SerializedTweenerVector3<T> : SerializedTweenerV2<T, Vector3> {
     protected override Vector3 lerp(float percentage) => Vector3.LerpUnclamped(_start, _end, percentage);
     protected override Vector3 add(Vector3 a, Vector3 b) => a + b;
@@ -571,6 +578,76 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
         this.bottom = bottom;
       }
     }
+  }
+
+  [Serializable]
+  public sealed class RendererShaderPropertyFloat : SerializedTweenerFloat<Renderer> {
+#pragma warning disable 649
+  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Float)] 
+  string _shaderProperty;
+#pragma warning restore 649
+
+    Renderer getRenderer() => _target;
+
+    protected override float get => _target.getPropertyValue(mpb => mpb.GetFloat(_shaderProperty));
+    protected override void set(float value) => _target
+      .updatePropertyBlock(value, (mpb, v) => mpb.SetFloat(_shaderProperty, v));
+  }
+  
+  [Serializable]
+  public sealed class RendererShaderPropertyColor : SerializedTweenerColor<Renderer> {
+#pragma warning disable 649
+  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Color)] 
+  string _shaderProperty;
+#pragma warning restore 649
+
+    Renderer getRenderer() => _target;
+
+    protected override Color get => _target.getPropertyValue(mpb => mpb.GetColor(_shaderProperty));
+    protected override void set(Color value) => _target
+      .updatePropertyBlock(value, (mpb, v) => mpb.SetColor(_shaderProperty, v));
+  }
+  
+  [Serializable]
+  public sealed class RendererShaderPropertyVector2 : SerializedTweenerVector2<Renderer> {
+#pragma warning disable 649
+  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
+  string _shaderProperty;
+#pragma warning restore 649
+
+    Renderer getRenderer() => _target;
+
+    protected override Vector2 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
+    protected override void set(Vector2 value) => _target
+      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
+  }
+  
+  [Serializable]
+  public sealed class RendererShaderPropertyVector3 : SerializedTweenerVector3<Renderer> {
+#pragma warning disable 649
+  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
+  string _shaderProperty;
+#pragma warning restore 649
+
+    Renderer getRenderer() => _target;
+
+    protected override Vector3 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
+    protected override void set(Vector3 value) => _target
+      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
+  }
+  
+  [Serializable]
+  public sealed class RendererShaderPropertyVector4 : SerializedTweenerVector4<Renderer> {
+#pragma warning disable 649
+  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
+  string _shaderProperty;
+#pragma warning restore 649
+
+    Renderer getRenderer() => _target;
+
+    protected override Vector4 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
+    protected override void set(Vector4 value) => _target
+      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
   }
   
   [Serializable]
