@@ -30,7 +30,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
     [Record, PublicAPI] public sealed partial class ComputeFromRenderer : IComputeFromShaderProperties {
       public readonly Renderer a;
       // Helper method for upcasting, to avoid boxing allocation.
-      public IComputeFromShaderProperties up => this.upcast(default(IComputeFromShaderProperties));
+      public IComputeFromShaderProperties up => this;
       
       public static implicit operator Renderer(ComputeFromRenderer computeFrom) => computeFrom.a;
       public static implicit operator ComputeFromRenderer(Renderer value) => new(value);
@@ -39,7 +39,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
     [Record, PublicAPI] public sealed partial class ComputeFromShader : IComputeFromShaderProperties {
       public readonly Shader a;
       // Helper method for upcasting, to avoid boxing allocation.
-      public IComputeFromShaderProperties up => this.upcast(default(IComputeFromShaderProperties));
+      public IComputeFromShaderProperties up => this;
       
       public static implicit operator Shader(ComputeFromShader computeFrom) => computeFrom.a;
       public static implicit operator ComputeFromShader(Shader value) => new(value);
@@ -80,7 +80,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
         ? Enumerable.Range(0, ShaderUtil.GetPropertyCount(shader))
           .Select(shaderPropertyIndex => new ShaderProperty(
             name: ShaderUtil.GetPropertyName(shader, propertyIdx: shaderPropertyIndex),
-            type: ShaderUtil.GetPropertyType(shader, propertyIdx: shaderPropertyIndex).fromShaderUtils()
+            type: ShaderUtil.GetPropertyType(shader, propertyIdx: shaderPropertyIndex).toShaderUtilsGame()
           )).ToArray()
         : Array.Empty<ShaderProperty>();
     

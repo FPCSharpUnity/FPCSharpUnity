@@ -15,7 +15,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
       Texture
     }
 
-    public static ShaderPropertyType fromShaderUtils(
+    public static ShaderPropertyType toShaderUtilsGame(
       this ShaderUtil.ShaderPropertyType shaderUtilsType
     ) => shaderUtilsType switch {
       ShaderUtil.ShaderPropertyType.Color => ShaderPropertyType.Color,

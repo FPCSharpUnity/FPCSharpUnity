@@ -11,6 +11,8 @@ using UnityEditor;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Editor.unity_serialization {
+  // This class was created by reference from 'ValueDropdown', by Odin inspector.
+  // These 'DrawPriority' values are copied from 'ValueDropdown'.
   [DrawerPriority(0.0, 0.0, 2002.0)]
   public class ShaderPropertyAttributeDrawer : OdinAttributeDrawer<ShaderPropertyAttribute> {
     Func<IEnumerable<string>> getAllShaderPropertyValues;
