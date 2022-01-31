@@ -22,5 +22,10 @@ namespace FPCSharpUnity.unity.Extensions {
       modifier(cachedMpb, data);
       renderer.SetPropertyBlock(cachedMpb);
     }
+
+    public static A getPropertyValue<A>(this Renderer renderer, Func<MaterialPropertyBlock, A> get) {
+      renderer.GetPropertyBlock(cachedMpb);
+      return get(cachedMpb);
+    }
   }
 }

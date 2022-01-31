@@ -24,6 +24,7 @@ using GenerationAttributes;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.utils;
+using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine.Playables;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -661,6 +662,41 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
         if (field.hasNonEmptyAttribute && s.isEmpty()) {
           addError(() => createError.emptyString(fieldHierarchy.asString()));
+        }
+
+        
+
+        {
+          var attributes = field.fieldInfo.getAttributes<ShaderPropertyAttribute>().ToArray();
+          if (attributes.Length == 1) {
+            // This job is needed to be handled by main thread.
+            // Because we're checking from Renderer 'SharedMaterials' which can only be accessed in main thread.
+            jobController.enqueueMainThreadJob(() => validateShaderPropertyAttribute(attributes[0]));
+          }
+        }
+        
+        void validateShaderPropertyAttribute(ShaderPropertyAttribute attribute) {
+          var maybeMethod = objectBeingValidated.GetType().GetMethodInHierarchy(attribute.rendererGetter);
+          var maybeValidationError = maybeMethod.flatMap(method => {
+            if (method.GetParameters().Length == 0) {
+              var invokeReturn = method.Invoke(objectBeingValidated, null);
+              var maybeRenderer = invokeReturn.downcast(default(Renderer));
+              return ShaderUtilsEditor.validateShaderProperty(
+                maybeRenderer, shaderPropertyName: s, attribute.forType
+              );
+            }
+            else {
+              return None._;
+            }
+          });
+          
+          if (maybeValidationError.valueOut(out var validationError)) {
+            addError(() => new Error(
+              Error.Type.CustomValidationException,
+              validationError.message,
+              containingComponent
+            ));
+          }
         }
       }
 
