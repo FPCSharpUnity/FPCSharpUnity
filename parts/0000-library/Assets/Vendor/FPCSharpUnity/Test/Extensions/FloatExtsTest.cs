@@ -1,4 +1,5 @@
-﻿using FPCSharpUnity.unity.Functional;
+﻿using FPCSharpUnity.core.data;
+using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;
 using FPCSharpUnity.core.test_framework.spec;
@@ -14,11 +15,11 @@ namespace FPCSharpUnity.unity.Extensions {
 
       it["should cast number to int when it is between min and max values and has a fraction"] = () => {
         foreach (var (actual, expected) in new[] {
-          F.t(1.34f, 1),
-          F.t(2353.76f, 2353),
-          F.t(3423.111123f, 3423),
-          F.t(-234234.846f, -234234),
-          F.t(-12.0123331f, -12)
+          Tpl.a(1.34f, 1),
+          Tpl.a(2353.76f, 2353),
+          Tpl.a(3423.111123f, 3423),
+          Tpl.a(-234234.846f, -234234),
+          Tpl.a(-12.0123331f, -12)
         }) actual.toIntClamped().shouldEqual(expected);
       };
 

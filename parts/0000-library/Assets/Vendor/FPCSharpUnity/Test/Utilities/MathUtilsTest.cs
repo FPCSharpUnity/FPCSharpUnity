@@ -1,4 +1,5 @@
 ﻿using System;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;
@@ -102,21 +103,21 @@ namespace FPCSharpUnity.unity.Editor.Test.Utilities {
       }
       
       test(3, new [] {
-        F.t(-7, 2),
-        F.t(-6, 0),
-        F.t(-5, 1),
-        F.t(-4, 2),
-        F.t(-3, 0),
-        F.t(-2, 1),
-        F.t(-1, 2),
-        F.t(0, 0),
-        F.t(1, 1),
-        F.t(2, 2),
-        F.t(3, 0),
-        F.t(4, 1),
-        F.t(5, 2),
-        F.t(6, 0),
-        F.t(7, 1)
+        Tpl.a(-7, 2),
+        Tpl.a(-6, 0),
+        Tpl.a(-5, 1),
+        Tpl.a(-4, 2),
+        Tpl.a(-3, 0),
+        Tpl.a(-2, 1),
+        Tpl.a(-1, 2),
+        Tpl.a(0, 0),
+        Tpl.a(1, 1),
+        Tpl.a(2, 2),
+        Tpl.a(3, 0),
+        Tpl.a(4, 1),
+        Tpl.a(5, 2),
+        Tpl.a(6, 0),
+        Tpl.a(7, 1)
       });
     });
   }

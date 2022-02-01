@@ -22,7 +22,8 @@ using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
 using GenerationAttributes;
 using FPCSharpUnity.core.collection;
-using FPCSharpUnity.core.functional;
+ using FPCSharpUnity.core.data;
+ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine.Playables;
@@ -170,7 +171,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         scene, customValidatorOpt, 
         onProgress: onProgress, onFinish: onFinish
       );
-      return F.t(errors, stopwatch.Elapsed);
+      return Tpl.a(errors, stopwatch.Elapsed);
     }
 
     [PublicAPI]

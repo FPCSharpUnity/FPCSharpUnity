@@ -2,6 +2,7 @@
 using System.Collections;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Filesystem;
 using FPCSharpUnity.unity.Functional;
@@ -32,7 +33,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
     ) where A : Object {
       var path = loadPath.unityPath;
       IResourceRequest request = new WrappedResourceRequest(Resources.LoadAsync<A>(path));
-      return F.t(
+      return Tpl.a(
         request.upcast(default(IAsyncOperation)), 
         Future.async<Either<ErrorMsg, A>>(
           p => ASync.StartCoroutine(waitForLoadCoroutine<A>(request, p.complete, path))

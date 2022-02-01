@@ -8,6 +8,7 @@ using FPCSharpUnity.core.reactive;
 
 using NUnit.Framework;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.test_framework;
 
@@ -228,8 +229,8 @@ namespace FPCSharpUnity.unity.Concurrent {
     [Test]
     public void WhenEitherSideUnfulfilled() {
       foreach (var t in new[] {
-        F.t("X-O", Future<int>.unfulfilled, Future.successful(1)),
-        F.t("O-X", Future.successful(1), Future<int>.unfulfilled)
+        Tpl.a("X-O", Future<int>.unfulfilled, Future.successful(1)),
+        Tpl.a("O-X", Future.successful(1), Future<int>.unfulfilled)
       }) {
         var (name, fa, fb) = t;
         fa.zip(fb).shouldBeOfUnfulfilledType(name);

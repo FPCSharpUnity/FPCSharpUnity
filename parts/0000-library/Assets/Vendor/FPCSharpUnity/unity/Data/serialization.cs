@@ -57,14 +57,6 @@ namespace FPCSharpUnity.unity.Data {
       );
 #endif
     
-    public static ISerializedRW<Tpl<A, B>> tpl<A, B>(
-      this ISerializedRW<A> aRW, ISerializedRW<B> bRW
-    ) => aRW.and(bRW, F.t, t => t._1, t => t._2);
-
-    public static ISerializedRW<Tpl<A, B, C>> tpl<A, B, C>(
-      this ISerializedRW<A> aRW, ISerializedRW<B> bRW, ISerializedRW<C> cRW
-    ) => aRW.and(bRW, cRW, F.t, t => t._1, t => t._2, t => t._3);
-    
     [LazyProperty] public static ISerializedRW<BatteryStatus> batteryStatus =>
       SerializedRW.byte_.mapNoFail(b => (BatteryStatus) b, s => ((int) s).toByteClamped());
   }

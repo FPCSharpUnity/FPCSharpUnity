@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
@@ -82,7 +83,7 @@ namespace FPCSharpUnity.unity.Configuration {
     public static Tpl<UrlWithContext, Future<Either<ConfigFetchError, WWWWithHeaders>>> fetch(
       UrlWithContext urls
     ) =>
-      F.t(
+      Tpl.a(
         urls,
         new WWW(urls.url.ToString()).toFuture().asNonCancellable().map(wwwE => {
           var www = wwwE.fold(err => err.www, _ => _);

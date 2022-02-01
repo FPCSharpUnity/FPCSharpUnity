@@ -1,4 +1,5 @@
-﻿using FPCSharpUnity.core.exts;
+﻿using FPCSharpUnity.core.data;
+using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;
@@ -38,7 +39,7 @@ namespace FPCSharpUnity.unity.Concurrent {
           registry[f2] = x => result2 = x;
           f1.value.strict.forSideEffects();
           f2.strict.forSideEffects();
-          F.t(result1, result2).shouldEqual(F.t(f1.value.strict, f2.strict));
+          Tpl.a(result1, result2).shouldEqual(Tpl.a(f1.value.strict, f2.strict));
         };
       };
 

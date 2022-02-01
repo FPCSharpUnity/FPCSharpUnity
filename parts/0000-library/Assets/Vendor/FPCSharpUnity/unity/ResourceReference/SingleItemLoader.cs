@@ -6,6 +6,7 @@ using FPCSharpUnity.core.reactive;
 
 using GenerationAttributes;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
@@ -59,7 +60,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
       });
 
       currentLoader.zip(priority, request, (show, _priority, req) =>
-        F.t(show.isSome ? (_priority == LoadPriority.High ? PRIORITY_HIGH : PRIORITY_LOW) : PRIORITY_OFF, req)
+        Tpl.a(show.isSome ? (_priority == LoadPriority.High ? PRIORITY_HIGH : PRIORITY_LOW) : PRIORITY_OFF, req)
       ).subscribe(tracker, tpl => {
         var (_priority, req) = tpl;
         foreach (var r in req) {

@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;
@@ -181,13 +181,13 @@ namespace FPCSharpUnity.unity.Extensions {
     [Test]
     public void TestWhenEmpty() =>
       ImmutableList<int>.Empty
-      .zipLeft(ImmutableList<string>.Empty, F.t, (a, idx) => F.t(a, idx.ToString()))
+      .zipLeft(ImmutableList<string>.Empty, Tpl.a, (a, idx) => Tpl.a(a, idx.ToString()))
       .shouldEqual(ImmutableList<Tpl<int, string>>.Empty);
 
     [Test]
     public void TestWhenLeftEmpty() =>
       ImmutableList<int>.Empty
-      .zipLeft(ImmutableList.Create("a", "b", "c"), F.t, (a, idx) => F.t(a, idx.ToString()))
+      .zipLeft(ImmutableList.Create("a", "b", "c"), Tpl.a, (a, idx) => Tpl.a(a, idx.ToString()))
       .shouldEqual(ImmutableList<Tpl<int, string>>.Empty);
 
     [Test]
@@ -219,19 +219,19 @@ namespace FPCSharpUnity.unity.Extensions {
     [Test]
     public void TestWhenEmpty() =>
       ImmutableList<int>.Empty
-      .zipRight(ImmutableList<string>.Empty, F.t, (b, idx) => F.t(idx, b))
+      .zipRight(ImmutableList<string>.Empty, Tpl.a, (b, idx) => Tpl.a(idx, b))
       .shouldEqual(ImmutableList<Tpl<int, string>>.Empty);
 
     [Test]
     public void TestWhenLeftEmpty() =>
       ImmutableList<int>.Empty
-      .zipRight(ImmutableList.Create("a", "b", "c"), F.t, (b, idx) => F.t(idx, b))
-      .shouldEqual(ImmutableList.Create(F.t(0, "a"), F.t(1, "b"), F.t(2, "c")));
+      .zipRight(ImmutableList.Create("a", "b", "c"), Tpl.a, (b, idx) => Tpl.a(idx, b))
+      .shouldEqual(ImmutableList.Create(Tpl.a(0, "a"), Tpl.a(1, "b"), Tpl.a(2, "c")));
 
     [Test]
     public void TestWhenRightEmpty() =>
       ImmutableList.Create(1, 2, 3)
-      .zipRight(ImmutableList<string>.Empty, F.t, (b, idx) => F.t(idx, b))
+      .zipRight(ImmutableList<string>.Empty, Tpl.a, (b, idx) => Tpl.a(idx, b))
       .shouldEqual(ImmutableList<Tpl<int,string>>.Empty);
 
     [Test]

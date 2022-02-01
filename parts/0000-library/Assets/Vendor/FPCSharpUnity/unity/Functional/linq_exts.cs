@@ -1,4 +1,5 @@
 ﻿using System;
+using FPCSharpUnity.core.data;
 using JetBrains.Annotations;
 
 namespace FPCSharpUnity.unity.Functional {
@@ -23,7 +24,7 @@ namespace FPCSharpUnity.unity.Functional {
       var b = t2._2;
 
       var c = mapper(a, b);
-      return F.t(newState2, c);
+      return Tpl.a(newState2, c);
     };
   }
 

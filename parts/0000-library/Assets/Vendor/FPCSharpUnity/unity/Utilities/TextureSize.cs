@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Components.DebugConsole;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.reactive;
@@ -35,7 +35,7 @@ namespace Code.Utils {
           r.register("Max texture size", () => SystemInfo.maxTextureSize);
           r.register("Textures size info", () => {
             var all = Resources.FindObjectsOfTypeAll<Texture2D>()
-              .Select(tex => F.t(tex.name, textureSizeInBytes(tex)))
+              .Select(tex => Tpl.a(tex.name, textureSizeInBytes(tex)))
               .ToArray();
             Log.d.debug(all.Where(t => t._2 > 1024).OrderByDescending(t => t._2).Select(t => $"{t._2 / 1024,7:F0} KB [{t._1}]").asDebugString());
             return all.Select(t => t._2).Sum() / 1024 / 1024 + " MB";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.typeclasses;
@@ -50,7 +51,7 @@ namespace FPCSharpUnity.unity.Net {
         var kv = part.Split(equalsSeparator, 2);
         var key = Uri.UnescapeDataString(kv[0]);
         var value = kv.Length == 2 ? Uri.UnescapeDataString(kv[1]) : "";
-        return F.t(key, value);
+        return Tpl.a(key, value);
       }).ToImmutableList();
       return list;
     }

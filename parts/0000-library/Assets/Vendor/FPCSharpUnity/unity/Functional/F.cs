@@ -5,6 +5,7 @@ using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 

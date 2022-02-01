@@ -1,6 +1,7 @@
 ﻿using System;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Filesystem;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
@@ -71,7 +72,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
         Log.d.error(either.leftOrThrow);
         return Future<A>.unfulfilled;
       });
-      return F.t(loaded._1.upcast(default(IAsyncOperation)), valuedFuture);
+      return Tpl.a(loaded._1.upcast(default(IAsyncOperation)), valuedFuture);
     }
   }
 

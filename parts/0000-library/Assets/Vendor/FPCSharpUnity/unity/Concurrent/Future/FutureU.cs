@@ -4,6 +4,7 @@ using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Functional;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
 
@@ -32,7 +33,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       var startTime = Time.realtimeSinceStartup;
       return future.map(a => {
         var time = Time.realtimeSinceStartup - startTime;
-        return F.t(a, Duration.fromSeconds(time));
+        return Tpl.a(a, Duration.fromSeconds(time));
       });
     }
 

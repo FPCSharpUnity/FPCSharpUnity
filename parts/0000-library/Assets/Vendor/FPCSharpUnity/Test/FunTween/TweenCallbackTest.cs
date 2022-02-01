@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.reactive;
 
@@ -63,27 +64,27 @@ namespace FPCSharpUnity.unity.FunTween {
 
       [Test]
       public void zeroDurationMoveToZero() => testCallbackAtTheStartZeroDuration(
-        emptyActions.Add(F.t(0f, true, eventForwards))
+        emptyActions.Add(Tpl.a(0f, true, eventForwards))
       );
 
       [Test]
       public void zeroDurationMoveToZeroAndBackToZero() => testCallbackAtTheStartZeroDuration(
-       emptyActions.Add(F.t(0f, true, eventForwards)).Add(F.t(0f, false, eventBackwards))
+       emptyActions.Add(Tpl.a(0f, true, eventForwards)).Add(Tpl.a(0f, false, eventBackwards))
       );
 
       [Test]
       public void nonZeroDurationMoveToEndAndBackToZero() => testCallbackAtTheStartNonZeroDuration(
-        emptyActions.Add(F.t(END, true, eventForwards)).Add(F.t(0f, false, eventBackwards))
+        emptyActions.Add(Tpl.a(END, true, eventForwards)).Add(Tpl.a(0f, false, eventBackwards))
       );
 
       [Test]
       public void zeroDurationMoveTwiceForward() => testCallbackAtTheStartZeroDuration(
-        emptyActions.Add(F.t(0f, true, eventForwards)).Add(F.t(0f, true, noEvent))
+        emptyActions.Add(Tpl.a(0f, true, eventForwards)).Add(Tpl.a(0f, true, noEvent))
       );
 
       [Test]
       public void nonZeroDurationMoveToZeroAndMoveToEnd() => testCallbackAtTheStartNonZeroDuration(
-        emptyActions.Add(F.t(0f, true, eventForwards)).Add(F.t(END, true, noEvent))
+        emptyActions.Add(Tpl.a(0f, true, eventForwards)).Add(Tpl.a(END, true, noEvent))
       );
     }
 
@@ -97,17 +98,17 @@ namespace FPCSharpUnity.unity.FunTween {
 
       [Test]
       public void moveToEnd() => testCallbackAtTheEnd(
-        emptyActions.Add(F.t(END, true, eventForwards))
+        emptyActions.Add(Tpl.a(END, true, eventForwards))
       );
 
       [Test]
       public void moveToEndAndMoveBack() => testCallbackAtTheEnd(
-        emptyActions.Add(F.t(END, true, eventForwards)).Add(F.t(0f, false, eventBackwards))
+        emptyActions.Add(Tpl.a(END, true, eventForwards)).Add(Tpl.a(0f, false, eventBackwards))
       );
 
       [Test]
       public void twiceMoveToEnd() => testCallbackAtTheEnd(
-        emptyActions.Add(F.t(END, true, eventForwards)).Add(F.t(END, true, noEvent))
+        emptyActions.Add(Tpl.a(END, true, eventForwards)).Add(Tpl.a(END, true, noEvent))
       );
     }
 
@@ -121,30 +122,30 @@ namespace FPCSharpUnity.unity.FunTween {
 
       [Test]
       public void moveToAndAndMoveToZero() => testCallbackAtTheMiddle(
-         emptyActions.Add(F.t(END, true, eventForwards)).Add(F.t(0f, false, eventBackwards))
+         emptyActions.Add(Tpl.a(END, true, eventForwards)).Add(Tpl.a(0f, false, eventBackwards))
        );
 
       [Test]
       public void moveToMiddleAndMoveToZero() => testCallbackAtTheMiddle(
-        emptyActions.Add(F.t(MIDDLE, true, eventForwards)).Add(F.t(0f, false, eventBackwards))
+        emptyActions.Add(Tpl.a(MIDDLE, true, eventForwards)).Add(Tpl.a(0f, false, eventBackwards))
       );
 
       [Test]
       public void moveToMiddleAndMoveToEnd() => testCallbackAtTheMiddle(
-        emptyActions.Add(F.t(MIDDLE, true, eventForwards)).Add(F.t(END, true, noEvent))
+        emptyActions.Add(Tpl.a(MIDDLE, true, eventForwards)).Add(Tpl.a(END, true, noEvent))
       );
 
       [Test]
       public void twiceMoveToMiddle() => testCallbackAtTheMiddle(
-        emptyActions.Add(F.t(MIDDLE, true, eventForwards)).Add(F.t(MIDDLE, true, noEvent))
+        emptyActions.Add(Tpl.a(MIDDLE, true, eventForwards)).Add(Tpl.a(MIDDLE, true, noEvent))
       );
 
       [Test]
       public void moveToMiddleMoveBackByZeroMoveToEnd() => testCallbackAtTheMiddle(
         emptyActions
-        .Add(F.t(MIDDLE, true, eventForwards))
-        .Add(F.t(0f, false, eventBackwards))
-        .Add(F.t(END, true, eventForwards))
+        .Add(Tpl.a(MIDDLE, true, eventForwards))
+        .Add(Tpl.a(0f, false, eventBackwards))
+        .Add(Tpl.a(END, true, eventForwards))
       );
     }
   }
