@@ -1,7 +1,4 @@
-// We dont put this class inside editor assembly
-// So we could use references in game code with 'UNITY_EDITOR' wrapper.
 #if UNITY_EDITOR
-
 using System;
 using System.Linq;
 using FPCSharpUnity.core.exts;
@@ -12,12 +9,16 @@ using UnityEditor;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.core.Utilities {
-  public static partial class ShaderUtilsEditor {
-    // This value might be computed a lot on Editor update, So we use struct instead of class
+  /// <summary>
+  /// <b>!!! BEWARE !!!</b> This code uses Unity Editor code and if used from non-editor assembly definition
+  /// it should be used within the `#if UNITY_EDITOR` preprocessor directive!
+  /// </summary>
+  [PublicAPI] public static partial class ShaderUtilsEditor {
     /// <summary>Computed shader property from shader.</summary>
+    // This value might be computed a lot on Editor update, So we use struct instead of class
     [Record] public readonly partial struct ShaderProperty {
       public readonly string name;
-      public readonly ShaderUtilsGame.ShaderPropertyType type;
+      public readonly ShaderPropertyAttribute.Type type;
     }
     
     [Record] public readonly partial struct ShaderPropertyValidationError {
@@ -27,7 +28,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
     /// <summary>Defines from where can we compute all shader properties.</summary>
     [Matcher] public interface IComputeFromShaderProperties { }
 
-    [Record, PublicAPI] public sealed partial class ComputeFromRenderer : IComputeFromShaderProperties {
+    [Record] public sealed partial class ComputeFromRenderer : IComputeFromShaderProperties {
       public readonly Renderer a;
       // Helper method for upcasting, to avoid boxing allocation.
       public IComputeFromShaderProperties up => this;
@@ -36,7 +37,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
       public static implicit operator ComputeFromRenderer(Renderer value) => new(value);
     }
 
-    [Record, PublicAPI] public sealed partial class ComputeFromShader : IComputeFromShaderProperties {
+    [Record] public sealed partial class ComputeFromShader : IComputeFromShaderProperties {
       public readonly Shader a;
       // Helper method for upcasting, to avoid boxing allocation.
       public IComputeFromShaderProperties up => this;
@@ -46,7 +47,6 @@ namespace FPCSharpUnity.unity.core.Utilities {
     }
 
     /// <summary>Computing all properties from <see cref="IComputeFromShaderProperties"/>.</summary>
-    [PublicAPI] 
     public static ShaderProperty[] computeAllShaderProperties(IComputeFromShaderProperties computeFrom) =>
       computeFrom.match(
         computeFromRenderer: computeFromRenderer => computeAllShaderProperties(computeFromRenderer.a),
@@ -57,9 +57,8 @@ namespace FPCSharpUnity.unity.core.Utilities {
     /// Computes all shader property names of <see cref="ShaderUtil.ShaderPropertyType"/> type,
     /// from <see cref="IComputeFromShaderProperties"/>.
     /// </summary>
-    [PublicAPI] 
     public static string[] computeAllShaderPropertyNamesForType(
-      IComputeFromShaderProperties computeFrom, ShaderUtilsGame.ShaderPropertyType shaderPropertyType
+      IComputeFromShaderProperties computeFrom, ShaderPropertyAttribute.Type shaderPropertyType
     ) => computeAllShaderProperties(computeFrom)
       .Where(_ => _.type == shaderPropertyType)
       .Select(_ => _.name)
@@ -85,20 +84,17 @@ namespace FPCSharpUnity.unity.core.Utilities {
         : Array.Empty<ShaderProperty>();
     
     /// <returns>Return true if there was no errors.</returns>
-    [PublicAPI]
     public static bool validateShaderPropertyName(
       IComputeFromShaderProperties computeFrom, string shaderPropertyName
     ) => computeAllShaderProperties(computeFrom).Select(_ => _.name).Contains(shaderPropertyName);
     
-    /// <returns><see cref="validateShaderPropertyName"/></returns>
-    [PublicAPI]
+    /// <returns>See <see cref="validateShaderPropertyName"/>.</returns>
     public static bool validateShaderPropertyNameForType(
-      IComputeFromShaderProperties computeFrom, string shaderPropertyName, ShaderUtilsGame.ShaderPropertyType type
+      IComputeFromShaderProperties computeFrom, string shaderPropertyName, ShaderPropertyAttribute.Type type
     ) => computeAllShaderPropertyNamesForType(computeFrom, type).Contains(shaderPropertyName);
 
-    [PublicAPI]
     public static Option<ShaderPropertyValidationError> validateShaderProperty(
-      Option<Renderer> maybeRenderer, string shaderPropertyName, ShaderUtilsGame.ShaderPropertyType type
+      Option<Renderer> maybeRenderer, string shaderPropertyName, ShaderPropertyAttribute.Type type
     ) {
       var maybeErrorMessage =
         !maybeRenderer.valueOut(out var renderer) ? Some.a("Renderer not found.")
@@ -115,6 +111,17 @@ namespace FPCSharpUnity.unity.core.Utilities {
 
       return maybeErrorMessage.map(_ => new ShaderPropertyValidationError(_));
     }
+    
+    public static ShaderPropertyAttribute.Type toShaderUtilsGame(
+      this ShaderUtil.ShaderPropertyType shaderUtilsType
+    ) => shaderUtilsType switch {
+      ShaderUtil.ShaderPropertyType.Color => ShaderPropertyAttribute.Type.Color,
+      ShaderUtil.ShaderPropertyType.Vector => ShaderPropertyAttribute.Type.Vector,
+      ShaderUtil.ShaderPropertyType.Float or ShaderUtil.ShaderPropertyType.Range => 
+        ShaderPropertyAttribute.Type.Float,
+      ShaderUtil.ShaderPropertyType.TexEnv => ShaderPropertyAttribute.Type.Texture,
+      _ => throw shaderUtilsType.argumentOutOfRange()
+    };
   }
 }
 

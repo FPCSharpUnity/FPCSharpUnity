@@ -579,16 +579,17 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
       }
     }
   }
-
+  
   [Serializable]
   public sealed class RendererShaderPropertyFloat : SerializedTweenerFloat<Renderer> {
-#pragma warning disable 649
-  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Float)] 
-  string _shaderProperty;
-#pragma warning restore 649
+    #pragma warning disable 649
+    [
+      SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderPropertyAttribute.Type.Float)
+    ] string _shaderProperty;
+    #pragma warning restore 649
 
     Renderer getRenderer() => _target;
-
+    
     protected override float get => _target.getPropertyValue(mpb => mpb.GetFloat(_shaderProperty));
     protected override void set(float value) => _target
       .updatePropertyBlock(value, (mpb, v) => mpb.SetFloat(_shaderProperty, v));
@@ -596,10 +597,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public sealed class RendererShaderPropertyColor : SerializedTweenerColor<Renderer> {
-#pragma warning disable 649
-  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Color)] 
-  string _shaderProperty;
-#pragma warning restore 649
+    #pragma warning disable 649
+    [
+      SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderPropertyAttribute.Type.Color)
+    ] string _shaderProperty;
+    #pragma warning restore 649
 
     Renderer getRenderer() => _target;
 
@@ -610,10 +612,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public sealed class RendererShaderPropertyVector2 : SerializedTweenerVector2<Renderer> {
-#pragma warning disable 649
-  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
-  string _shaderProperty;
-#pragma warning restore 649
+    #pragma warning disable 649
+    [
+      SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderPropertyAttribute.Type.Vector)
+    ] string _shaderProperty;
+    #pragma warning restore 649
 
     Renderer getRenderer() => _target;
 
@@ -624,10 +627,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public sealed class RendererShaderPropertyVector3 : SerializedTweenerVector3<Renderer> {
-#pragma warning disable 649
-  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
-  string _shaderProperty;
-#pragma warning restore 649
+    #pragma warning disable 649
+    [
+      SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderPropertyAttribute.Type.Vector)
+    ] string _shaderProperty;
+    #pragma warning restore 649
 
     Renderer getRenderer() => _target;
 
@@ -638,10 +642,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public sealed class RendererShaderPropertyVector4 : SerializedTweenerVector4<Renderer> {
-#pragma warning disable 649
-  [SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderUtilsGame.ShaderPropertyType.Vector)] 
-  string _shaderProperty;
-#pragma warning restore 649
+    #pragma warning disable 649
+    [
+      SerializeField, ShaderProperty(rendererGetter: nameof(getRenderer), ShaderPropertyAttribute.Type.Vector)
+    ] string _shaderProperty;
+    #pragma warning restore 649
 
     Renderer getRenderer() => _target;
 
@@ -652,7 +657,6 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public class TweenManager : SerializedTweenerV2Base<FunTweenManagerV2> {
-    
 #pragma warning disable 649
     [SerializeField] bool _customDuration;
     [SerializeField] bool _reversed;
