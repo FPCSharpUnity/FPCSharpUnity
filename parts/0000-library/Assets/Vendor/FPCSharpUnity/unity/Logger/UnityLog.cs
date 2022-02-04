@@ -17,10 +17,13 @@ namespace FPCSharpUnity.unity.Logger {
     /// </summary>
     const string MESSAGE_PREFIX = "[FPC#Log]";
 
-    public static readonly UnityLog instance = new UnityLog();
-    UnityLog() {}
-    
-    [LazyProperty] static ILog log => Log.d.withScope(nameof(UnityLog));
+    public override Option<RegisterToLogRegistry> registerToRegistry { get; }
+
+    public UnityLog(Option<RegisterToLogRegistry> registerToRegistry) {
+      this.registerToRegistry = registerToRegistry;
+    }
+
+    [LazyProperty] new static ILog log => Log.d.withScope(nameof(UnityLog));
 
     protected override void logInner(LogLevel l, LogEntry entry) {
       switch (l) {

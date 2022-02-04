@@ -118,18 +118,19 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     
     public ISubscription registrarOnShow(
       ITracker tracker, string prefix, Action<DConsole, DConsoleRegistrar> action
-    ) {
+    ) =>
+      registerOnShow(tracker, console => {
+        var r = console.registrarFor(prefix, tracker, persistent: false);
+        action(console, r);
+      });
+
+    public ISubscription registerOnShow(ITracker tracker, OnShow runOnShow) {
       if (!Application.isPlaying) {
         return Subscription.empty;
       }
 
-      void onShowDo(DConsole console) {
-        var r = console.registrarFor(prefix, tracker, persistent: false);
-        action(console, r);
-      }
-      
-      var sub = new Subscription(() => onShow -= onShowDo);
-      onShow += onShowDo;
+      var sub = new Subscription(() => onShow -= runOnShow);
+      onShow += runOnShow;
       tracker.track(sub);
       return sub;
     }

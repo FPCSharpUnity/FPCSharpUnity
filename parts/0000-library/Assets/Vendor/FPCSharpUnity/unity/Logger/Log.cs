@@ -1,22 +1,21 @@
-﻿using FPCSharpUnity.unity.Components.DebugConsole;
-using FPCSharpUnity.unity.Dispose;
+﻿using System.Linq;
+using FPCSharpUnity.unity.Components.DebugConsole;
 using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
+using FPCSharpUnity.core.dispose;
+using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.utils;
 using UnityEngine;
+using static FPCSharpUnity.core.typeclasses.Str;
 using Debug = UnityEngine.Debug;
 
 namespace FPCSharpUnity.unity.Logger {
-  /**
-   * This double checks logging levels because string concatenation is more
-   * expensive than boolean check.
-   *
-   * The general rule of thumb is that if your log object doesn't need any
-   * processing you can call appropriate logging method by itself. If it does
-   * need processing, you should use `if (Log.d.isDebug()) Log.d.debug("foo=" + foo);` style.
-   **/
+  /// <summary>
+  /// Default logger for the Unity applications. You want to use <see cref="d"/> method for your logging.
+  /// </summary>
   [PublicAPI] public static class Log {
     // InitializeOnLoad is needed to set static variables on main thread.
     // FKRs work without it, but on Gummy Bear repo tests fail
@@ -32,26 +31,54 @@ namespace FPCSharpUnity.unity.Logger {
 
     static readonly bool useConsoleLog = EditorUtils.inBatchMode;
 
-    public static void registerToDConsole(DConsoleRegistrar r) => @default.registerToDConsole(r);
+    public static void registerToDConsole(ITracker tracker) {
+      var levels = EnumUtils.GetValues<LogLevel>();
+      
+      DConsole.instance.registerOnShow(tracker, console => {
+        var registered = registry.registered;
+        
+        var r = console.registrarFor("Loggers", tracker, persistent: false);
+        r.register("List all", () => registered.Select(kv => $"{s(kv.Key)}: {kv.Value.level}").mkStringEnumNewLines());
+        
+        // Render the default logger first.
+        {if (registered.TryGetValue(DEFAULT_LOGGER_NAME, out var log)) register("Default", log);}
 
-    public static void registerToDConsole(this ILog log, DConsoleRegistrar r) {
-      r.registerEnum(
-        "level",
-        Ref.a(() => log.level, v => log.level = v),
-        EnumUtils.GetValues<LogLevel>()
-      );
+        // Render other loggers
+        foreach (var (name, log) in registered.Remove(DEFAULT_LOGGER_NAME).OrderBySafe(_ => _.Key.name)) {
+          register(name.asString(), log);
+        }
+
+        void register(string name, ILogProperties log) {
+          var r = console.registrarFor($"Log: {name}", tracker, persistent: false);
+          r.registerEnum("Level", Ref.a(() => log.level, v => log.level = v), levels);
+        }
+      });
     }
+
+    static readonly LogRegistryName DEFAULT_LOGGER_NAME = new LogRegistryName(""); 
 
     static ILog _default;
     public static ILog @default {
-      get => _default ??= useConsoleLog ? (ILog) ConsoleLog.instance : UnityLog.instance;
+      get {
+        if (_default == null) {
+          var register = registry.register;
+          _default = useConsoleLog ? (ILog) new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
+          register(_default, DEFAULT_LOGGER_NAME);
+        }
+        
+        return _default;
+      }
       set => _default = value;
     }
 
+    /// <summary>The default registry that the <see cref="@default"/> logger registers to.</summary>
+    public static readonly LogRegistry registry = new LogRegistry(); 
+
     /// <summary>
-    /// Shorthand for <see cref="Log.@default"/>. Allows <code><![CDATA[
-    /// if (Log.d.isInfo) Log.d.info("foo");
-    /// ]]></code> syntax.
+    /// Shorthand for <see cref="Log.@default"/>. Allows the following syntax:
+    /// <code><![CDATA[
+    /// Log.d.mInfo("foo");
+    /// ]]></code>
     /// </summary>
     public static ILog d => @default;
   }

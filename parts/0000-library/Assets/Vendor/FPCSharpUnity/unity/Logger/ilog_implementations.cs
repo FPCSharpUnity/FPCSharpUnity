@@ -1,4 +1,5 @@
 using System;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Concurrent;
 using GenerationAttributes;
 using JetBrains.Annotations;
@@ -13,6 +14,7 @@ namespace FPCSharpUnity.unity.Logger {
    **/
   [PublicAPI] public sealed class DeferToMainThreadLog : ILog {
     readonly ILog backing;
+    public Option<RegisterToLogRegistry> registerToRegistry => backing.registerToRegistry;
 
     public DeferToMainThreadLog(ILog backing) { this.backing = backing; }
 
@@ -32,13 +34,20 @@ namespace FPCSharpUnity.unity.Logger {
   }
 
   /// <summary>
-  /// Useful for batch mode to log to the log file without the stacktraces.
+  /// Useful for batch mode to log to the log file without the stack traces.
   /// </summary>
-  [PublicAPI, Singleton] public partial class ConsoleLog : LogBase {
+  [PublicAPI] public partial class ConsoleLog : LogBase {
+    public override Option<RegisterToLogRegistry> registerToRegistry { get; }
+
+    public ConsoleLog(Option<RegisterToLogRegistry> registerToRegistry) {
+      this.registerToRegistry = registerToRegistry;
+    }
+
     protected override void logInner(LogLevel l, LogEntry entry) => Console.WriteLine(Str.s(entry));
   }
 
   [PublicAPI, Singleton] public partial class NoOpLog : LogBase {
+    public override Option<RegisterToLogRegistry> registerToRegistry => None._;
     protected override void logInner(LogLevel l, LogEntry entry) {}
   }
 }
