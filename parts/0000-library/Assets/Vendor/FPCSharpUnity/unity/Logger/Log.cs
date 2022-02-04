@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 using FPCSharpUnity.unity.Components.DebugConsole;
 using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
@@ -31,11 +33,17 @@ namespace FPCSharpUnity.unity.Logger {
 
     static readonly bool useConsoleLog = EditorUtils.inBatchMode;
 
-    public static void registerToDConsole(ITracker tracker) {
+    /// <summary>Registers loggers to DConsole using the default registry.</summary>
+    public static void registerToDConsole(ITracker tracker) =>
+      registerToDConsole(tracker, () => registry.registered);
+    
+    public static void registerToDConsole(
+      ITracker tracker, Func<ImmutableDictionary<LogRegistryName, ILogProperties>> getRegistered
+    ) {
       var levels = EnumUtils.GetValues<LogLevel>();
       
       DConsole.instance.registerOnShow(tracker, console => {
-        var registered = registry.registered;
+        var registered = getRegistered();
 
         {
           var r = console.registrarFor("Loggers", tracker, persistent: false);
