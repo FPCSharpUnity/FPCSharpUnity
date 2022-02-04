@@ -36,33 +36,30 @@ namespace FPCSharpUnity.unity.Logger {
       
       DConsole.instance.registerOnShow(tracker, console => {
         var registered = registry.registered;
-        
-        var r = console.registrarFor("Loggers", tracker, persistent: false);
-        r.register("List all", () => registered.Select(kv => $"{s(kv.Key)}: {kv.Value.level}").mkStringEnumNewLines());
-        
-        // Render the default logger first.
-        {if (registered.TryGetValue(DEFAULT_LOGGER_NAME, out var log)) register("Default", log);}
 
-        // Render other loggers
-        foreach (var (name, log) in registered.Remove(DEFAULT_LOGGER_NAME).OrderBySafe(_ => _.Key.name)) {
-          register(name.asString(), log);
+        {
+          var r = console.registrarFor("Loggers", tracker, persistent: false);
+          r.register("List all", () => 
+            registered.OrderBySafe(_ => s(_.Key)).Select(kv => $"{s(kv.Key)}: {kv.Value.level}").mkStringEnumNewLines()
+          );
         }
 
-        void register(string name, ILogProperties log) {
-          var r = console.registrarFor($"Log: {name}", tracker, persistent: false);
+        // Render other loggers
+        foreach (var (name, log) in registered) {
+          var r = console.registrarFor($"Log: {s(name)}", tracker, persistent: false);
           r.registerEnum("Level", Ref.a(() => log.level, v => log.level = v), levels);
         }
       });
     }
 
-    static readonly LogRegistryName DEFAULT_LOGGER_NAME = new LogRegistryName(""); 
+    static readonly LogRegistryName DEFAULT_LOGGER_NAME = new LogRegistryName("Default"); 
 
     static ILog _default;
     public static ILog @default {
       get {
         if (_default == null) {
           var register = registry.register;
-          _default = useConsoleLog ? (ILog) new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
+          _default = useConsoleLog ? new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
           register(_default, DEFAULT_LOGGER_NAME);
         }
         
