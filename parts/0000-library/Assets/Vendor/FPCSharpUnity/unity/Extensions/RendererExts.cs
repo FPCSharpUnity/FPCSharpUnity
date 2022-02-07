@@ -26,6 +26,9 @@ namespace FPCSharpUnity.unity.Extensions {
     public delegate void SetPropertyValue<in A>(
       MaterialPropertyBlock materialPropertyBlock, string shaderPropertyName, A value
     );
+
+    /// <summary><see cref="SetPropertyValue{A}"/> without the shader property name parameter.</summary>
+    public delegate void SetPropertyValue2<in A>(MaterialPropertyBlock materialPropertyBlock, A value);
     
     /// <summary>
     /// You will probably invoke this on Unity <see cref="IMB_Update"/> callback, so make sure to not allocate a
@@ -39,6 +42,18 @@ namespace FPCSharpUnity.unity.Extensions {
     ) {
       renderer.GetPropertyBlock(cachedMpb);
       set(cachedMpb, shaderPropertyName, data);
+      renderer.SetPropertyBlock(cachedMpb);
+    }
+
+    /// <summary>
+    /// <see cref="updatePropertyBlock{A}(Renderer,string,A,SetPropertyValue{A})"/> when the shader property name is
+    /// statically known and does not have to passed into the <see cref="set"/> function.
+    /// </summary>
+    public static void updatePropertyBlock<A>(
+      this Renderer renderer, A data, SetPropertyValue2<A> set
+    ) {
+      renderer.GetPropertyBlock(cachedMpb);
+      set(cachedMpb, data);
       renderer.SetPropertyBlock(cachedMpb);
     }
     
