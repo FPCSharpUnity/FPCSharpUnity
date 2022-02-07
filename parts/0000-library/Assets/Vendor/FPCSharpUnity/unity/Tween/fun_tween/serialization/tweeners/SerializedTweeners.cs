@@ -590,9 +590,9 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 
     Renderer getRenderer() => _target;
     
-    protected override float get => _target.getPropertyValue(mpb => mpb.GetFloat(_shaderProperty));
-    protected override void set(float value) => _target
-      .updatePropertyBlock(value, (mpb, v) => mpb.SetFloat(_shaderProperty, v));
+    protected override float get => _target.getPropertyValue(_shaderProperty, static (mpb, prop) => mpb.GetFloat(prop));
+    protected override void set(float value) => 
+      _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetFloat(prop, v));
   }
   
   [Serializable]
@@ -605,9 +605,9 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 
     Renderer getRenderer() => _target;
 
-    protected override Color get => _target.getPropertyValue(mpb => mpb.GetColor(_shaderProperty));
-    protected override void set(Color value) => _target
-      .updatePropertyBlock(value, (mpb, v) => mpb.SetColor(_shaderProperty, v));
+    protected override Color get => _target.getPropertyValue(_shaderProperty, static (mpb, prop) => mpb.GetColor(prop));
+    protected override void set(Color value) => 
+      _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetColor(prop, v));
   }
   
   [Serializable]
@@ -620,9 +620,9 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 
     Renderer getRenderer() => _target;
 
-    protected override Vector2 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
-    protected override void set(Vector2 value) => _target
-      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
+    protected override Vector2 get => _target.getPropertyValue(_shaderProperty, static (mpb, prop) => mpb.GetVector(prop));
+    protected override void set(Vector2 value) => 
+      _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetVector(prop, v));
   }
   
   [Serializable]
@@ -635,9 +635,9 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 
     Renderer getRenderer() => _target;
 
-    protected override Vector3 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
-    protected override void set(Vector3 value) => _target
-      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
+    protected override Vector3 get => _target.getPropertyValue(_shaderProperty, static (mpb, prop) => mpb.GetVector(prop));
+    protected override void set(Vector3 value) => 
+      _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetVector(prop, v));
   }
   
   [Serializable]
@@ -650,9 +650,9 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
 
     Renderer getRenderer() => _target;
 
-    protected override Vector4 get => _target.getPropertyValue(mpb => mpb.GetVector(_shaderProperty));
-    protected override void set(Vector4 value) => _target
-      .updatePropertyBlock(value, (mpb, v) => mpb.SetVector(_shaderProperty, v));
+    protected override Vector4 get => _target.getPropertyValue(_shaderProperty, static (mpb, prop) => mpb.GetVector(prop));
+    protected override void set(Vector4 value) => 
+      _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetVector(prop, v));
   }
   
   [Serializable]
