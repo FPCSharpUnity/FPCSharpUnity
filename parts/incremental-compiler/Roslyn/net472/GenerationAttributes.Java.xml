@@ -9,7 +9,7 @@
             When added on a C# interface [CS_interface]:
             1. Generates identical interface in java with all the methods.
             2. Generates a class named [CS_interface]Proxy that implements the generated java interface.
-            Generated class extends tlplib.JavaListenerProxy
+            Generated class extends FPCSharpUnity.core.JavaListenerProxy
             </summary>
         </member>
         <member name="F:GenerationAttributes.JavaListenerInterfaceAttribute.Module">
