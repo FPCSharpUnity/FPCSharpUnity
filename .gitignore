@@ -14,5 +14,5 @@ obj
 # Intellij IDEA
 .idea
 
-/parts/incremental-compiler/Roslyn/net472/CodeGeneratorSob.*
-/parts/incremental-compiler/Roslyn/net472/sob.codegen.attributes.*
+/parts/incremental-compiler/Roslyn/net472/CodeGenerator.FPCSharpUnity.*
+/parts/incremental-compiler/Roslyn/net472/FPCSharpUnity.core.macros.*
