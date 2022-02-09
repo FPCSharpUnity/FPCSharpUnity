@@ -17,6 +17,23 @@
             ]]></code>
             </summary>
         </member>
+        <member name="T:GenerationAttributes.RecordType">
+            <summary>
+            Helper enum that represents different presets of <see cref="T:GenerationAttributes.RecordAttribute"/> configuration.
+            <br/>
+            If you want a default preset, then you should pass nothing to a <see cref="T:GenerationAttributes.RecordAttribute"/> constructor;
+            </summary>
+        </member>
+        <member name="F:GenerationAttributes.RecordType.ConstructorDefault">
+            <summary>
+            Generates only constructor, copy constructors, withers (<see cref="F:GenerationAttributes.ConstructorFlags.Default"/>)
+            </summary>
+        </member>
+        <member name="F:GenerationAttributes.RecordType.ConstructorOnly">
+            <summary>
+            Generates only constructor (<see cref="F:GenerationAttributes.ConstructorFlags.Constructor"/>)
+            </summary>
+        </member>
         <member name="P:GenerationAttributes.RecordAttribute.ExcludeNames">
             <summary>
             Array of names (field names and property names) to exclude from the generated Record code.
