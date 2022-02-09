@@ -17,6 +17,18 @@
             ]]></code>
             </summary>
         </member>
+        <member name="P:GenerationAttributes.RecordAttribute.ExcludeNames">
+            <summary>
+            Array of names (field names and property names) to exclude from the generated Record code.
+            <br/>
+            If this array contains at leas 1 element and the Record attribute is applied on a struct,
+            then the generated constructor will also call the default constructor.
+            <para/>
+            Excluded names will not be used anywhere: constructor, ToString, GetHashCode, comparer, etc...
+            <para/>
+            Alternatively, you can use <see cref="T:GenerationAttributes.RecordExcludeAttribute"/> instead of this array.
+            </summary>
+        </member>
         <member name="T:GenerationAttributes.RecordExcludeAttribute">
             <summary>
             Add this to a field or a property to exclude a member from getting included in the Record partials generation.
