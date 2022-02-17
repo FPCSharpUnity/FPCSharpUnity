@@ -65,5 +65,12 @@ namespace FPCSharpUnity.unity.Components.dispose {
     public static IDisposableTracker asDisposableTracker(this GameObject o) =>
       // If we're not in the play mode we don't want to instantiate any components.
       Application.isPlaying ? o.EnsureComponent<GameObjectDisposeTracker>() : NoOpDisposableTracker.instance;
+    
+    /// <summary>
+    /// As <see cref="asDisposableTracker"/> but you are only supposed to invoke this from <see cref="IMB_Awake"/>.
+    /// </summary>
+    public static IDisposableTracker asDisposableTrackerFromAwake(this GameObject o) =>
+      // If we're not in the play mode we don't want to instantiate any components.
+      Application.isPlaying ? o.EnsureComponent<GameObjectDisposeTracker>() : NoOpDisposableTracker.instance;
   }
 }
