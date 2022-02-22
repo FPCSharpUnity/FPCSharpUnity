@@ -38,34 +38,31 @@ namespace FPCSharpUnity.unity.Extensions {
       main.startColor = color;
     }
 
-    /// <summary>Actions for controlling <see cref="ParticleSystem"/>s 'Play' and 'Stop'.</summary>
-    public enum Control : byte {
-      /// <summary>Plays particle system with children, <see cref="ParticleSystem.Play()"/>.</summary>
-      Play, 
-      /// <summary>Stops particle system with children, <see cref="ParticleSystem.Stop()"/>.</summary>
-      Stop
+    /// <summary>
+    /// Checks <see cref="ParticleSystem"/>'s <see cref="ParticleSystem.isPlaying"/> before calling
+    /// <see cref="ParticleSystem.Play()"/> or <see cref="ParticleSystem.Stop()"/>
+    /// Only plays the system if it is not currently playing.
+    /// Only stops the system if it is currently playing.
+    /// </summary>
+    public static void setPlaying(this ParticleSystem particleSystem, bool playing, bool withChildren = true) {
+      if (playing) {
+        if (!particleSystem.isPlaying) {
+          particleSystem.Play(withChildren: withChildren);
+        }
+      }
+      else {
+        if (particleSystem.isPlaying) {
+          particleSystem.Stop(withChildren: withChildren);
+        }
+      }
     }
 
-    public static Control toParticleSystemControl(this bool enabled) => enabled ? Control.Play : Control.Stop;
-
     /// <summary>
-    /// Use this when you want to avoid multiple <see cref="ParticleSystem.Play()"/> or <see cref="ParticleSystem.Stop()"/>
-    /// calls on update, for this '<see cref="particleSystem"/>'.
+    /// <see cref="ParticleSystemExts.setPlaying(ParticleSystem, bool, bool)"/>
     /// </summary>
-    public static void handleOnUpdate(this ParticleSystem particleSystem, Control control) {
-      switch (control) {
-        case Control.Play:
-          if (!particleSystem.isPlaying) {
-            particleSystem.Play();
-          }
-          break;
-        case Control.Stop:
-          if (particleSystem.isPlaying) {
-            particleSystem.Stop();
-          }
-          break;
-        default:
-          throw control.argumentOutOfRange();
+    public static void setPlaying(this ParticleSystem[] particleSystems, bool playing, bool withChildren = true) {
+      foreach (var particleSystem in particleSystems) {
+        particleSystem.setPlaying(playing: playing, withChildren: withChildren);
       }
     }
   }
