@@ -13,9 +13,12 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     public static A withScene<A>(ScenePath scenePath, Func<Scene, A> f) {
       var isLoaded = SceneManagerUtils.loadedScenes.Any(s => s.path == scenePath);
       var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
-      var ret = f(scene);
-      if (!isLoaded) SceneManager.UnloadSceneAsync(scene);
-      return ret;
+      try {
+        return f(scene);
+      }
+      finally {
+        if (!isLoaded) SceneManager.UnloadSceneAsync(scene);
+      }
     }
 
     public static B withSceneObject<A, B>(
