@@ -191,7 +191,8 @@
                  Type, public = true, private = true, protected = true, instance = true, static = false
                  include_base_types = false, include_base_interfaces = false
                ): Property[]</li>
-               <li><b>type_get_field</b>(Type, string): Field - gets field of a Type by field name</li>
+               <li><b>type_get_field</b>(Type, string): Field - gets field of a Type by a field name</li>
+               <li><b>type_get_property</b>(Type, string): Property - gets property of a Type by a property name</li>
                <li><b>type_get_full_metadata_name</b>(Type): string - gets full metadata name that can be used in find_type method. Implementation taken from here https://stackoverflow.com/questions/27105909/get-fully-qualified-metadata-name-in-roslyn</li>
                <li><b>type_get_descendants_in_assembly</b>(type Type, typeForAssembly Type = null, collectIndirectDescendants = false): Type[]<br />
              Gets all descendant types that are contained in a single assembly.<br />
