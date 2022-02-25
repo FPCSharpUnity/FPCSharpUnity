@@ -169,9 +169,8 @@
              You can use capture feature of scriban engine to do that conveniently
              https://github.com/scriban/scriban/blob/master/doc/language.md#96-capture-variable--end
                </li>
-               <li><b>add_interface</b>(string): void -
-             adds an interface to a generated partial class
-               </li>
+               <li><b>add_interface</b>(string): void - adds an interface to a generated partial class</li>
+               <li><b>add_using</b>(string): void - adds `using` directive to the generated file</li>
                <li><b>rename</b>(string): string - renames the string according to public accessor naming rules</li>
                <li><b>fdqn_last</b>(string): string</li>
                <li><b>type_arguments</b>(Type): Type[] - array of generic arguments if they exist on this type</li>
