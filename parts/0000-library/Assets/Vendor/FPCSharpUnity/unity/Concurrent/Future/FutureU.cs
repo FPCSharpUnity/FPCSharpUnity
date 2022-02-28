@@ -1,11 +1,16 @@
 using System;
 using System.Collections;
+using System.Runtime.CompilerServices;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Functional;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.data;
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.reactive;
+using GenerationAttributes;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
@@ -15,6 +20,21 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     public static Future<A> delayFrames<A>(int framesToSkip, A value) =>
       Future.a<A>(p => ASync.AfterXFrames(framesToSkip, () => p.complete(value)));
+    
+    public static Future<A> delayFrames<A>(ITracker tracker, int framesToSkip, Func<A> createValue) =>
+      Future.a<A>(p => tracker.track(ASync.AfterXFrames(framesToSkip, () => p.complete(createValue()))));
+
+    public static Future<A> delayFrames<A>(ITracker tracker, int framesToSkip, A value) =>
+      Future.a<A>(p => tracker.track(ASync.AfterXFrames(framesToSkip, () => p.complete(value))));
+
+    // TODO doc or self explaining?
+    public static Future<A> delayOneFrame<A>(A value) => delayFrames(1, value);
+    public static Future<A> delayOneFrame<A>(Func<A> createValue) => delayFrames(1, createValue);
+    public static Future<Unit> delayOneFrame() => delayOneFrame(Unit._);
+    
+    public static Future<A> delayOneFrame<A>(ITracker tracker, A value) => delayFrames(tracker, 1, value);
+    public static Future<A> delayOneFrame<A>(ITracker tracker, Func<A> createValue) => delayFrames(tracker, 1, createValue);
+    public static Future<Unit> delayOneFrame(ITracker tracker) => delayOneFrame(tracker, Unit._);
       
     public static Future<bool> fromCoroutine(IEnumerator enumerator) =>
       Future.fromCoroutine(ASync.StartCoroutine(enumerator));
@@ -52,5 +72,25 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
       p.complete(F.unit);
     }
+    
+    /// <summary>
+    /// Emitted events are delayed by one frame, using <see cref="ASync"/> which is tracked by <see cref="tracker"/>.
+    /// </summary>
+    public static ISubscription subscribeWithOneFrameDelayUnity<A>(
+      this IRxObservable<A> observable,
+      ITracker tracker,
+      Action<A> onEvent,
+      [CallerMemberName] string callerMemberName = "",
+      [CallerFilePath] string callerFilePath = "",
+      [CallerLineNumber] int callerLineNumber = 0,
+      [Implicit] ILog log=default
+    ) => observable.subscribeWithSubTracker(
+      tracker: tracker,
+      onChange: (a, subTracker) => delayOneFrame(subTracker).onComplete(_ => onEvent(a)),
+      // ReSharper disable ExplicitCallerInfoArgument
+      callerMemberName: callerMemberName, callerFilePath: callerFilePath,
+      callerLineNumber: callerLineNumber
+      // ReSharper restore ExplicitCallerInfoArgument
+    );
   }
 }
