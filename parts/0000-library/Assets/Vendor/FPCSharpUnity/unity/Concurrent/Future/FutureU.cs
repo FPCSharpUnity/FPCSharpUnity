@@ -27,7 +27,6 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static Future<A> delayFrames<A>(ITracker tracker, int framesToSkip, A value) =>
       Future.a<A>(p => tracker.track(ASync.AfterXFrames(framesToSkip, () => p.complete(value))));
 
-    // TODO doc or self explaining?
     public static Future<A> delayOneFrame<A>(A value) => delayFrames(1, value);
     public static Future<A> delayOneFrame<A>(Func<A> createValue) => delayFrames(1, createValue);
     public static Future<Unit> delayOneFrame() => delayOneFrame(Unit._);
