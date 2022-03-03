@@ -1,9 +1,10 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
   public static class FloatExts {
-    public static int roundToInt(this float number) => Mathf.RoundToInt(number);
+    public static int roundToInt(this float number) => (int) Math.Round(number);
 
     [PublicAPI] public static int toIntClamped(this float number) {
       if (number > int.MaxValue) return int.MaxValue;
@@ -14,7 +15,7 @@ namespace FPCSharpUnity.unity.Extensions {
     [PublicAPI] public static byte roundToByteClamped(this float number) {
       if (number > byte.MaxValue) return byte.MaxValue;
       if (number < byte.MinValue) return byte.MinValue;
-      return (byte) Mathf.RoundToInt(number);
+      return (byte) Math.Round(number);
     }
 
     public static bool approx0(this float number) => Mathf.Approximately(number, 0);
