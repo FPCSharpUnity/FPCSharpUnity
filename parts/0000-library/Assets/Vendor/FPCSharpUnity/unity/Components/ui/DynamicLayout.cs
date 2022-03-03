@@ -15,6 +15,7 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Functional;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -140,7 +141,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         RectTransform _container, RectTransform _maskRect,
         IEnumerable<IElementData> layoutData,
         bool isHorizontal,
-        ITracker dt,
+        ITracker tracker,
         bool renderLatestItemsFirst = false
       ) {
         this._container = _container;
@@ -152,10 +153,10 @@ namespace FPCSharpUnity.unity.Components.ui {
         // When we add elements to layout and enable it on the same frame,
         // layout does not work correctly due to rect sizes == 0.
         // Unable to solve this properly. NextFrame is a workaround.
-        _container.gameObject.EnsureComponent<OnEnableForwarder>().onEvent.subscribe(dt,
+        _container.gameObject.EnsureComponent<OnEnableForwarder>().onEvent.subscribe(tracker,
           _ => onEnable(_container.gameObject)
         );
-        dt.track(clearLayout);
+        tracker.track(clearLayout);
 
         var mask = _maskRect;
 
@@ -172,7 +173,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         var rectTransformAxis = isHorizontal
           ? RectTransform.Axis.Horizontal
           : RectTransform.Axis.Vertical;
-        maskSize.zip(containerSizeInScrollableAxis, (_, size) => size).subscribe(dt, size => {
+        maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (_, size) => {
           _container.SetSizeWithCurrentAnchors(rectTransformAxis, size);
           clearLayout();
           updateLayout();

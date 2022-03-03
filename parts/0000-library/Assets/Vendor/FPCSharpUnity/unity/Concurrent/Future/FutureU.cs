@@ -27,6 +27,9 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static Future<A> delayFrames<A>(ITracker tracker, int framesToSkip, A value) =>
       Future.a<A>(p => tracker.track(ASync.AfterXFrames(framesToSkip, () => p.complete(value))));
 
+    public static Future<Unit> delayFrames(ITracker tracker, int framesToSkip) =>
+      Future.a<Unit>(p => tracker.track(ASync.AfterXFrames(framesToSkip, () => p.complete(Unit._))));
+
     public static Future<A> delayOneFrame<A>(A value) => delayFrames(1, value);
     public static Future<A> delayOneFrame<A>(Func<A> createValue) => delayFrames(1, createValue);
     public static Future<Unit> delayOneFrame() => delayOneFrame(Unit._);
@@ -75,9 +78,10 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <summary>
     /// Emitted events are delayed by one frame, using <see cref="ASync"/> which is tracked by <see cref="tracker"/>.
     /// </summary>
-    public static ISubscription subscribeWithOneFrameDelayUnity<A>(
+    public static ISubscription subscribeWithXFrameDelayUnity<A>(
       this IRxObservable<A> observable,
       ITracker tracker,
+      int framesToDelay,
       Action<A> onEvent,
       [CallerMemberName] string callerMemberName = "",
       [CallerFilePath] string callerFilePath = "",
@@ -85,7 +89,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       [Implicit] ILog log=default
     ) => observable.subscribeWithSubTracker(
       tracker: tracker,
-      onChange: (a, subTracker) => delayOneFrame(subTracker).onComplete(_ => onEvent(a)),
+      onChange: (a, subTracker) => delayFrames(subTracker, framesToDelay).onComplete(_ => onEvent(a)),
       // ReSharper disable ExplicitCallerInfoArgument
       callerMemberName: callerMemberName, callerFilePath: callerFilePath,
       callerLineNumber: callerLineNumber
