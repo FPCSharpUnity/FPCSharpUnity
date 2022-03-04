@@ -10,7 +10,7 @@ namespace FPCSharpUnity.unity.editor {
   /// A simple GUI table drawer.
   /// Usage:
   ///   1. Provide column widths in the constructor.
-  ///      Last column will scale down if it is too big.
+  ///      Last column will scale down if it is too big. (beware, you can't use int.MaxValue here!)
   ///      It will draw a vertical separator line between each cell.
   ///   2. Call <see cref="beginRow"/> before every table row.
   ///   3. Call <see cref="beginCell"/> before every cell.

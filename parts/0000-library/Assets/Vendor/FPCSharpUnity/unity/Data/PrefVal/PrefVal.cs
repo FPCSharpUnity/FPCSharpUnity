@@ -1,4 +1,5 @@
 ﻿using System;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.caching;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.reactive;
@@ -19,9 +20,24 @@ namespace FPCSharpUnity.unity.Data {
   /// <summary>PlayerPrefs backed value.</summary>
   public interface PrefVal<A> : IRxRef<A>, ICachedBlob<A>, InspectablePrefVal {}
 
-  public interface PrefValDictionary<Key, Value> {
-    [PublicAPI] bool hasKey(Key key);
-    [PublicAPI] PrefVal<Value> get(Key key);
+  /// <summary>
+  /// Allows you to have a dictionary-like interface to <see cref="PrefVal{A}"/>.
+  /// </summary>
+  [PublicAPI] public interface PrefValDictionary<in Key, Value> {
+    /// <summary>Returns true if such <see cref="PrefVal{A}"/> has previously been initialized.</summary>
+    bool hasKey(Key key);
+    
+    /// <summary>Initializes and returns the <see cref="PrefVal{A}"/> for the given <see cref="Key"/>.</summary>
+    PrefVal<Value> this[Key key] { get; }
+  }
+
+  public static class PrefValDictionaryExts {
+    /// <summary>
+    /// As <see cref="PrefValDictionary{Key,Value}.this"/>, but only returns Some if
+    /// <see cref="PrefValDictionary{Key,Value}.hasKey"/> would return true.
+    /// </summary>
+    public static Option<PrefVal<Value>> get<Key, Value>(this PrefValDictionary<Key, Value> dict, Key key) =>
+      dict.hasKey(key) ? Some.a(dict[key]) : None._;
   }
 
   public static class PrefVal {
