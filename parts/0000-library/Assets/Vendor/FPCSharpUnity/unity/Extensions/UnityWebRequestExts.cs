@@ -13,13 +13,23 @@ namespace FPCSharpUnity.unity.Extensions {
     [PublicAPI]
     public static Future<Either<WebRequestError, byte[]>> downloadToRam(
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
+    ) => downloadToRamHandler(req, acceptedResponseCodes).mapT(static _ => _.data);
+
+    [PublicAPI]
+    public static Future<Either<WebRequestError, string>> downloadToRamText(
+      this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
+    ) => downloadToRamHandler(req, acceptedResponseCodes).mapT(static _ => _.text);
+    
+    [PublicAPI]
+    public static Future<Either<WebRequestError, DownloadHandlerBuffer>> downloadToRamHandler(
+      UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
     ) {
       var handler = 
         req.downloadHandler is DownloadHandlerBuffer h 
           ? h 
           : new DownloadHandlerBuffer();
       req.downloadHandler = handler;
-      return req.toFuture(acceptedResponseCodes, _ => handler.data);
+      return req.toFuture(acceptedResponseCodes, _ => handler);
     }
 
     [PublicAPI]
