@@ -60,7 +60,7 @@ namespace FPCSharpUnity.unity.Logger {
       });
     }
 
-    static readonly LogRegistryName DEFAULT_LOGGER_NAME = new LogRegistryName("Default"); 
+    public static readonly LogRegistryName DEFAULT_LOGGER_NAME = new LogRegistryName("Default"); 
 
     static ILog _default;
     public static ILog @default {
@@ -68,7 +68,9 @@ namespace FPCSharpUnity.unity.Logger {
         if (_default == null) {
           var register = registry.register;
           _default = useConsoleLog ? new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
-          register(_default, DEFAULT_LOGGER_NAME);
+          // First subscribe and only then register, because subscription listens to the registration.
+          LogLevelControl.subscribeToApplyOverridenLevels(registry, Some.a(_default));
+          register(new(_default, DEFAULT_LOGGER_NAME));
         }
         
         return _default;

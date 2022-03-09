@@ -127,14 +127,16 @@ namespace FPCSharpUnity.unity.Data {
 
     public bool hasKey(K key) => cache.ContainsKey(key) || storage.hasKey(stringKey(key));
 
-    public PrefVal<V> get(K key) {
-      if (cache.TryGetValue(key, out var prefVal)) {
-        return prefVal;
-      }
-      else {
-        prefVal = storage.custom(stringKey(key), defaultValue, vRw, onDeserializeFailure, log);
-        cache.Add(key, prefVal);
-        return prefVal;
+    public PrefVal<V> this[K key] {
+      get {
+        if (cache.TryGetValue(key, out var prefVal)) {
+          return prefVal;
+        }
+        else {
+          prefVal = storage.custom(stringKey(key), defaultValue, vRw, onDeserializeFailure, log);
+          cache.Add(key, prefVal);
+          return prefVal;
+        }
       }
     }
   }

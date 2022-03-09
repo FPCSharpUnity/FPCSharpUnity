@@ -76,6 +76,7 @@ namespace FPCSharpUnity.unity.Utilities {
     public static IEnumerable<AssetPath> allWithExtension(string extension) =>
       Directory.EnumerateFiles("Assets", $"*.{extension}", SearchOption.AllDirectories).Select(s => new AssetPath(s));
 
+    public static IEnumerable<AssetPath> allScriptableObjects => allWithExtension("asset");
     public static IEnumerable<AssetPath> allScenes => allWithExtension("unity");
     public static IEnumerable<AssetPath> allPrefabs => allWithExtension("prefab");
     public static IEnumerable<AssetPath> allMaterials => allWithExtension("mat");
