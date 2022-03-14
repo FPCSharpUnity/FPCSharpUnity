@@ -36,9 +36,13 @@ namespace FPCSharpUnity.unity.Extensions {
 
     [PublicAPI]
     public static Future<Either<WebRequestError, Texture2D>> downloadTextureToRam(
-      this Uri url, AcceptedResponseCodes acceptedResponseCodes
-    ) => UnityWebRequestTexture
-      .GetTexture(url)
-      .toFuture(acceptedResponseCodes, static _ => DownloadHandlerTexture.GetContent(_));
+      this Uri uri, AcceptedResponseCodes acceptedResponseCodes
+    ) {
+      var downloadHandlerTexture = new DownloadHandlerTexture(); 
+      var req = new UnityWebRequest(
+        uri, "GET", downloadHandler: downloadHandlerTexture, uploadHandler: null
+      );
+      return req.toFuture(acceptedResponseCodes, _ => downloadHandlerTexture.texture);
+    }
   }
 }
