@@ -40,7 +40,7 @@ namespace FPCSharpUnity.unity.Extensions {
     ) {
       var downloadHandlerTexture = new DownloadHandlerTexture(); 
       var req = new UnityWebRequest(
-        uri, "GET", downloadHandler: downloadHandlerTexture, uploadHandler: null
+        uri, UnityWebRequest.kHttpVerbGET, downloadHandler: downloadHandlerTexture, uploadHandler: null
       );
       return req.toFuture(acceptedResponseCodes, _ => downloadHandlerTexture.texture);
     }
