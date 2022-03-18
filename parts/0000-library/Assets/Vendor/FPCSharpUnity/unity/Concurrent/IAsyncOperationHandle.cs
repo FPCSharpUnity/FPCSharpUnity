@@ -118,7 +118,7 @@ namespace FPCSharpUnity.unity.Concurrent {
   }
   
 #region implementations
-  [Record] sealed partial class HandleStatusOnRelease {
+  [Record] public sealed partial class HandleStatusOnRelease {
     public readonly AsyncOperationStatus status;
     public readonly float percentComplete;
     public readonly DownloadStatus downloadStatus;
