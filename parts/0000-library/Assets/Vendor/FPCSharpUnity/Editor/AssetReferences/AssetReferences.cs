@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -21,22 +22,31 @@ using ImmutableList = System.Collections.Immutable.ImmutableList;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
   public partial class AssetReferences {
+    public readonly int workers;
+    public readonly bool useExtraResolvers;
+    
     public readonly Dictionary<string, HashSet<string>> parents = new();
     public readonly Dictionary<string, HashSet<string>> children = new();
     readonly Dictionary<string, string> pathToGuid = new();
     public string scanDuration = "";
 
-    AssetReferences() {}
+    AssetReferences(int workers, bool useExtraResolvers) {
+      this.workers = workers;
+      this.useExtraResolvers = useExtraResolvers;
+    }
 
     public static AssetReferences a(
-      AssetUpdate data, int workers, Ref<float> progress, ILog log
+      AssetUpdate data, Ref<float> progress, ILog log, bool useExtraResolvers
     ) {
-      var refs = new AssetReferences();
+      // It runs slower if we use too many threads ¯\_(ツ)_/¯
+      var workers = Math.Min(Environment.ProcessorCount, 10);
+      
+      var refs = new AssetReferences(workers, useExtraResolvers);
       var sw = Stopwatch.StartNew();
       process(
         data, workers,
         pathToGuid: refs.pathToGuid, parents: refs.parents, children: refs.children,
-        progress: progress, log: log
+        progress: progress, log: log, useResolvers: refs.useExtraResolvers
       );
       refs.scanDuration = sw.Elapsed.ToString();
       return refs;
@@ -51,11 +61,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         RegexOptions.Compiled | RegexOptions.Multiline
       );
 
-    public void update(AssetUpdate data, int workers, Ref<float> progress, ILog log) {
+    public void update(AssetUpdate data, Ref<float> progress, ILog log) {
       process(
         data, workers,
         pathToGuid: pathToGuid, parents: parents, children: children,
-        progress: progress, log: log
+        progress: progress, log: log, useResolvers: useExtraResolvers
       );
     }
 
@@ -72,6 +82,31 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <returns>guids for resources where given guid is used</returns>
     public System.Collections.Immutable.ImmutableList<Chain> findParentResources(string guid) => 
       findParentX(guid, path => path.ToLowerInvariant().Contains("/resources/"));
+
+    /// <summary>
+    /// Given an object GUID find all children that are referenced by this object, either directly or indirectly.
+    /// </summary>
+    /// <returns>Guids of children assets, including the current asset passed as a parameter.</returns>
+    public ImmutableArray<string> findAllChildren(string guid, Func<string, bool> shouldConsiderPath) {
+      var visited = new HashSet<string>();
+      var q = new Queue<string>();
+      q.Enqueue(guid);
+      var res = ImmutableArray.CreateBuilder<string>();
+      while (q.Count > 0) {
+        var currentGuid = q.Dequeue();
+        if (visited.Contains(currentGuid)) continue;
+        visited.Add(currentGuid);
+        res.Add(currentGuid);
+        var path = AssetDatabase.GUIDToAssetPath(currentGuid);
+        if (!shouldConsiderPath(path)) continue;
+        if (children.TryGetValue(currentGuid, out var currentChildren)) {
+          foreach (var child in currentChildren) {
+            if (!visited.Contains(child)) q.Enqueue(child);
+          }
+        }
+      }
+      return res.ToImmutable();
+    }
 
     [Record] public sealed partial class Chain {
       public readonly NonEmpty<System.Collections.Immutable.ImmutableList<string>> guids;
@@ -123,7 +158,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       Dictionary<string, string> pathToGuid,
       Dictionary<string, HashSet<string>> parents,
       Dictionary<string, HashSet<string>> children,
-      Ref<float> progress, ILog log
+      Ref<float> progress, ILog log,
+      bool useResolvers
     ) {
       progress.value = 0;
       Func<string, bool> predicate = p => {
@@ -153,7 +189,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = workers },
         localInit: () => new List<ParseFileResult>(), 
         body: (added, loopState, results) => {
-          if (parseFileOptimized(log, added).valueOut(out var parseResult)) {
+          if (parseFileOptimized(log, added, useResolvers: useResolvers).valueOut(out var parseResult)) {
             results.Add(parseResult);
           }
           // parseFile(pathToGuid, log, added, updatedChildren);
@@ -244,7 +280,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <summary>
     /// Optimized version of <see cref="parseFileUnoptimized"/>. This works at least 10x faster.
     /// </summary>
-    static Option<ParseFileResult> parseFileOptimized(ILog log, string assetPath) {
+    static Option<ParseFileResult> parseFileOptimized(ILog log, string assetPath, bool useResolvers) {
       if (!getGuid(assetPath, out var guid, out var metaFileContentsBuffer, log)) return None._;
 
       var guidsInFile = new HashSet<string>();
@@ -261,7 +297,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         var length = readAllBytesFast(assetPath, ref buffer);
         var simpleBuffer = new SimpleBuffer(buffer, length);
         parseBufferLocally(simpleBuffer, guidsInFile);
-        parseBufferWithResolvers(simpleBuffer, guidsInFile);
+        if (useResolvers) {
+          parseBufferWithResolvers(simpleBuffer, guidsInFile);
+        }
 
         parseFileOptimized_bufferCache.Value = buffer;
       }

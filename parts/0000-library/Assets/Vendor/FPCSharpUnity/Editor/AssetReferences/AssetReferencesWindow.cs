@@ -31,9 +31,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       if (!AssetReferencesWindow.enabled.value) return;
 
       var data = new AssetUpdate(
-        importedAssets.ToImmutableList(),
-        deletedAssets.ToImmutableList(),
-        movedFromAssetPaths.zip(movedAssets, (i1, i2) => new AssetUpdate.Move(i1, i2)).ToImmutableList()
+        importedAssets.ToImmutableArray(),
+        deletedAssets.ToImmutableArray(),
+        movedFromAssetPaths.zip(movedAssets, (i1, i2) => new AssetUpdate.Move(i1, i2)).ToImmutableArray()
       );
 
       AssetReferencesWindow.processFiles(data);
@@ -64,7 +64,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       enabledSubscription = enabled.subscribe(NoOpDisposableTracker.instance, b => {
         if (b) {
           refsOpt = None._;
-          processFiles(AssetUpdate.fromAllAssets(AssetDatabase.GetAllAssetPaths().ToImmutableList()));
+          processFiles(AssetUpdate.fromAllAssets(AssetDatabase.GetAllAssetPaths().ToImmutableArray()));
         }
       });
     }
@@ -96,12 +96,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         processing = true;
         needsRepaint = true;
 
-        // It runs slower if we use too many threads ¯\_(ツ)_/¯
-        var workers = Math.Min(Environment.ProcessorCount, 10);
-
         refsOpt.voidFold(
-          () => refsOpt = AssetReferences.a(data, workers, progress, log).some(),
-          refs => refs.update(data, workers, progress, log)
+          () => refsOpt = AssetReferences.a(data, progress, log, useExtraResolvers: true).some(),
+          refs => refs.update(data, progress, log)
         );
       }
       finally {
