@@ -190,11 +190,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       op.completed += operation => {
         var responseCode = req.responseCode;
         if (
-#if UNITY_2018_2_OR_NEWER
-          req.isNetworkError
-#else
-          req.isError
-#endif
+          req.result == UnityWebRequest.Result.ConnectionError
         ) {
           var msg = $"error: {req.error}, response code: {responseCode}";
           var url = new Url(req.url);

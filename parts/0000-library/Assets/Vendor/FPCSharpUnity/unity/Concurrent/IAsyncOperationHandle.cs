@@ -243,6 +243,24 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     public void release() { if (onRelease.valueOut(out var action)) action(); }
   }
+  
+  public sealed class FutureAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
+    readonly Future<A> future;
+
+    public FutureAsyncOperationHandle(Future<A> future) => this.future = future;
+
+    public override string ToString() => 
+      $"{nameof(FutureAsyncOperationHandle<A>)}({future.echo()})";
+
+    public AsyncOperationStatus Status => IsDone ? AsyncOperationStatus.Succeeded : AsyncOperationStatus.None;
+    public bool IsDone => future.isCompleted;
+    public float PercentComplete => IsDone ? 1 : 0;
+    public DownloadStatus downloadStatus => new DownloadStatus { IsDone = IsDone };
+
+    public Future<Try<A>> asFuture => future.map(Try.value);
+
+    public void release() {  }
+  }
 
   [Singleton] public sealed partial class DoneAsyncOperationHandle : IAsyncOperationHandle<Unit> {
     public AsyncOperationStatus Status => AsyncOperationStatus.Succeeded;
