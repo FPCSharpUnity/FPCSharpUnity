@@ -13,9 +13,52 @@ using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace FPCSharpUnity.unity.Concurrent {
+  /// <summary>
+  /// Options for IAsyncOperations status values
+  /// </summary>
+  public enum AsyncOperationStatus
+  {
+    /// <summary>
+    /// Use to indicate that the operation is still in progress.
+    /// </summary>
+    None,
+    /// <summary>
+    /// Use to indicate that the operation succeeded.
+    /// </summary>
+    Succeeded,
+    /// <summary>
+    /// Use to indicate that the operation failed.
+    /// </summary>
+    Failed
+  }
+  
+  /// <summary>
+  /// Contains download information for async operations.
+  /// </summary>
+  public struct DownloadStatus
+  {
+    /// <summary>
+    /// The number of bytes downloaded by the operation and all of its dependencies.
+    /// </summary>
+    public long TotalBytes;
+    /// <summary>
+    /// The total number of bytes needed to download by the operation and dependencies.
+    /// </summary>
+    public long DownloadedBytes;
+
+    /// <summary>
+    /// Is the operation completed.  This is used to determine if the computed Percent should be 0 or 1 when TotalBytes is 0.
+    /// </summary>
+    public bool IsDone;
+        
+    /// <summary>
+    /// Returns the computed percent complete as a float value between 0 &amp; 1.  If TotalBytes == 0, 1 is returned.
+    /// </summary>
+    public float Percent => (TotalBytes > 0) ? ((float)DownloadedBytes / (float)TotalBytes) : (IsDone ? 1.0f : 0f);
+  }
+  
   [PublicAPI] public interface IAsyncOperationHandle<A> {
     AsyncOperationStatus Status { get; }
     bool IsDone { get; }
@@ -66,26 +109,6 @@ namespace FPCSharpUnity.unity.Concurrent {
   }
   
   [PublicAPI] public static class IAsyncOperationHandleExts {
-    public static IAsyncOperationHandle<A> wrap<A>(
-      this AsyncOperationHandle<A> handle,
-      Action<AsyncOperationHandle<A>> release
-    ) => new WrappedAsyncOperationHandle<A>(handle, release);
-    
-    public static IAsyncOperationHandle<A> wrap<A>(
-      this AsyncOperationHandle<A> handle,
-      Action<A> onSuccess,
-      Action<AsyncOperationHandle<A>> release
-    ) {
-      var result = new WrappedAsyncOperationHandle<A>(handle, release);
-      result.asFuture.onSuccess(onSuccess);
-      return result;
-    }
-
-    public static IAsyncOperationHandle<object> wrap(
-      this AsyncOperationHandle handle, 
-      Action<AsyncOperationHandle> release
-    ) => new WrappedAsyncOperationHandle(handle, release);
-    
     public static IAsyncOperationHandle<B> map<A, B>(
       this IAsyncOperationHandle<A> handle, Func<A, IAsyncOperationHandle<A>, B> mapper
     ) => new MappedAsyncOperationHandle<A, B>(handle, a => mapper(a, handle));
@@ -124,60 +147,6 @@ namespace FPCSharpUnity.unity.Concurrent {
     public readonly DownloadStatus downloadStatus;
 
     public bool isDone => status != AsyncOperationStatus.None;
-  }
-
-  public sealed partial class WrappedAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
-    readonly AsyncOperationHandle<A> handle;
-    readonly Action<AsyncOperationHandle<A>> _release;
-
-    Option<HandleStatusOnRelease> released = None._;
-    
-    public WrappedAsyncOperationHandle(
-      AsyncOperationHandle<A> handle, Action<AsyncOperationHandle<A>> release
-    ) {
-      this.handle = handle;
-      _release = release;
-    }
-
-    public AsyncOperationStatus Status => released.valueOut(out var r) ? r.status : handle.Status;
-    public bool IsDone => released.valueOut(out var r) ? r.isDone : handle.IsDone;
-    public float PercentComplete => released.valueOut(out var r) ? r.percentComplete : handle.PercentComplete;
-    public DownloadStatus downloadStatus => released.valueOut(out var r) ? r.downloadStatus : handle.GetDownloadStatus();
-    [LazyProperty] public Future<Try<A>> asFuture => handle.toFuture().map(h => h.toTry());
-
-    public void release() {
-      if (released) return;
-      var data = new HandleStatusOnRelease(handle.Status, handle.PercentComplete, handle.GetDownloadStatus());
-      _release(handle);
-      released = Some.a(data);
-    }
-  }
-  
-  public sealed class WrappedAsyncOperationHandle : IAsyncOperationHandle<object> {
-    readonly AsyncOperationHandle handle;
-    readonly Action<AsyncOperationHandle> _release;
-
-    Option<HandleStatusOnRelease> released = None._;
-    
-    public WrappedAsyncOperationHandle(
-      AsyncOperationHandle handle, Action<AsyncOperationHandle> release
-    ) {
-      this.handle = handle;
-      _release = release;
-    }
-
-    public AsyncOperationStatus Status => released.valueOut(out var r) ? r.status : handle.Status;
-    public bool IsDone => released.valueOut(out var r) ? r.isDone : handle.IsDone;
-    public float PercentComplete => released.valueOut(out var r) ? r.percentComplete : handle.PercentComplete;
-    public DownloadStatus downloadStatus => released.valueOut(out var r) ? r.downloadStatus : handle.GetDownloadStatus();
-    public Future<Try<object>> asFuture => handle.toFuture().map(h => h.toTry());
-
-    public void release() {
-      if (released) return;
-      var data = new HandleStatusOnRelease(handle.Status, handle.PercentComplete, handle.GetDownloadStatus());
-      _release(handle);
-      released = Some.a(data);
-    }
   }
 
   public sealed class MappedAsyncOperationHandle<A, B> : IAsyncOperationHandle<B> {
