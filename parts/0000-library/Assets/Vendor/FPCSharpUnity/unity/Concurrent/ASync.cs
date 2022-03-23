@@ -207,7 +207,10 @@ namespace FPCSharpUnity.unity.Concurrent {
           foreach (var header in req.GetResponseHeaders()) {
             extrasB.Add(KV.a(header.Key, header.Value));
           }
-          extrasB.Add(KV.a("response-text", req.downloadHandler.text));
+          // DownloadHandlerAssetBundle does not support text access.
+          if (req.downloadHandler != null && req.downloadHandler is not DownloadHandlerAssetBundle) {
+            extrasB.Add(KV.a("response-text", req.downloadHandler.text));
+          }
           req.Dispose();
           promise.complete(new WebRequestError(url, new LogEntry(
             $"Received response code {responseCode} was not in {acceptedResponseCodes}",
