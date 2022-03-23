@@ -42,11 +42,11 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <summary>
     /// The number of bytes downloaded by the operation and all of its dependencies.
     /// </summary>
-    public long TotalBytes;
+    public ulong TotalBytes;
     /// <summary>
     /// The total number of bytes needed to download by the operation and dependencies.
     /// </summary>
-    public long DownloadedBytes;
+    public ulong DownloadedBytes;
 
     /// <summary>
     /// Is the operation completed.  This is used to determine if the computed Percent should be 0 or 1 when TotalBytes is 0.
@@ -57,6 +57,19 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// Returns the computed percent complete as a float value between 0 &amp; 1.  If TotalBytes == 0, 1 is returned.
     /// </summary>
     public float Percent => (TotalBytes > 0) ? ((float)DownloadedBytes / (float)TotalBytes) : (IsDone ? 1.0f : 0f);
+
+    public DownloadStatus(ulong downloaded, ulong total, bool isDone) {
+      TotalBytes = total;
+      DownloadedBytes = downloaded;
+      IsDone = isDone;
+    }
+
+    public static DownloadStatus done = new DownloadStatus(0, 0, true);
+
+    public DownloadStatus add(DownloadStatus other) =>
+      new DownloadStatus(
+        DownloadedBytes + other.DownloadedBytes, TotalBytes + other.TotalBytes, IsDone && other.IsDone
+      );
   }
   
   [PublicAPI] public interface IAsyncOperationHandle<A> {
