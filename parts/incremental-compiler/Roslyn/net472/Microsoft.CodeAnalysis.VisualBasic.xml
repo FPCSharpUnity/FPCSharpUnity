@@ -66731,6 +66731,9 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ParseTokens(System.String,System.Int32,System.Int32,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)">
  <summary>
  Parse tokens in the input.
+ Since this API does not create a <see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/> that owns all produced tokens,
+ the <see cref="M:Microsoft.CodeAnalysis.SyntaxToken.GetLocation"/> API may yield surprising results for
+ the produced tokens and its behavior is generally unspecified.
  </summary>
  <param name="text">The input string</param>
  <param name="offset">The starting offset in the string</param>

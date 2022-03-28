@@ -356,22 +356,36 @@
             closely as possible.
             </summary>
         </member>
-        <member name="T:Microsoft.CodeAnalysis.CommandLine.FileMutex">
+        <member name="T:Microsoft.CodeAnalysis.CommandLine.ServerFileMutex">
             <summary>
-            An interprocess mutex abstraction based on OS advisory locking (FileStream.Lock/Unlock).
+            An interprocess mutex abstraction based on file sharing permission (FileShare.None).
             If multiple processes running as the same user create FileMutex instances with the same name,
              those instances will all point to the same file somewhere in a selected temporary directory.
-            The TryLock method can be used to attempt to acquire the mutex, with Unlock or Dispose used to release.
+            The TryLock method can be used to attempt to acquire the mutex, with Dispose used to release.
+            The CouldLock method can be used to check whether an attempt to acquire the mutex would have
+             succeeded at the current time, without actually acquiring it.
             Unlike Win32 named mutexes, there is no mechanism for detecting an abandoned mutex. The file
              will simply revert to being unlocked but remain where it is.
             </summary>
         </member>
-        <member name="T:Microsoft.CodeAnalysis.CommandLine.ServerFileMutexPair">
+        <member name="M:Microsoft.CodeAnalysis.CommandLine.ServerFileMutex.LockGuard">
             <summary>
-            Approximates a named mutex with 'locked', 'unlocked' and 'abandoned' states.
-            There is no reliable way to detect whether a mutex has been abandoned on some target platforms,
-             so we use the AliveMutex to manually track whether the creator of a mutex is still running,
-             while the HeldMutex represents the actual lock state of the mutex.
+            Acquire the guard by opening the guard file with FileShare.None.  The guard must only ever
+            be held for very brief amounts of time, so we can simply spin until it is acquired.  The
+            guard must be released by disposing the FileStream returned from this routine.  Note the
+            guard file is never deleted; this is a leak, but only of a single file.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CommandLine.ServerFileMutex.TryLockFile">
+            <summary>
+            Attempt to acquire the lock by opening the lock file with FileShare.None.  Sets "Stream"
+            and returns true if successful, returns false if the lock is already held by another
+            thread or process.  Guard must be held when calling this routine.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CommandLine.ServerFileMutex.UnlockFile">
+            <summary>
+            Release the lock by deleting the lock file and disposing "Stream".
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CommandLine.ExitingTraceListener">
