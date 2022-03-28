@@ -40,13 +40,13 @@ namespace FPCSharpUnity.unity.Concurrent {
   [Record]
   public partial struct DownloadStatus {
     /// <summary>
-    /// The number of bytes downloaded by the operation and all of its dependencies.
-    /// </summary>
-    public readonly ulong totalBytes;
-    /// <summary>
     /// The total number of bytes needed to download by the operation and dependencies.
     /// </summary>
     public readonly ulong downloadedBytes;
+    /// <summary>
+    /// The number of bytes downloaded by the operation and all of its dependencies.
+    /// </summary>
+    public readonly ulong totalBytes;
     /// <summary>
     /// Is the operation completed. This is used to determine if the computed Percent should be 0 or 1 when TotalBytes is 0.
     /// </summary>
