@@ -4,7 +4,6 @@ using FPCSharpUnity.core.functional;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
-
   [PublicAPI]
   public static class VectorExts {
     public static Vector2 withX(this Vector2 v, float x) => new Vector2(x, v.y);
@@ -34,6 +33,10 @@ namespace FPCSharpUnity.unity.Extensions {
     public static Vector3 addX(this Vector3 v, float x) => new Vector3(v.x + x, v.y, v.z);
     public static Vector3 addY(this Vector3 v, float y) => new Vector3(v.x, v.y + y, v.z);
     public static Vector3 addZ(this Vector3 v, float z) => new Vector3(v.x, v.y, v.z + z);
+    
+    public static Vector3 multiplyX(this Vector3 v, float x) => new Vector3(v.x * x, v.y, v.z);
+    public static Vector3 multiplyY(this Vector3 v, float y) => new Vector3(v.x, v.y * y, v.z);
+    public static Vector3 multiplyZ(this Vector3 v, float z) => new Vector3(v.x, v.y, v.z * z);
 
     public static Vector3 multiply(this Vector3 v, Vector3 v2) => new Vector3(v.x * v2.x, v.y * v2.y, v.z * v2.z);
     public static Vector3 divide(this Vector3 v, Vector3 v2) => new Vector3(v.x / v2.x, v.y / v2.y, v.z / v2.z);
@@ -112,5 +115,8 @@ namespace FPCSharpUnity.unity.Extensions {
       return Quaternion.EulerAngles(0, 0, v.atan2());
 #pragma warning restore 618
     }
+
+    public static Vector3 toVector3XY(this Vector2 v, float z = 0) => new Vector3(v.x, v.y, z);
+    public static Vector3 toVector3XZ(this Vector2 v, float y = 0) => new Vector3(v.x, y, v.y);
   }
 }

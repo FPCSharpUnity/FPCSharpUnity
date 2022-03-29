@@ -1,1 +1,0 @@
-Each MonoBehaviour has to be in it's own separate file, otherwise you can't use it in Unity.
