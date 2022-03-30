@@ -190,9 +190,16 @@ namespace FPCSharpUnity.unity.Concurrent {
       op.completed += operation => {
         var responseCode = req.responseCode;
         if (
-          req.result == UnityWebRequest.Result.ConnectionError
+          req.result 
+            is UnityWebRequest.Result.ConnectionError
+            or UnityWebRequest.Result.ProtocolError
+            or UnityWebRequest.Result.DataProcessingError
         ) {
-          var msg = $"error: {req.error}, response code: {responseCode}";
+          var handlerError =
+            req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
+              ? $", download handler error: {req.downloadHandler.error}"
+              : "";
+          var msg = $"result: {req.result}, error: {req.error}{handlerError}, response code: {responseCode}";
           var url = new Url(req.url);
           promise.complete(
             responseCode == 0 && req.error == "Unknown Error"
