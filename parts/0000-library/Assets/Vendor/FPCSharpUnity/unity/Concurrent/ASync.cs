@@ -195,6 +195,9 @@ namespace FPCSharpUnity.unity.Concurrent {
             or UnityWebRequest.Result.ProtocolError
             or UnityWebRequest.Result.DataProcessingError
         ) {
+          // https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
+          // When a UnityWebRequest ends with the result, DataProcessingError, the message describing the error is in
+          // the download handler.
           var handlerError =
             req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
               ? $", download handler error: {req.downloadHandler.error}"
