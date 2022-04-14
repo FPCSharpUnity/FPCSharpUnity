@@ -1,32 +1,9 @@
-﻿using System;
+﻿using FPCSharpUnity.core.macros;
+using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Data {
-  /// <summary>Path to an asset path.</summary>
-  public readonly struct AssetPath : IEquatable<AssetPath> {
+  /// <summary>Asset path relative to Unity project directory.</summary>
+  [Record(RecordType.ConstructorOnly), NewTypeImplicitTo] public readonly partial struct AssetPath {
     public readonly string path;
-    public AssetPath(string path) { this.path = path; }
-
-    #region Equality
-
-    public bool Equals(AssetPath other) {
-      return string.Equals(path, other.path);
-    }
-
-    public override bool Equals(object obj) {
-      if (ReferenceEquals(null, obj)) return false;
-      return obj is AssetPath && Equals((AssetPath) obj);
-    }
-
-    public override int GetHashCode() {
-      return (path != null ? path.GetHashCode() : 0);
-    }
-
-    public static bool operator ==(AssetPath left, AssetPath right) { return left.Equals(right); }
-    public static bool operator !=(AssetPath left, AssetPath right) { return !left.Equals(right); }
-
-    #endregion
-
-    public override string ToString() => $"{nameof(AssetPath)}({path})";
-    public static implicit operator string(AssetPath path) => path.path;
   }
 }
