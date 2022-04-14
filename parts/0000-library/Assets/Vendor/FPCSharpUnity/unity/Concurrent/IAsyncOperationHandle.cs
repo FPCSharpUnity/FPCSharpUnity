@@ -11,6 +11,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
@@ -37,7 +38,7 @@ namespace FPCSharpUnity.unity.Concurrent {
   /// Contains download information for async operations.
   /// </summary>
   [Record]
-  public partial struct DownloadStatus {
+  public readonly partial struct DownloadStatus {
     /// <summary>
     /// The total number of bytes needed to download by the operation and dependencies.
     /// </summary>
@@ -55,8 +56,19 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// </summary>
     public float percent => (totalBytes > 0) ? ((float) downloadedBytes / totalBytes) : (isDone ? 1.0f : 0f);
 
-    public static DownloadStatus done = new DownloadStatus(0, 0, true);
+    /// <summary>Creates a status where 0 out of 0 bytes has been downloaded and the download is marked as done.</summary>
+    public static DownloadStatus done = zero(isDone: true);
+    
+    /// <summary>Creates a status where 0 out of 0 bytes has been downloaded.</summary>
     public static DownloadStatus zero(bool isDone) => new DownloadStatus(0, 0, isDone);
+    
+    public static readonly Semigroup<DownloadStatus> semigroup = Semigroup.lambda<DownloadStatus>((a, b) => 
+      new DownloadStatus(
+        downloadedBytes: a.downloadedBytes + b.downloadedBytes,
+        totalBytes: a.totalBytes + b.totalBytes,
+        isDone: a.isDone && b.isDone
+      )
+    );
   }
   
   [PublicAPI] public interface IAsyncOperationHandle<A> {
@@ -74,12 +86,7 @@ namespace FPCSharpUnity.unity.Concurrent {
   }
 
   public static class DownloadStatusExts {
-    public static DownloadStatus join(this DownloadStatus a, DownloadStatus b) =>
-      new DownloadStatus (
-        downloadedBytes: a.downloadedBytes + b.downloadedBytes,
-        totalBytes: a.totalBytes + b.totalBytes,
-        isDone: a.isDone && b.isDone
-      );
+    public static DownloadStatus join(this DownloadStatus a, DownloadStatus b) => DownloadStatus.semigroup.add(a, b);
 
     public static string debugStr(this DownloadStatus ds) =>
       $"{ds.downloadedBytes}/{ds.totalBytes} bytes ({ds.percent * 100} %), isDone = {ds.isDone}";
@@ -262,12 +269,21 @@ namespace FPCSharpUnity.unity.Concurrent {
     public void release() {  }
   }
 
-  [Singleton] public sealed partial class DoneAsyncOperationHandle : IAsyncOperationHandle<Unit> {
+  public static class DoneAsyncOperationHandle {
+    public static readonly ConstantAsyncOperationHandle<Unit> instance = new(Unit._);
+  }
+
+  /// <summary>
+  /// Turns a value that we already have into <see cref="IAsyncOperationHandle{A}"/>.
+  /// </summary>
+  [Record(GenerateConstructor = ConstructorFlags.Constructor | ConstructorFlags.Apply)]
+  public sealed partial class ConstantAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
+    public readonly A value;
+    
     public AsyncOperationStatus status => AsyncOperationStatus.Succeeded;
-    public bool isDone => true;
     public float percentComplete => 1;
-    public DownloadStatus downloadStatus => DownloadStatus.zero(isDone);
-    public Future<Try<Unit>> asFuture => Future.successful(Try.value(Unit._));
+    public DownloadStatus downloadStatus => DownloadStatus.zero(isDone: true);
+    public Future<Try<A>> asFuture => Future.successful(Try.value(value));
     public void release() {}
   }
 
