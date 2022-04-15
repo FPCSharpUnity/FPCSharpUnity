@@ -19,6 +19,7 @@ using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Editor.extensions;
 using UnityEditor;
+using static FPCSharpUnity.core.typeclasses.Str;
 using ImmutableList = System.Collections.Immutable.ImmutableList;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
@@ -60,7 +61,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         pathToGuid: refs.pathToGuid, parents: refs.parents, children: refs.children,
         progress: progress, log: log, useResolvers: refs.useExtraResolvers
       );
-      refs.scanDuration = sw.Elapsed.ToString();
+      refs.scanDuration = s(sw.Elapsed);
       return refs;
     }
 
@@ -422,7 +423,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         return false;
       }
 
-      var metaPath = $"{assetPath}.meta";
+      var metaPath = $"{s(assetPath)}.meta";
       if (File.Exists(metaPath)) {
         metaFileContents = File.ReadAllBytes(metaPath);
         var fileContents = Encoding.ASCII.GetString(metaFileContents);
