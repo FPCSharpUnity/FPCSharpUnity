@@ -19,13 +19,12 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace FPCSharpUnity.unity.Concurrent {
-  public static partial class ASync {
+  [PublicAPI] public static partial class ASync {
     static ASyncHelperBehaviourEmpty coroutineHelper(GameObject go) =>
       go.EnsureComponent<ASyncHelperBehaviourEmpty>();
 
     static ASyncHelperBehaviour _behaviour;
 
-    [PublicAPI]
     public static ASyncHelperBehaviour behaviour { get {
       if (
 #if !UNITY_EDITOR
@@ -179,22 +178,21 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
     }
 
-    /// <summary>Turn this request to future. Automatically cleans up the request.</summary>
-    [PublicAPI]
-    public static Future<Either<WebRequestError, A>> toFuture<A>(
+    /// <summary>
+    /// Turn this request to future. Automatically cleans up the request. Allows you to cancel the request by invoking
+    /// the returned <see cref="IO{A}"/>.
+    /// </summary>
+    public static (Future<Either<WebRequestError, A>> future, IO<Unit> cancel) toFutureCancellable<A>(
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes, 
       Func<UnityWebRequest, A> onSuccess
     ) {
       var f = Future.async<Either<WebRequestError, A>>(out var promise);
       var op = req.SendWebRequest();
+      // Was `req.Dispose()` invoked?
+      var reqDisposed = false;
       op.completed += operation => {
         var responseCode = req.responseCode;
-        if (
-          req.result 
-            is UnityWebRequest.Result.ConnectionError
-            or UnityWebRequest.Result.ProtocolError
-            or UnityWebRequest.Result.DataProcessingError
-        ) {
+        if (req.result != UnityWebRequest.Result.Success) {
           // https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
           // When a UnityWebRequest ends with the result, DataProcessingError, the message describing the error is in
           // the download handler.
@@ -205,11 +203,11 @@ namespace FPCSharpUnity.unity.Concurrent {
           var msg = $"result: {req.result}, error: {req.error}{handlerError}, response code: {responseCode}";
           var url = new Url(req.url);
           promise.complete(
-            responseCode == 0 && req.error == "Unknown Error"
-              ? new WebRequestError(url, new NoInternetError(msg))
-              : new WebRequestError(url, LogEntry.simple(msg))
+            req.error == "User Aborted" ? new WebRequestError(url, new UserAborted(msg))
+            : responseCode == 0 && req.error == "Unknown Error" ? new WebRequestError(url, new NoInternetError(msg))
+            : new WebRequestError(url, LogEntry.simple(msg))
           );
-          req.Dispose();
+          disposeReq();
         }
         else if (!acceptedResponseCodes.contains(responseCode)) {
           var url = new Url(req.url); // Capture URL before disposing
@@ -221,7 +219,7 @@ namespace FPCSharpUnity.unity.Concurrent {
           if (req.downloadHandler != null && req.downloadHandler is not DownloadHandlerAssetBundle) {
             extrasB.Add(KV.a("response-text", req.downloadHandler.text));
           }
-          req.Dispose();
+          disposeReq();
           promise.complete(new WebRequestError(url, new LogEntry(
             $"Received response code {responseCode} was not in {acceptedResponseCodes}",
             extras: extrasB.toImmutableArrayC()
@@ -229,14 +227,34 @@ namespace FPCSharpUnity.unity.Concurrent {
         }
         else {
           var a = onSuccess(req);
-          req.Dispose();
+          disposeReq();
           promise.complete(a);
         }
       };
-      return f;
+      var cancel = IO.a(() => {
+        // Only do something if the request is not already disposed of.
+        if (!reqDisposed) {
+          // Aborted UnityWebRequests are considered to have encountered a system error. Either the isNetworkError or
+          // the isHttpError property will return true and the error property will be "User Aborted".
+          //
+          // https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Abort.html
+          op.webRequest.Abort();
+        }
+      });
+      return (f, cancel);
+
+      void disposeReq() {
+        req.Dispose();
+        reqDisposed = true;
+      }
     }
 
-    [PublicAPI]
+    /// <summary>Turn this request to future. Automatically cleans up the request.</summary>
+    public static Future<Either<WebRequestError, A>> toFuture<A>(
+      this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes,
+      Func<UnityWebRequest, A> onSuccess
+    ) => req.toFutureCancellable(acceptedResponseCodes, onSuccess).future;
+
     public static Future<Either<LogEntry, A>> toFutureSimple<A>(
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes, Func<UnityWebRequest, A> onSuccess
     ) => req.toFuture(acceptedResponseCodes, onSuccess).map(_ => _.mapLeft(err => err.simplify));
@@ -265,7 +283,6 @@ namespace FPCSharpUnity.unity.Concurrent {
     }
 
     /// <summary>Runs action forever every frame.</summary>
-    [PublicAPI]
     public static IEnumerator everyFrameEnumerator(Action action) {
       while (true) {
         action();
@@ -325,7 +342,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <summary>
     /// Split running action over collection over N chunks separated by a given yield instruction.
     /// </summary>
-    [PublicAPI] public static IEnumerator overNYieldInstructions<A>(
+    public static IEnumerator overNYieldInstructions<A>(
       ICollection<A> collection, int n, Action<A, int> onA, YieldInstruction instruction = null
     ) {
       var chunkSize = collection.Count / n;
