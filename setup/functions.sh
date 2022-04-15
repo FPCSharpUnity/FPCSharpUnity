@@ -84,6 +84,43 @@ END {
   mv -f "$gi_gen" "$gi"
 }
 
+dircopy() {
+  local name="$1"
+  mkdir -p `dirname "$name"`
+
+  local information_file="$name/_ATTENTION.txt"
+
+  if [[ -L "$name" ]]
+  then
+    echo "Going to remove junction '$name'"
+    if [[ "$OS" == *Windows* ]]; then
+      junction -d "$name"
+    else 
+      rm "$name"
+    fi
+  fi
+
+  test -e "$name" && {
+    if [[ -e $information_file ]]
+    then 
+      # If information_file exists, we delete the folder without informing the user.
+    else
+      # User is informed bedore deleting the folder. 
+      ls -la "$name"
+      notif "Going to remove '$name'"
+    fi
+    rm -rfv "$name"
+  }
+
+  if [ "$opt_clean" != "1" ]; then
+    cp -rfv "$libsrc/$name" "$name"
+    echo 'This directory is copied from '$libsrc\/$name'.
+It will be deleted next time you run setup.sh' > $information_file
+  fi
+
+  add_setup_file "$name"
+}
+
 dirlink() {
   local name="$1"
   mkdir -p `dirname "$name"`
