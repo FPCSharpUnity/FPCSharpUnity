@@ -22,13 +22,13 @@ namespace FPCSharpUnity.unity.Data {
   }
   
   /// <summary>Unity reported that we do not have an internet connection.</summary>
-  [Record(RecordType.ConstructorOnly)] public readonly partial struct NoInternetError {
+  [Record(ConstructorFlags.Constructor)] public readonly partial struct NoInternetError {
     /// <summary>Detailed message about the request for debugging.</summary>
     public readonly string message;
   }
   
   /// <summary>Unity reported that <see cref="UnityWebRequest.Abort"/> was called.</summary>
-  [Record(RecordType.ConstructorOnly)] public readonly partial struct UserAborted {
+  [Record(ConstructorFlags.Constructor)] public readonly partial struct UserAborted {
     /// <summary>Detailed message about the request for debugging.</summary>
     public readonly string message;
   }

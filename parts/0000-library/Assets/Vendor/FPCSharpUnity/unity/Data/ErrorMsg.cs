@@ -6,7 +6,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 
 namespace FPCSharpUnity.unity.Data {
-  [Record(GenerateConstructor = ConstructorFlags.None)]
+  [Record(ConstructorFlags.None)]
   public readonly partial struct ErrorMsg {
     [PublicAPI] public readonly string s;
     /// <see cref="LogEntry.reportToErrorTracking"/>

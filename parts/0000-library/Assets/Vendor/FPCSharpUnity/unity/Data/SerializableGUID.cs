@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace FPCSharpUnity.unity.Data {
-  [Serializable, InlineProperty, Record(GenerateConstructor = ConstructorFlags.None, GenerateToString = false)]
+  [Serializable, InlineProperty, Record(ConstructorFlags.None, GenerateToString = false)]
   public partial class SerializableGUID {
     [SerializeField, FormerlySerializedAs("long1"), HideInInspector, PublicAccessor] ulong _long1;
     [SerializeField, FormerlySerializedAs("long2"), HideInInspector, PublicAccessor] ulong _long2;

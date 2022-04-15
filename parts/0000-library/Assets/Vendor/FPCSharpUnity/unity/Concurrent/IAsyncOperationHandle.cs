@@ -276,7 +276,7 @@ namespace FPCSharpUnity.unity.Concurrent {
   /// <summary>
   /// Turns a value that we already have into <see cref="IAsyncOperationHandle{A}"/>.
   /// </summary>
-  [Record(GenerateConstructor = ConstructorFlags.Constructor | ConstructorFlags.Apply)]
+  [Record(ConstructorFlags.Constructor | ConstructorFlags.Apply)]
   public sealed partial class ConstantAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
     public readonly A value;
     

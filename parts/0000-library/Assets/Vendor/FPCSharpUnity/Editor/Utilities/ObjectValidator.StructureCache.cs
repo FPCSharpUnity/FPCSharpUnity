@@ -101,7 +101,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         static readonly System.Type unityObjectType = typeof(UnityEngine.Object);
       }
       
-      [Record(GenerateConstructor = ConstructorFlags.None)] public sealed partial class Field {
+      [Record(ConstructorFlags.None)] public sealed partial class Field {
         public readonly Type type;
         public readonly FieldInfo fieldInfo;
 

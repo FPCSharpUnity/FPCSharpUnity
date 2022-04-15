@@ -6,7 +6,7 @@ using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
   public partial class AssetUpdate {
-    [Record(RecordType.ConstructorOnly)] public readonly partial struct Move {
+    [Record(ConstructorFlags.Constructor)] public readonly partial struct Move {
       public readonly AssetPath fromPath, toPath;
     }
 
