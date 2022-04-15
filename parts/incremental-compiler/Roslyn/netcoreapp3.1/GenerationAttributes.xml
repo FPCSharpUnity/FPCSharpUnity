@@ -17,22 +17,26 @@
             ]]></code>
             </summary>
         </member>
-        <member name="T:GenerationAttributes.RecordType">
-            <summary>
-            Helper enum that represents different presets of <see cref="T:GenerationAttributes.RecordAttribute"/> configuration.
-            <br/>
-            If you want a default preset, then you should pass nothing to a <see cref="T:GenerationAttributes.RecordAttribute"/> constructor;
-            </summary>
+        <member name="F:GenerationAttributes.ConstructorFlags.None">
+            <summary> Does not generate constructors </summary>
         </member>
-        <member name="F:GenerationAttributes.RecordType.ConstructorDefault">
-            <summary>
-            Generates only constructor, copy constructors, withers (<see cref="F:GenerationAttributes.ConstructorFlags.Default"/>)
-            </summary>
+        <member name="F:GenerationAttributes.ConstructorFlags.Constructor">
+            <summary> Generates basic constructor </summary>
         </member>
-        <member name="F:GenerationAttributes.RecordType.ConstructorOnly">
-            <summary>
-            Generates only constructor (<see cref="F:GenerationAttributes.ConstructorFlags.Constructor"/>)
-            </summary>
+        <member name="F:GenerationAttributes.ConstructorFlags.Apply">
+            <summary> Generates basic constructor and `apply` constrictor </summary>
+        </member>
+        <member name="F:GenerationAttributes.ConstructorFlags.Copy">
+            <summary> Generates basic constructor and `copy` extension </summary>
+        </member>
+        <member name="F:GenerationAttributes.ConstructorFlags.Withers">
+            <summary> Generates basic constructor and `with` extensions </summary>
+        </member>
+        <member name="F:GenerationAttributes.ConstructorFlags.Default">
+            <summary> Generates basic constructor, `copy` extension and `with` extensions </summary>
+        </member>
+        <member name="F:GenerationAttributes.ConstructorFlags.All">
+            <summary> Generates basic constructor, `copy` extension, `with` extensions and `apply` constrictor </summary>
         </member>
         <member name="P:GenerationAttributes.RecordAttribute.ExcludeNames">
             <summary>
