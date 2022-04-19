@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using FPCSharpUnity.unity.Concurrent.unity_web_request;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
@@ -11,10 +12,8 @@ using FPCSharpUnity.unity.Utilities;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
 using JetBrains.Annotations;
-using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
-using FPCSharpUnity.core.utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -192,43 +191,49 @@ namespace FPCSharpUnity.unity.Concurrent {
       var reqDisposed = false;
       op.completed += operation => {
         var responseCode = req.responseCode;
-        if (req.result != UnityWebRequest.Result.Success) {
-          // https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
-          // When a UnityWebRequest ends with the result, DataProcessingError, the message describing the error is in
-          // the download handler.
-          var handlerError =
-            req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
-              ? $", download handler error: {req.downloadHandler.error}"
-              : "";
-          var msg = $"result: {req.result}, error: {req.error}{handlerError}, response code: {responseCode}";
+        if (req.result.toNonSuccessfulResult().valueOut(out var nonSuccessfulResult)) {
+          // Capture data before disposing the request.
           var url = new Url(req.url);
-          promise.complete(
-            req.error == "User Aborted" ? new WebRequestError(url, new UserAborted(msg))
-            : responseCode == 0 && req.error == "Unknown Error" ? new WebRequestError(url, new NoInternetError(msg))
-            : new WebRequestError(url, LogEntry.simple(msg))
-          );
+          var error =
+            req.error == "User Aborted" ? new WebRequestError(new UserAborted(url))
+            : responseCode == 0 && req.error == "Unknown Error" ? new WebRequestError(new NoInternetError(url))
+            : new WebRequestError(new NonSuccessResult(
+              url, nonSuccessfulResult, responseCode: responseCode, error: req.error,
+              // When a UnityWebRequest ends with the result, DataProcessingError, the message describing the error is in
+              // the download handler.
+              //
+              // https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
+              dataProcessingError:
+              req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
+                ? Some.a(req.downloadHandler.error)
+                : None._
+            ));
           disposeReq();
+          promise.complete(error);
         }
         else if (!acceptedResponseCodes.contains(responseCode)) {
-          var url = new Url(req.url); // Capture URL before disposing
-          var extrasB = new List<KeyValuePair<string, string>>();
-          foreach (var header in req.GetResponseHeaders()) {
-            extrasB.Add(KV.a(header.Key, header.Value));
-          }
-          // DownloadHandlerAssetBundle does not support text access.
-          if (req.downloadHandler != null && req.downloadHandler is not DownloadHandlerAssetBundle) {
-            extrasB.Add(KV.a("response-text", req.downloadHandler.text));
-          }
+          // Capture data before disposing the request.
+          var error = new WebRequestError(new UnacceptableResponseCode(
+            new Url(req.url), responseCode: responseCode, headers: req.GetResponseHeaders().ToImmutableDictionary(),
+            acceptedResponseCodes: acceptedResponseCodes,
+            // DownloadHandlerAssetBundle does not support text access.
+            responseText: 
+              req.downloadHandler != null && req.downloadHandler is not DownloadHandlerAssetBundle
+              ? Some.a(req.downloadHandler.text) : None._
+          ));
           disposeReq();
-          promise.complete(new WebRequestError(url, new LogEntry(
-            $"Received response code {responseCode} was not in {acceptedResponseCodes}",
-            extras: extrasB.toImmutableArrayC()
-          )));
+          promise.complete(error);
         }
         else {
-          var a = onSuccess(req);
+          Either<WebRequestError, A> result;
+          try {
+            result = onSuccess(req);
+          }
+          catch (Exception e) {
+            result = new WebRequestError(new SuccessHandlerFailed(new Url(req.url), responseCode: responseCode, e));
+          }
           disposeReq();
-          promise.complete(a);
+          promise.complete(result);
         }
       };
       var cancel = IO.a(() => {
