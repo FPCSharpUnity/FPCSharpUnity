@@ -16,6 +16,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Data;
 using UnityEditor;
 using UnityEngine;
 
@@ -31,9 +32,10 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       if (!AssetReferencesWindow.enabled.value) return;
 
       var data = new AssetUpdate(
-        importedAssets.ToImmutableList(),
-        deletedAssets.ToImmutableList(),
-        movedFromAssetPaths.zip(movedAssets, (i1, i2) => new AssetUpdate.Move(i1, i2)).ToImmutableList()
+        importedAssets.Select(p => new AssetPath(p)).ToImmutableArray(),
+        deletedAssets.Select(p => new AssetPath(p)).ToImmutableArray(),
+        movedFromAssetPaths
+          .zip(movedAssets, (i1, i2) => new AssetUpdate.Move(new AssetPath(i1), new AssetPath(i2))).ToImmutableArray()
       );
 
       AssetReferencesWindow.processFiles(data);
@@ -64,7 +66,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       enabledSubscription = enabled.subscribe(NoOpDisposableTracker.instance, b => {
         if (b) {
           refsOpt = None._;
-          processFiles(AssetUpdate.fromAllAssets(AssetDatabase.GetAllAssetPaths().ToImmutableList()));
+          processFiles(AssetUpdate.fromAllAssets(
+            AssetDatabase.GetAllAssetPaths().Select(p => new AssetPath(p)).ToImmutableArray()
+          ));
         }
       });
     }
@@ -96,12 +100,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         processing = true;
         needsRepaint = true;
 
-        // It runs slower if we use too many threads ¯\_(ツ)_/¯
-        var workers = Math.Min(Environment.ProcessorCount, 10);
-
         refsOpt.voidFold(
-          () => refsOpt = AssetReferences.a(data, workers, progress, log).some(),
-          refs => refs.update(data, workers, progress, log)
+          () => refsOpt = AssetReferences.a(data, progress, log, useExtraResolvers: true).some(),
+          refs => refs.update(data, progress, log)
         );
       }
       finally {
@@ -134,8 +135,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (cur == null) break;
           var curPath = AssetDatabase.GetAssetPath(cur);
           if (curPath == null) break;
-          var currentGUID = AssetDatabase.AssetPathToGUID(curPath);
-          if (currentGUID == null) break;
+          var currentGUID = new AssetGuid(AssetDatabase.AssetPathToGUID(curPath));
+          if (currentGUID.guid == null) break;
           GUILayout.Label("Selected");
           objectDisplay(currentGUID);
           foreach (var refs in refsOpt) {
@@ -157,10 +158,10 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     void displayObjects(
-      string curGuid, string name, Dictionary<string, HashSet<string>> dict, ref bool foldout
+      AssetGuid curGuid, string name, Dictionary<AssetGuid, HashSet<AssetGuid>> dict, ref bool foldout
     ) {
       if (dict.ContainsKey(curGuid)) {
-        displayObjects(name, dict[curGuid], _ => _, _ => ImmutableList<string>.Empty, ref foldout);
+        displayObjects(name, dict[curGuid], _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout);
       }
       else {
         GUILayout.Label(name + " 0");
@@ -172,13 +173,13 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     ) => displayObjects(name, chains, _ => _.mainGuid, _ => _.guids, ref foldout);
     
     void displayObjects<A>(
-      string name, IReadOnlyCollection<A> datas, Func<A, string> getMainGuid, Func<A, ImmutableList<string>> getChain,
-      ref bool foldout
+      string name, IReadOnlyCollection<A> datas, Func<A, AssetGuid> getMainGuid, 
+      Func<A, ImmutableList<AssetGuid>> getChain, ref bool foldout
     ) {
       foldout = EditorGUILayout.Foldout(foldout, name + " " + datas.Count);
       if (foldout) {
         if (showActions) {
-          IEnumerable<string> guids() => datas.Select(getMainGuid);
+          IEnumerable<AssetGuid> guids() => datas.Select(getMainGuid);
           
           if (GUILayout.Button("select"))
             Selection.objects = loadGuids(guids()).ToArray();
@@ -223,8 +224,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     // ToArray in case someone modifies guids collection
-    static IEnumerable<Object> loadGuids(IEnumerable<string> guids) =>
-      guids.ToArray().Select(AssetDatabaseUtils.loadMainAssetByGuid);
+    static IEnumerable<Object> loadGuids(IEnumerable<AssetGuid> guids) =>
+      guids.ToArray().Select(guid => AssetDatabaseUtils.loadMainAssetByGuid(guid.guid));
 
     void objectDisplay(string guid, uint indent = 0) {
       EditorGUILayout.BeginHorizontal();

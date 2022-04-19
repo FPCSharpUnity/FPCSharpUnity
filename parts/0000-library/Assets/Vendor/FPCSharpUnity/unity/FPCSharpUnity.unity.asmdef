@@ -11,6 +11,7 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "FPCSharpUnity.core.dll",
+        "FPCSharpUnity.core.macros.dll",
         "System.Collections.Immutable.dll",
         "GenerationAttributes.dll",
         "GenerationAttributes.Java.dll",

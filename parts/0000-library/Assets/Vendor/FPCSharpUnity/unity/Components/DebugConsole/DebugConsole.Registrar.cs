@@ -201,6 +201,24 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           return comment == null ? a.ToString() : $"{comment}: value={a}";
         }, canShow: canShow);
     }
+    
+    /// <summary>
+    /// As <see cref="registerEnum{A}"/>, but registers an additional action to clear the value.
+    /// </summary>
+    public void registerEnumOpt<A>(
+      string name, Ref<Option<A>> reference, IEnumerable<A> enumerable, string comment = null, Func<bool> canShow = null
+    ) {
+      register($"{name}?", () => {
+        var v = reference.value;
+        return comment == null ? v.ToString() : $"{comment}: value={v}";
+      }, canShow: canShow);
+      register($"Clear {name}", () => reference.value = None._, canShow: canShow);
+      foreach (var a in enumerable)
+        register($"{name}={a}", () => {
+          reference.value = Some.a(a);
+          return comment == null ? a.ToString() : $"{comment}: value={a}";
+        }, canShow: canShow);
+    }
 
     public delegate bool IsSet<in A>(A value, A flag);
     public delegate A Set<A>(A value, A flag);

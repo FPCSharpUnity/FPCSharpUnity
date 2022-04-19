@@ -14,7 +14,7 @@ namespace FPCSharpUnity.unity.Data {
   /// 
   /// var keyCodeWithModifiers = Ctrl+Alt+Z;
   /// </code>
-  [Record(GenerateConstructor = ConstructorFlags.None)] public partial struct KeyModifier {
+  [Record(ConstructorFlags.None)] public partial struct KeyModifier {
     public static readonly KeyModifier 
       Ctrl = new KeyModifier(Val.Ctrl), Alt = new KeyModifier(Val.Alt), Shift = new KeyModifier(Val.Shift);
     

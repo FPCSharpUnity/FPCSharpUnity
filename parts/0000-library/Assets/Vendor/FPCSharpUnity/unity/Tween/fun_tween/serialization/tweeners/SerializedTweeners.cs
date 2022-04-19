@@ -656,6 +656,12 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   }
   
   [Serializable]
+  public sealed class AudioSourceVolume : SerializedTweenerFloat<AudioSource> {
+    protected override float get => _target.volume;
+    protected override void set(float value) => _target.volume = value;
+  }
+  
+  [Serializable]
   public class TweenManager : SerializedTweenerV2Base<FunTweenManagerV2> {
 #pragma warning disable 649
     [SerializeField] bool _customDuration;

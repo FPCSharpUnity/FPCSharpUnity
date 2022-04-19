@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.unity.Data;
-using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
@@ -12,17 +11,72 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
-using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace FPCSharpUnity.unity.Concurrent {
+  /// <summary>
+  /// Options for IAsyncOperations status values
+  /// </summary>
+  public enum AsyncOperationStatus
+  {
+    /// <summary>
+    /// Use to indicate that the operation is still in progress.
+    /// </summary>
+    None,
+    /// <summary>
+    /// Use to indicate that the operation succeeded.
+    /// </summary>
+    Succeeded,
+    /// <summary>
+    /// Use to indicate that the operation failed.
+    /// </summary>
+    Failed
+  }
+  
+  /// <summary>
+  /// Contains download information for async operations.
+  /// </summary>
+  [Record]
+  public readonly partial struct DownloadStatus {
+    /// <summary>
+    /// The total number of bytes needed to download by the operation and dependencies.
+    /// </summary>
+    public readonly ulong downloadedBytes;
+    /// <summary>
+    /// The number of bytes downloaded by the operation and all of its dependencies.
+    /// </summary>
+    public readonly ulong totalBytes;
+    /// <summary>
+    /// Is the operation completed. This is used to determine if the computed Percent should be 0 or 1 when TotalBytes is 0.
+    /// </summary>
+    public readonly bool isDone;
+    /// <summary>
+    /// Returns the computed percent complete as a float value between 0 &amp; 1.  If TotalBytes == 0, 1 is returned.
+    /// </summary>
+    public float percent => (totalBytes > 0) ? ((float) downloadedBytes / totalBytes) : (isDone ? 1.0f : 0f);
+
+    /// <summary>Creates a status where 0 out of 0 bytes has been downloaded and the download is marked as done.</summary>
+    public static DownloadStatus done = zero(isDone: true);
+    
+    /// <summary>Creates a status where 0 out of 0 bytes has been downloaded.</summary>
+    public static DownloadStatus zero(bool isDone) => new DownloadStatus(0, 0, isDone);
+    
+    public static readonly Semigroup<DownloadStatus> semigroup = Semigroup.lambda<DownloadStatus>((a, b) => 
+      new DownloadStatus(
+        downloadedBytes: a.downloadedBytes + b.downloadedBytes,
+        totalBytes: a.totalBytes + b.totalBytes,
+        isDone: a.isDone && b.isDone
+      )
+    );
+  }
+  
   [PublicAPI] public interface IAsyncOperationHandle<A> {
-    AsyncOperationStatus Status { get; }
-    bool IsDone { get; }
+    AsyncOperationStatus status { get; }
     /// <summary>
     /// Combined progress of downloading from internet and loading from disk
     /// </summary>
-    float PercentComplete { get; }
+    float percentComplete { get; }
     /// <summary>
     /// Status about bytes that are downloaded from the internet
     /// </summary>
@@ -32,15 +86,10 @@ namespace FPCSharpUnity.unity.Concurrent {
   }
 
   public static class DownloadStatusExts {
-    public static DownloadStatus join(this DownloadStatus a, DownloadStatus b) =>
-      new DownloadStatus {
-        DownloadedBytes = a.DownloadedBytes + b.DownloadedBytes,
-        TotalBytes = a.TotalBytes + b.TotalBytes,
-        IsDone = a.IsDone && b.IsDone
-      };
+    public static DownloadStatus join(this DownloadStatus a, DownloadStatus b) => DownloadStatus.semigroup.add(a, b);
 
     public static string debugStr(this DownloadStatus ds) =>
-      $"{ds.DownloadedBytes}/{ds.TotalBytes} bytes ({ds.Percent * 100} %), isDone = {ds.IsDone}";
+      $"{ds.downloadedBytes}/{ds.totalBytes} bytes ({ds.percent * 100} %), isDone = {ds.isDone}";
   }
 
   [PublicAPI] public static class IASyncOperationHandle_ {
@@ -66,26 +115,6 @@ namespace FPCSharpUnity.unity.Concurrent {
   }
   
   [PublicAPI] public static class IAsyncOperationHandleExts {
-    public static IAsyncOperationHandle<A> wrap<A>(
-      this AsyncOperationHandle<A> handle,
-      Action<AsyncOperationHandle<A>> release
-    ) => new WrappedAsyncOperationHandle<A>(handle, release);
-    
-    public static IAsyncOperationHandle<A> wrap<A>(
-      this AsyncOperationHandle<A> handle,
-      Action<A> onSuccess,
-      Action<AsyncOperationHandle<A>> release
-    ) {
-      var result = new WrappedAsyncOperationHandle<A>(handle, release);
-      result.asFuture.onSuccess(onSuccess);
-      return result;
-    }
-
-    public static IAsyncOperationHandle<object> wrap(
-      this AsyncOperationHandle handle, 
-      Action<AsyncOperationHandle> release
-    ) => new WrappedAsyncOperationHandle(handle, release);
-    
     public static IAsyncOperationHandle<B> map<A, B>(
       this IAsyncOperationHandle<A> handle, Func<A, IAsyncOperationHandle<A>, B> mapper
     ) => new MappedAsyncOperationHandle<A, B>(handle, a => mapper(a, handle));
@@ -115,6 +144,10 @@ namespace FPCSharpUnity.unity.Concurrent {
       if (handle.asFuture.value.valueOut(out var val)) return val;
       return Try<A>.failed(new Exception("Handle is not completed!"));
     }
+    
+    public static bool isDone<A>(this IAsyncOperationHandle<A> handle) {
+      return handle.status is AsyncOperationStatus.Succeeded or AsyncOperationStatus.Failed;
+    }
   }
   
 #region implementations
@@ -126,60 +159,6 @@ namespace FPCSharpUnity.unity.Concurrent {
     public bool isDone => status != AsyncOperationStatus.None;
   }
 
-  public sealed partial class WrappedAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
-    readonly AsyncOperationHandle<A> handle;
-    readonly Action<AsyncOperationHandle<A>> _release;
-
-    Option<HandleStatusOnRelease> released = None._;
-    
-    public WrappedAsyncOperationHandle(
-      AsyncOperationHandle<A> handle, Action<AsyncOperationHandle<A>> release
-    ) {
-      this.handle = handle;
-      _release = release;
-    }
-
-    public AsyncOperationStatus Status => released.valueOut(out var r) ? r.status : handle.Status;
-    public bool IsDone => released.valueOut(out var r) ? r.isDone : handle.IsDone;
-    public float PercentComplete => released.valueOut(out var r) ? r.percentComplete : handle.PercentComplete;
-    public DownloadStatus downloadStatus => released.valueOut(out var r) ? r.downloadStatus : handle.GetDownloadStatus();
-    [LazyProperty] public Future<Try<A>> asFuture => handle.toFuture().map(h => h.toTry());
-
-    public void release() {
-      if (released) return;
-      var data = new HandleStatusOnRelease(handle.Status, handle.PercentComplete, handle.GetDownloadStatus());
-      _release(handle);
-      released = Some.a(data);
-    }
-  }
-  
-  public sealed class WrappedAsyncOperationHandle : IAsyncOperationHandle<object> {
-    readonly AsyncOperationHandle handle;
-    readonly Action<AsyncOperationHandle> _release;
-
-    Option<HandleStatusOnRelease> released = None._;
-    
-    public WrappedAsyncOperationHandle(
-      AsyncOperationHandle handle, Action<AsyncOperationHandle> release
-    ) {
-      this.handle = handle;
-      _release = release;
-    }
-
-    public AsyncOperationStatus Status => released.valueOut(out var r) ? r.status : handle.Status;
-    public bool IsDone => released.valueOut(out var r) ? r.isDone : handle.IsDone;
-    public float PercentComplete => released.valueOut(out var r) ? r.percentComplete : handle.PercentComplete;
-    public DownloadStatus downloadStatus => released.valueOut(out var r) ? r.downloadStatus : handle.GetDownloadStatus();
-    public Future<Try<object>> asFuture => handle.toFuture().map(h => h.toTry());
-
-    public void release() {
-      if (released) return;
-      var data = new HandleStatusOnRelease(handle.Status, handle.PercentComplete, handle.GetDownloadStatus());
-      _release(handle);
-      released = Some.a(data);
-    }
-  }
-
   public sealed class MappedAsyncOperationHandle<A, B> : IAsyncOperationHandle<B> {
     readonly IAsyncOperationHandle<A> handle;
     readonly Func<A, B> mapper;
@@ -189,9 +168,8 @@ namespace FPCSharpUnity.unity.Concurrent {
       this.mapper = mapper;
     }
 
-    public AsyncOperationStatus Status => handle.Status;
-    public bool IsDone => handle.IsDone;
-    public float PercentComplete => handle.PercentComplete;
+    public AsyncOperationStatus status => handle.status;
+    public float percentComplete => handle.percentComplete;
     public DownloadStatus downloadStatus => handle.downloadStatus;
     [LazyProperty] public Future<Try<B>> asFuture => handle.asFuture.map(try_ => try_.map(mapper));
     public void release() => handle.release();
@@ -213,15 +191,13 @@ namespace FPCSharpUnity.unity.Concurrent {
       bHandleF = handle.asFuture.map(try_ => try_.map(mapper));
     }
 
-    public AsyncOperationStatus Status => 
-      bHandleF.value.valueOut(out var b) ? b.fold(h => h.Status, e => AsyncOperationStatus.Failed) : aHandle.Status;
+    public AsyncOperationStatus status => 
+      bHandleF.value.valueOut(out var b) ? b.fold(h => h.status, e => AsyncOperationStatus.Failed) : aHandle.status;
 
-    public bool IsDone => bHandleF.value.valueOut(out var b) && b.fold(h => h.IsDone, e => true);
-    
-    public float PercentComplete => 
+    public float percentComplete => 
       bHandleF.value.valueOut(out var b) 
-        ? aHandleProgressPercentage + b.fold(h => h.PercentComplete, e => 1) * bHandleProgressPercentage 
-        : aHandle.PercentComplete * aHandleProgressPercentage;
+        ? aHandleProgressPercentage + b.fold(h => h.percentComplete, e => 1) * bHandleProgressPercentage 
+        : aHandle.percentComplete * aHandleProgressPercentage;
 
     public DownloadStatus downloadStatus {
       get {
@@ -259,10 +235,10 @@ namespace FPCSharpUnity.unity.Concurrent {
     public override string ToString() => 
       $"{nameof(DelayAsyncOperationHandle<A>)}({startedAtFrame.echo()}, {endAtFrame.echo()})";
 
-    public AsyncOperationStatus Status => IsDone ? AsyncOperationStatus.Succeeded : AsyncOperationStatus.None;
-    public bool IsDone => Time.frameCount >= endAtFrame;
-    public float PercentComplete => Mathf.Clamp01(framesPassed / (float) durationInFrames);
-    public DownloadStatus downloadStatus => new DownloadStatus { IsDone = IsDone };
+    public AsyncOperationStatus status => isDone ? AsyncOperationStatus.Succeeded : AsyncOperationStatus.None;
+    public bool isDone => Time.frameCount >= endAtFrame;
+    public float percentComplete => Mathf.Clamp01(framesPassed / (float) durationInFrames);
+    public DownloadStatus downloadStatus => DownloadStatus.zero(isDone);
 
     public Future<Try<A>> asFuture {
       get {
@@ -274,13 +250,40 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     public void release() { if (onRelease.valueOut(out var action)) action(); }
   }
+  
+  public sealed class FutureAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
+    readonly Future<A> future;
 
-  [Singleton] public sealed partial class DoneAsyncOperationHandle : IAsyncOperationHandle<Unit> {
-    public AsyncOperationStatus Status => AsyncOperationStatus.Succeeded;
-    public bool IsDone => true;
-    public float PercentComplete => 1;
-    public DownloadStatus downloadStatus => new DownloadStatus { IsDone = IsDone };
-    public Future<Try<Unit>> asFuture => Future.successful(Try.value(Unit._));
+    public FutureAsyncOperationHandle(Future<A> future) => this.future = future;
+
+    public override string ToString() => 
+      $"{nameof(FutureAsyncOperationHandle<A>)}({future.echo()})";
+
+    public AsyncOperationStatus status => isDone ? AsyncOperationStatus.Succeeded : AsyncOperationStatus.None;
+    public bool isDone => future.isCompleted;
+    public float percentComplete => isDone ? 1 : 0;
+    public DownloadStatus downloadStatus => DownloadStatus.zero(isDone);
+
+    public Future<Try<A>> asFuture => future.map(Try.value);
+
+    public void release() {  }
+  }
+
+  public static class DoneAsyncOperationHandle {
+    public static readonly ConstantAsyncOperationHandle<Unit> instance = new(Unit._);
+  }
+
+  /// <summary>
+  /// Turns a value that we already have into <see cref="IAsyncOperationHandle{A}"/>.
+  /// </summary>
+  [Record(ConstructorFlags.Constructor | ConstructorFlags.Apply)]
+  public sealed partial class ConstantAsyncOperationHandle<A> : IAsyncOperationHandle<A> {
+    public readonly A value;
+    
+    public AsyncOperationStatus status => AsyncOperationStatus.Succeeded;
+    public float percentComplete => 1;
+    public DownloadStatus downloadStatus => DownloadStatus.zero(isDone: true);
+    public Future<Try<A>> asFuture => Future.successful(Try.value(value));
     public void release() {}
   }
 
@@ -290,10 +293,10 @@ namespace FPCSharpUnity.unity.Concurrent {
     public SequencedAsyncOperationHandle(IReadOnlyCollection<IAsyncOperationHandle<A>> handles) => 
       this.handles = handles;
 
-    public AsyncOperationStatus Status {
+    public AsyncOperationStatus status {
       get {
         foreach (var handle in handles) {
-          switch (handle.Status) {
+          switch (handle.status) {
             case AsyncOperationStatus.None: return AsyncOperationStatus.None;
             case AsyncOperationStatus.Failed: return AsyncOperationStatus.Failed;
             case AsyncOperationStatus.Succeeded: break;
@@ -304,10 +307,9 @@ namespace FPCSharpUnity.unity.Concurrent {
         return AsyncOperationStatus.Succeeded;
       }
     }
-    public bool IsDone => handles.Count == 0 || handles.All(_ => _.IsDone);
-    public float PercentComplete => handles.Count == 0 ? 1 : handles.Average(_ => _.PercentComplete);
+    public float percentComplete => handles.Count == 0 ? 1 : handles.Average(_ => _.percentComplete);
     public DownloadStatus downloadStatus => handles.Aggregate(
-      new DownloadStatus { IsDone = true }, 
+      DownloadStatus.done, 
       (a, b) => a.join(b.downloadStatus)
     ); 
 
@@ -322,10 +324,10 @@ namespace FPCSharpUnity.unity.Concurrent {
     public SequencedNonFailingAsyncOperationHandle(IReadOnlyCollection<IAsyncOperationHandle<A>> handles) => 
       this.handles = handles;
 
-    public AsyncOperationStatus Status {
+    public AsyncOperationStatus status {
       get {
         foreach (var handle in handles) {
-          switch (handle.Status) {
+          switch (handle.status) {
             case AsyncOperationStatus.None: return AsyncOperationStatus.None;
             case AsyncOperationStatus.Failed: return AsyncOperationStatus.Failed;
             case AsyncOperationStatus.Succeeded: break;
@@ -336,10 +338,9 @@ namespace FPCSharpUnity.unity.Concurrent {
         return AsyncOperationStatus.Succeeded;
       }
     }
-    public bool IsDone => handles.Count == 0 || handles.All(_ => _.IsDone);
-    public float PercentComplete => handles.Count == 0 ? 1 : handles.Average(_ => _.PercentComplete);
+    public float percentComplete => handles.Count == 0 ? 1 : handles.Average(_ => _.percentComplete);
     public DownloadStatus downloadStatus => handles.Aggregate(
-      new DownloadStatus { IsDone = true }, 
+      DownloadStatus.done,
       (a, b) => a.join(b.downloadStatus)
     ); 
 
@@ -375,9 +376,8 @@ namespace FPCSharpUnity.unity.Concurrent {
       this.launch();
     }
 
-    public AsyncOperationStatus Status => current.Status;
-    public bool IsDone => current.IsDone;
-    public float PercentComplete => current.PercentComplete;
+    public AsyncOperationStatus status => current.status;
+    public float percentComplete => current.percentComplete;
     public DownloadStatus downloadStatus => current.downloadStatus;
     public Future<Try<A>> asFuture => finalHandleFuture.flatMap(h => h.asFuture);
 

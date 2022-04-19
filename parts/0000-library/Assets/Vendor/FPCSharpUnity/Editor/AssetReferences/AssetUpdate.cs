@@ -1,43 +1,40 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using FPCSharpUnity.unity.Data;
+using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
-  public class AssetUpdate {
-    public struct Move {
-      public readonly string fromPath, toPath;
-
-      public Move(string fromPath, string toPath) {
-        this.fromPath = fromPath;
-        this.toPath = toPath;
-      }
+  public partial class AssetUpdate {
+    [Record(ConstructorFlags.Constructor)] public readonly partial struct Move {
+      public readonly AssetPath fromPath, toPath;
     }
 
-    public readonly ImmutableList<string> newAssets, deletedAssets;
-    public readonly ImmutableList<Move> movedAssets;
+    public readonly ImmutableArray<AssetPath> newAssets, deletedAssets;
+    public readonly ImmutableArray<Move> movedAssets;
     public readonly int totalAssets;
 
     public AssetUpdate(
-      ImmutableList<string> newAssets, ImmutableList<string> deletedAssets,
-      ImmutableList<Move> movedAssets
+      ImmutableArray<AssetPath> newAssets, ImmutableArray<AssetPath> deletedAssets,
+      ImmutableArray<Move> movedAssets
     ) {
       this.newAssets = newAssets;
       this.deletedAssets = deletedAssets;
       this.movedAssets = movedAssets;
-      totalAssets = newAssets.Count + deletedAssets.Count + movedAssets.Count;
+      totalAssets = newAssets.Length + deletedAssets.Length + movedAssets.Length;
     }
 
-    public static AssetUpdate fromAllAssets(ImmutableList<string> allAssets) => new AssetUpdate(
-      allAssets, ImmutableList<string>.Empty, ImmutableList<AssetUpdate.Move>.Empty
+    public static AssetUpdate fromAllAssets(ImmutableArray<AssetPath> allAssets) => new AssetUpdate(
+      allAssets, ImmutableArray<AssetPath>.Empty, ImmutableArray<Move>.Empty
     );
 
     public AssetUpdate filter(
-      Func<string, bool> predicate,
+      Func<AssetPath, bool> predicate,
       Func<Move, bool> movePredicate
     ) => new AssetUpdate(
-      newAssets.Where(predicate).ToImmutableList(),
-      deletedAssets.Where(predicate).ToImmutableList(),
-      movedAssets.Where(movePredicate).ToImmutableList()
+      newAssets.Where(predicate).ToImmutableArray(),
+      deletedAssets.Where(predicate).ToImmutableArray(),
+      movedAssets.Where(movePredicate).ToImmutableArray()
     );
   }
 }

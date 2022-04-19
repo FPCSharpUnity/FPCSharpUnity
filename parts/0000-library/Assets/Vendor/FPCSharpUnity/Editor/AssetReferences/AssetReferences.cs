@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,30 +16,52 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using Sirenix.Utilities;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Editor.extensions;
 using UnityEditor;
+using static FPCSharpUnity.core.typeclasses.Str;
 using ImmutableList = System.Collections.Immutable.ImmutableList;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
   public partial class AssetReferences {
-    public readonly Dictionary<string, HashSet<string>> parents = new();
-    public readonly Dictionary<string, HashSet<string>> children = new();
-    readonly Dictionary<string, string> pathToGuid = new();
+    /// <summary>Amount of workers (CPU threads) used.</summary>
+    public readonly int workers;
+    /// <summary>
+    /// Extra resolvers are project specific reference resolvers that resolve links between assets. They are initialized
+    /// statically via <see cref="AssetReferences.extraResolvers"/>. Using this boolean we can choose to use them or not.
+    /// <para/>
+    /// In either case, we will always use the default resolver that resolves unity references.
+    /// </summary>
+    public readonly bool useExtraResolvers;
+    
+    public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> parents = new();
+    public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> children = new();
+    readonly Dictionary<AssetPath, AssetGuid> pathToGuid = new();
     public string scanDuration = "";
 
-    AssetReferences() {}
+    AssetReferences(int workers, bool useExtraResolvers) {
+      this.workers = workers;
+      this.useExtraResolvers = useExtraResolvers;
+    }
 
+    /// <param name="data"></param>
+    /// <param name="progress"></param>
+    /// <param name="log"></param>
+    /// <param name="useExtraResolvers">See <see cref="useExtraResolvers"/></param>
     public static AssetReferences a(
-      AssetUpdate data, int workers, Ref<float> progress, ILog log
+      AssetUpdate data, Ref<float> progress, ILog log, bool useExtraResolvers
     ) {
-      var refs = new AssetReferences();
+      // It runs slower if we use too many threads ¯\_(ツ)_/¯
+      var workers = Math.Min(Environment.ProcessorCount, 10);
+      
+      var refs = new AssetReferences(workers, useExtraResolvers);
       var sw = Stopwatch.StartNew();
       process(
         data, workers,
         pathToGuid: refs.pathToGuid, parents: refs.parents, children: refs.children,
-        progress: progress, log: log
+        progress: progress, log: log, useResolvers: refs.useExtraResolvers
       );
-      refs.scanDuration = sw.Elapsed.ToString();
+      refs.scanDuration = s(sw.Elapsed);
       return refs;
     }
 
@@ -51,11 +74,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         RegexOptions.Compiled | RegexOptions.Multiline
       );
 
-    public void update(AssetUpdate data, int workers, Ref<float> progress, ILog log) {
+    public void update(AssetUpdate data, Ref<float> progress, ILog log) {
       process(
         data, workers,
         pathToGuid: pathToGuid, parents: parents, children: children,
-        progress: progress, log: log
+        progress: progress, log: log, useResolvers: useExtraResolvers
       );
     }
 
@@ -63,36 +86,61 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// Given an object GUID find all scenes where that particular GUID is being used.
     /// </summary>
     /// <returns>guids for scenes where given guid is used</returns>
-    public System.Collections.Immutable.ImmutableList<Chain> findParentScenes(string guid) => 
-      findParentX(guid, path => path.EndsWithFast(".unity"));
+    public System.Collections.Immutable.ImmutableList<Chain> findParentScenes(AssetGuid guid) => 
+      findParentX(guid, path => path.path.EndsWithFast(".unity"));
     
     /// <summary>
     /// Given an object GUID find all resources where that particular GUID is being used.
     /// </summary>
     /// <returns>guids for resources where given guid is used</returns>
-    public System.Collections.Immutable.ImmutableList<Chain> findParentResources(string guid) => 
-      findParentX(guid, path => path.ToLowerInvariant().Contains("/resources/"));
+    public System.Collections.Immutable.ImmutableList<Chain> findParentResources(AssetGuid guid) => 
+      findParentX(guid, path => path.path.ToLowerInvariant().Contains("/resources/"));
+
+    /// <summary>
+    /// Given an object GUID find all children that are referenced by this object, either directly or indirectly.
+    /// </summary>
+    /// <returns>Guids of children assets, including the current asset passed as a parameter.</returns>
+    public ImmutableArray<AssetGuid> findAllChildren(AssetGuid guid, Func<AssetPath, bool> shouldConsiderPath) {
+      var visited = new HashSet<string>();
+      var q = new Queue<AssetGuid>();
+      q.Enqueue(guid);
+      var res = ImmutableArray.CreateBuilder<AssetGuid>();
+      while (q.Count > 0) {
+        var currentGuid = q.Dequeue();
+        if (visited.Contains(currentGuid)) continue;
+        visited.Add(currentGuid);
+        res.Add(currentGuid);
+        var path = new AssetPath(AssetDatabase.GUIDToAssetPath(currentGuid));
+        if (!shouldConsiderPath(path)) continue;
+        if (children.TryGetValue(currentGuid, out var currentChildren)) {
+          foreach (var child in currentChildren) {
+            if (!visited.Contains(child)) q.Enqueue(child);
+          }
+        }
+      }
+      return res.ToImmutable();
+    }
 
     [Record] public sealed partial class Chain {
-      public readonly NonEmpty<System.Collections.Immutable.ImmutableList<string>> guids;
+      public readonly NonEmpty<System.Collections.Immutable.ImmutableList<AssetGuid>> guids;
 
-      public string mainGuid => guids.head();
+      public AssetGuid mainGuid => guids.head();
     }
     
-    public System.Collections.Immutable.ImmutableList<Chain> findParentX(string guid, Func<string, bool> pathPredicate) {
+    public System.Collections.Immutable.ImmutableList<Chain> findParentX(AssetGuid guid, Func<AssetPath, bool> pathPredicate) {
       // TODO: expensive operation. Need to cache results
       // Dijkstra
       
       // guid -> child guid
-      var visited = new Dictionary<string, Option<string>>();
-      var q = new Queue<(string current, Option<string> child)>();
-      q.Enqueue((guid, Option<string>.None));
+      var visited = new Dictionary<AssetGuid, Option<AssetGuid>>();
+      var q = new Queue<(AssetGuid current, Option<AssetGuid> child)>();
+      q.Enqueue((guid, None._));
       var res = ImmutableList.CreateBuilder<Chain>();
       while (q.Count > 0) {
         var (current, maybeChild) = q.Dequeue();
         if (visited.ContainsKey(current)) continue;
         visited.Add(current, maybeChild);
-        var path = AssetDatabase.GUIDToAssetPath(current);
+        var path = new AssetPath(AssetDatabase.GUIDToAssetPath(current));
         if (pathPredicate(path)) {
           res.Add(makeChain(current));
         }
@@ -104,9 +152,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
       return res.ToImmutable();
 
-      Chain makeChain(string g) {
+      Chain makeChain(AssetGuid g) {
         // head points to parent, last points to the object from which we started the search
-        var builder = ImmutableList.CreateBuilder<string>();
+        var builder = ImmutableList.CreateBuilder<AssetGuid>();
         builder.Add(g);
         var current = g;
         while (visited.TryGetValue(current, out var maybeChild) && maybeChild.valueOut(out var child)) {
@@ -120,15 +168,16 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
     static void process(
       AssetUpdate data, int workers,
-      Dictionary<string, string> pathToGuid,
-      Dictionary<string, HashSet<string>> parents,
-      Dictionary<string, HashSet<string>> children,
-      Ref<float> progress, ILog log
+      Dictionary<AssetPath, AssetGuid> pathToGuid,
+      Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
+      Dictionary<AssetGuid, HashSet<AssetGuid>> children,
+      Ref<float> progress, ILog log,
+      bool useResolvers
     ) {
       progress.value = 0;
-      Func<string, bool> predicate = p => {
+      bool predicate(AssetPath p) {
         // Sometimes images have uppercase extensions.
-        var lower = p.ToLowerInvariant();
+        var lower = p.path.ToLowerInvariant();
         return lower.EndsWithFast(".asset")
                || lower.EndsWithFast(".prefab")
                || lower.EndsWithFast(".unity")
@@ -136,24 +185,24 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
                || lower.EndsWithFast(".spriteatlas")
                || lower.EndsWithFast(".spriteatlasv2")
                || SpriteAtlasExts.isPathAnImage(lower);
-      };
+      }
       
       var assets = data.filter(predicate, _ => predicate(_.fromPath));
       var firstScan = children.isEmpty() && parents.isEmpty();
       var updatedChildren =
         firstScan
         ? children
-        : new Dictionary<string, HashSet<string>>();
+        : new Dictionary<AssetGuid, HashSet<AssetGuid>>();
 
       var progressIdx = 0;
-      Action updateProgress = () => progress.value = (float)progressIdx / assets.totalAssets;
-      
+      void updateProgress() => progress.value = (float) progressIdx / assets.totalAssets;
+
       Parallel.ForEach(
         assets.newAssets, 
         parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = workers },
         localInit: () => new List<ParseFileResult>(), 
         body: (added, loopState, results) => {
-          if (parseFileOptimized(log, added).valueOut(out var parseResult)) {
+          if (parseFileOptimized(log, added, useResolvers: useResolvers).valueOut(out var parseResult)) {
             results.Add(parseResult);
           }
           // parseFile(pathToGuid, log, added, updatedChildren);
@@ -180,7 +229,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       foreach (var deleted in assets.deletedAssets) {
         updateProgress();
         if (pathToGuid.ContainsKey(deleted)) {
-          updatedChildren.getOrUpdate(pathToGuid[deleted], () => new HashSet<string>());
+          updatedChildren.getOrUpdate(pathToGuid[deleted], () => new HashSet<AssetGuid>());
           pathToGuid.Remove(deleted);
         }
         progressIdx++;
@@ -232,24 +281,25 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       /// should be ran once and on main Unity thread only.
       /// </summary>
       public abstract void initBeforeParsing();
+      
       /// <summary>
       /// Parse file bytes and return unity asset guids for <see cref="AssetReferences"/> to add to the inspection window.
       /// <para/>
       /// This function is called in parallel from multiple threads.
       /// </summary>
-      public abstract ImmutableArrayC<string> parseBuffer(byte[] buffer, int length);
+      public abstract ImmutableArrayC<AssetGuid> parseBuffer(byte[] buffer, int length);
     }
     
     
     /// <summary>
     /// Optimized version of <see cref="parseFileUnoptimized"/>. This works at least 10x faster.
     /// </summary>
-    static Option<ParseFileResult> parseFileOptimized(ILog log, string assetPath) {
+    static Option<ParseFileResult> parseFileOptimized(ILog log, AssetPath assetPath, bool useResolvers) {
       if (!getGuid(assetPath, out var guid, out var metaFileContentsBuffer, log)) return None._;
 
-      var guidsInFile = new HashSet<string>();
+      var guidsInFile = new HashSet<AssetGuid>();
 
-      if (SpriteAtlasExts.isPathAnImage(assetPath.ToLowerInvariant())) {
+      if (SpriteAtlasExts.isPathAnImage(assetPath.path.ToLowerInvariant())) {
         // Parse meta file only locally. Currently we have no use to parse it with custom resolvers.
         parseBufferLocally(new SimpleBuffer(metaFileContentsBuffer, metaFileContentsBuffer.Length), guidsInFile);
       }
@@ -261,14 +311,16 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         var length = readAllBytesFast(assetPath, ref buffer);
         var simpleBuffer = new SimpleBuffer(buffer, length);
         parseBufferLocally(simpleBuffer, guidsInFile);
-        parseBufferWithResolvers(simpleBuffer, guidsInFile);
+        if (useResolvers) {
+          parseBufferWithResolvers(simpleBuffer, guidsInFile);
+        }
 
         parseFileOptimized_bufferCache.Value = buffer;
       }
 
       return Some.a(new ParseFileResult(assetGuid: guid, assetPath: assetPath, guidsInFile));
 
-      static void parseBufferLocally(SimpleBuffer simpleBuffer, HashSet<string> guidsInFile) {
+      static void parseBufferLocally(SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile) {
         for (var i = 0; i < simpleBuffer.length; i++) {
           // Regex for reference: @"{fileID:\s+(\d+),\s+guid:\s+(\w+),\s+type:\s+\d+}",
           if (!simpleBuffer.match(i, STRING_FILE_ID)) continue;
@@ -280,44 +332,44 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
           i += STRING_GUID.Length;
           simpleBuffer.skipWhitespace(ref i);
-          var childGuid = simpleBuffer.readGuid(i);
-          i += childGuid.Length;
+          var childGuid = new AssetGuid(simpleBuffer.readGuid(i));
+          i += childGuid.guid.Length;
           if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
 
           guidsInFile.Add(childGuid);
         }
       }
 
-      static void parseBufferWithResolvers(SimpleBuffer simpleBuffer, HashSet<string> guidsInFile) {
+      static void parseBufferWithResolvers(SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile) {
         foreach (var resolver in extraResolvers) {
           guidsInFile.AddRange(resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length));
         }
       }
     }
     
-    /// <summary>
-    /// Unoptimized version of <see cref="parseFileOptimized"/>. Code left here for reference.
-    /// </summary>
-    static void parseFileUnoptimized(
-      Dictionary<string, string> pathToGuid, ILog log,
-      string assetPath,
-      Dictionary<string, HashSet<string>> updatedChildren
-    ) {
-      if (!getGuid(assetPath, out var guid, out _, log)) return;
-
-      lock (pathToGuid) pathToGuid[assetPath] = guid;
-      
-      var bytes = File.ReadAllBytes(assetPath);
-      var str = Encoding.ASCII.GetString(bytes);
-      var m = guidRegex.Match(str);
-      while (m.Success) {
-        var childGuid = m.Groups[2].Value;
-        lock (updatedChildren) {
-          updatedChildren.getOrUpdate(guid, () => new HashSet<string>()).Add(childGuid);
-        }
-        m = m.NextMatch();
-      }
-    }
+    // /// <summary>
+    // /// Unoptimized version of <see cref="parseFileOptimized"/>. Code left here for reference.
+    // /// </summary>
+    // static void parseFileUnoptimized(
+    //   Dictionary<AssetPath, AssetGuid> pathToGuid, ILog log,
+    //   AssetPath assetPath,
+    //   Dictionary<AssetGuid, HashSet<AssetGuid>> updatedChildren
+    // ) {
+    //   if (!getGuid(assetPath, out var guid, out _, log)) return;
+    //
+    //   lock (pathToGuid) pathToGuid[assetPath] = guid;
+    //   
+    //   var bytes = File.ReadAllBytes(assetPath);
+    //   var str = Encoding.ASCII.GetString(bytes);
+    //   var m = guidRegex.Match(str);
+    //   while (m.Success) {
+    //     var childGuid = new AssetGuid(m.Groups[2].Value);
+    //     lock (updatedChildren) {
+    //       updatedChildren.getOrUpdate(guid, () => new HashSet<AssetGuid>()).Add(childGuid);
+    //     }
+    //     m = m.NextMatch();
+    //   }
+    // }
     
     /// <summary>
     /// Fast way to read all bytes from file to memory.
@@ -349,55 +401,55 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     static void addParents(
-      Dictionary<string, HashSet<string>> parents,
-      Dictionary<string, HashSet<string>> updatedChildren
+      Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
+      Dictionary<AssetGuid, HashSet<AssetGuid>> updatedChildren
     ) {
-      foreach (var kv in updatedChildren) {
-        var parent = kv.Key;
-        foreach (var child in kv.Value) {
-          parents.getOrUpdate(child, () => new HashSet<string>()).Add(parent);
+      foreach (var (parent, children) in updatedChildren) {
+        foreach (var child in children) {
+          parents.getOrUpdate(child, () => new HashSet<AssetGuid>()).Add(parent);
         }
       }
     }
 
     /// <summary>
-    /// Uses out to return  instead of Either for performance reasons.
+    /// Uses out to return instead of Either for performance reasons.
     ///
     /// I tried to optimize this method similarly to <see cref="parseFileOptimized"/>, but the improvement was too small.
     /// </summary>
-    static bool getGuid(string assetPath, out string guid, out byte[] metaFileContents, ILog log) {
-      if (assetPath.StartsWithFast("ProjectSettings/")) {
-        guid = null;
+    static bool getGuid(AssetPath assetPath, out AssetGuid guid, out byte[] metaFileContents, ILog log) {
+      if (assetPath.path.StartsWithFast("ProjectSettings/")) {
+        guid = default;
         metaFileContents = null;
         return false;
       }
 
-      var metaPath = $"{assetPath}.meta";
+      var metaPath = $"{s(assetPath)}.meta";
       if (File.Exists(metaPath)) {
         metaFileContents = File.ReadAllBytes(metaPath);
         var fileContents = Encoding.ASCII.GetString(metaFileContents);
         var m = metaGuid.Match(fileContents);
         if (m.Success) {
-          guid = m.Groups[1].Value;
+          guid = new AssetGuid(m.Groups[1].Value);
           return true;
         }
         else {
           log.error($"Guid not found for: {assetPath}");
-          guid = null;
+          guid = default;
           return false;
         }
       }
       else {
         log.error($"Meta file not found for: {assetPath}");
-        guid = null;
+        guid = default;
         metaFileContents = null;
         return false;
       }
     }
 
     [Record] readonly partial struct ParseFileResult {
-      public readonly string assetGuid, assetPath;
-      public readonly HashSet<string> childGuids;
+      public readonly AssetGuid assetGuid;
+      public readonly AssetPath assetPath;
+      public readonly HashSet<AssetGuid> childGuids;
     }
     
     /// <summary>

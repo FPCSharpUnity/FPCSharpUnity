@@ -638,7 +638,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     public void rerender() => _rerender();
   }
     
-  [Record(GenerateConstructor = ConstructorFlags.Apply)] public sealed partial class ButtonData<A> {
+  [Record(ConstructorFlags.Apply)] public sealed partial class ButtonData<A> {
     public readonly string label;
     public readonly Action<A> onClick;
   }
