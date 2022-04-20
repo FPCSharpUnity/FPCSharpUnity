@@ -9973,6 +9973,28 @@
             Symbol for the underlying indexer or a slice method that is used to implement the implicit indexer.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation">
+            <summary>
+            Represents a UTF8 encoded byte representation of a string.
+            <para>
+              Current usage:
+              (1) C# UTF8 string literal expression.
+            </para>
+            </summary>
+            <remarks>
+            <para>This node is associated with the following operation kinds:</para>
+            <list type="bullet">
+            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.UTF8String"/></description></item>
+            </list>
+            <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+            change it in the future.</para>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value">
+            <summary>
+            The underlying string value.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Operations.BlockOperation.CreateTemporaryBlock(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.SyntaxNode)">
             <summary>
             This creates a block that can be used for temporary, internal applications that require a block composed of
@@ -10157,6 +10179,11 @@
         <member name="F:Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.Like">
             <summary>
             Represents the VB 'Like' operator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Operations.BinaryOperatorKind.UnsignedRightShift">
+            <summary>
+            Represents the <![CDATA['>>>']]> operator.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.BranchKind">
@@ -19397,6 +19424,9 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.OperationKind.ImplicitIndexerReference">
             <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation"/>.</summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.OperationKind.UTF8String">
+            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation"/>.</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.InternalUtilities.ConcurrentLruCache`2">
             <summary>
@@ -28864,9 +28894,19 @@
             The name assigned to an explicit (narrowing) conversion.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName">
+            <summary>
+            The name assigned to a chacked explicit (narrowing) conversion.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionOperatorName">
             <summary>
             The name assigned to the Addition operator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedAdditionOperatorName">
+            <summary>
+            The name assigned to the checked Addition operator.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.BitwiseAndOperatorName">
@@ -28884,9 +28924,19 @@
             The name assigned to the Decrement operator.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDecrementOperatorName">
+            <summary>
+            The name assigned to the checked Decrement operator.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.DivisionOperatorName">
             <summary>
             The name assigned to the Division operator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedDivisionOperatorName">
+            <summary>
+            The name assigned to the checked Division operator.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.EqualityOperatorName">
@@ -28917,6 +28967,11 @@
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.IncrementOperatorName">
             <summary>
             The name assigned to the Increment operator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedIncrementOperatorName">
+            <summary>
+            The name assigned to the checked Increment operator.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.InequalityOperatorName">
@@ -28969,6 +29024,11 @@
             The name assigned to the Multiply operator.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedMultiplyOperatorName">
+            <summary>
+            The name assigned to the checked Multiply operator.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.OnesComplementOperatorName">
             <summary>
             The name assigned to the OnesComplement operator.
@@ -28989,6 +29049,11 @@
             The name assigned to the Subtraction operator.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedSubtractionOperatorName">
+            <summary>
+            The name assigned to the checked Subtraction operator.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.TrueOperatorName">
             <summary>
             The name assigned to the True operator.
@@ -28997,6 +29062,11 @@
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.UnaryNegationOperatorName">
             <summary>
             The name assigned to the UnaryNegation operator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedUnaryNegationOperatorName">
+            <summary>
+            The name assigned to the checked UnaryNegation operator.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.UnaryPlusOperatorName">
