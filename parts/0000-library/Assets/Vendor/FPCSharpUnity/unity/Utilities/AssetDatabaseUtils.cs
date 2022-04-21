@@ -9,6 +9,8 @@ using FPCSharpUnity.unity.Filesystem;
 using FPCSharpUnity.unity.Logger;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
+using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using UnityEditor;
 using UnityEngine;
@@ -16,6 +18,22 @@ using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Utilities {
   [PublicAPI] public static class AssetDatabaseUtils {
+    /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
+    public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
+      AssetDatabase.GUIDToAssetPath(guid).nonEmptyOpt().map(path => new AssetPath(path))
+        .toRight(guid, static guid => $"Can't turn {guid} to asset path: asset not found");
+
+    /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
+    public static Either<string, Object> LoadMainAssetAtPath(AssetPath path) {
+      try {
+        var asset = AssetDatabase.LoadMainAssetAtPath(path);
+        return !asset ? (Either<string, Object>) $"Loading main asset at {path} returned null!" : asset;
+      }
+      catch (Exception e) {
+        return $"Error while loading main asset at {path}: {e}";
+      }
+    }
+    
     public static IEnumerable<A> getPrefabsOfType<A>() {
       var prefabGuids = AssetDatabase.FindAssets("t:prefab");
 
