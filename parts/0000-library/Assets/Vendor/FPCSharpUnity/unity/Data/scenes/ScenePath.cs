@@ -35,5 +35,6 @@ namespace FPCSharpUnity.unity.Data.scenes {
     
     public static implicit operator string(ScenePath s) => s.path;
     public static implicit operator SceneName(ScenePath s) => s.toSceneName;
+    public static implicit operator AssetPath(ScenePath s) => new AssetPath(s.path);
   }
 }
