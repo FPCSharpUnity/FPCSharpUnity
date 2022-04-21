@@ -58,7 +58,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
 
     static readonly Deque<LogEntry> logEntries = new();
-    static readonly LazyVal<DConsole> _instance = F.lazy(() => new DConsole());
+    static readonly LazyVal<DConsole> _instance = F.lazy(() => {
+        var dConsole = new DConsole();
+        initDConsole(dConsole);
+        return dConsole;
+      }
+    );
     public static DConsole instance => _instance.strict;
     static bool dConsoleUnlocked;
     public readonly IRxVal<bool> isActiveAndMaximizedRx;
@@ -81,23 +86,22 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
     }
 
-    [Conditional("UNITY_EDITOR"), RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void cleanUpCommandsOnRestart() {
       // With quick Unity restarts the view can be gone, but the static variable still hold the reference.
       foreach (var dConsole in _instance.value) {
         dConsole.commands.Clear();
+        initDConsole(dConsole);
       }
     }
 
-    DConsole() {
-      isActiveAndMaximizedRx = currentRx.flatMap(maybeInstance => 
-        maybeInstance.map(_ => _.view.maximizedRx).getOrElse(RxVal.cached(false))
-      );
-        
-      var r = registrarFor(nameof(DConsole), NeverDisposeDisposableTracker.instance, persistent: true);
+    static void initDConsole(DConsole dConsole) {
+      var r = dConsole.registrarFor(nameof(DConsole), NeverDisposeDisposableTracker.instance, persistent: true);
       r.register("Run GC", GC.Collect);
       r.register("Self-test", () => "self-test");
-      r.register("Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContext.unscaledTime));
+      r.register(
+        "Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContext.unscaledTime)
+      );
       
       void clearVisibleLog() {
         foreach (var i in instance.currentRx.value) {
@@ -109,6 +113,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         logEntries.Clear();
         clearVisibleLog();
       });
+    }
+
+    DConsole() {
+      isActiveAndMaximizedRx = currentRx.flatMap(maybeInstance => 
+        maybeInstance.map(_ => _.view.maximizedRx).getOrElse(RxVal.cached(false))
+      );
     }
 
     public delegate void OnShow(DConsole console);
