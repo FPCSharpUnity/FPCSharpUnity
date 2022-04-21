@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.unity.Concurrent;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
@@ -9,6 +10,10 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Reactive {
   [PublicAPI] public static class RxValU {
+    
+    /// <summary>
+    /// Calls <see cref="func"/> on update until it returns Some and stores the result in <see cref="RxVal"/>.
+    /// </summary>
     public static IRxVal<Option<A>> fromBusyLoop<A>(Func<Option<A>> func, YieldInstruction delay=null) {
       var rx = RxRef.a(Option<A>.None);
       ASync.StartCoroutine(coroutine());
@@ -26,6 +31,15 @@ namespace FPCSharpUnity.unity.Reactive {
           }
         }
       }
+    }
+
+    /// <summary>
+    /// Calls <see cref="getValue"/> every frame and updates the resulting <see cref="RxVal"/>.
+    /// </summary>
+    public static IRxVal<A> everyFrame<A>(ITracker tracker, Func<A> getValue) {
+      var result = RxRef.a(getValue());
+      ASync.onUpdate.subscribe(tracker, _ => result.value = getValue());
+      return result;
     }
 
     /// <summary>
