@@ -17,11 +17,29 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Utilities {
+  /// <summary>
+  /// Safe versions of functions in <see cref="AssetDatabase"/> and extra utilities.
+  /// </summary>
   [PublicAPI] public static class AssetDatabaseUtils {
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
     public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
-      AssetDatabase.GUIDToAssetPath(guid).nonEmptyOpt().map(path => new AssetPath(path))
+      Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMap(_ => _.nonEmptyOpt()).map(path => new AssetPath(path))
         .toRight(guid, static guid => $"Can't turn {guid} to asset path: asset not found");
+    
+    /// <summary>Safe version of <see cref="AssetDatabase.GetAssetPath(Object)"/>.</summary>
+    public static Either<string, AssetPath> GetAssetPath(Object obj) =>
+      Option.a(AssetDatabase.GetAssetPath(obj)).flatMap(_ => _.nonEmptyOpt()).map(path => new AssetPath(path))
+        .toRight(obj, static obj => $"Can't turn {obj} to asset path: asset not found");
+    
+    /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
+    public static Either<string, AssetGuid> AssetPathToGUID(AssetPath path) =>
+      Option.a(AssetDatabase.AssetPathToGUID(path)).flatMap(_ => _.nonEmptyOpt()).map(guid => new AssetGuid(guid))
+        .toRight(path, static path => $"Can't turn {path} to asset guid: asset not found");
+
+    /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
+    public static Either<string, AssetGuid> GUIDFromAssetPath(AssetPath path) =>
+      // Just reuse the same function, not sure why Unity has 2 functions to do the same thing. 
+      AssetPathToGUID(path);
 
     /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
     public static Either<string, Object> LoadMainAssetAtPath(AssetPath path) {
