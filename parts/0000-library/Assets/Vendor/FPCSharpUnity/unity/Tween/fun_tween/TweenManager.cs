@@ -231,6 +231,26 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
       }
       return this;
     }
+    
+    /// <summary>
+    /// Stops playback of the tween and sets all tween targets to start position.
+    /// </summary>
+    [PublicAPI]
+    public TweenManager stopAndResetToStart() {
+      stop();
+      timeline.resetAllElementsToStart();
+      return this;
+    }
+    
+    /// <summary>
+    /// Stops playback of the tween and sets all tween targets to end position.
+    /// </summary>
+    [PublicAPI]
+    public TweenManager stopAndResetToEnd() {
+      stop();
+      timeline.resetAllElementsToEnd();
+      return this;
+    }
 
     /// <summary>After stopping tween don't forget to call this! For internal use only!</summary>
     public void __afterTweenStop() {
