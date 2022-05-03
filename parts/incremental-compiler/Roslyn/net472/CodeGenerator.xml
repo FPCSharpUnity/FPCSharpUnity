@@ -22,6 +22,11 @@
              <param name="diagnostic"></param>
              <returns>New class members as string if there are any.</returns>
         </member>
+        <member name="T:IncrementalCompiler.CodeGeneration.FieldOrProp.FieldOrPropTypeKind">
+            <summary>
+            Special enum used only here. Add more values when you need them.
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.IRegisterGenerators">
             <summary>
             Implement this interface on a class if you want to register custom code generators on your own attributes.
