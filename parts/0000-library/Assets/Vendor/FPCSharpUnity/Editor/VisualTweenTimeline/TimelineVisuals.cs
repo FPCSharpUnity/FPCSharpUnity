@@ -10,6 +10,8 @@ using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using GenerationAttributes;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Logger;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using UnityEditor;
@@ -18,6 +20,7 @@ using SnapType = FPCSharpUnity.unity.Editor.VisualTweenTimeline.TimelineEditor.S
 using AnimationPlaybackEvent = FPCSharpUnity.unity.Editor.VisualTweenTimeline.TweenPlaybackController.AnimationPlaybackEvent;
 
 namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
+  [HasLogger]
   public partial class TimelineVisuals {
     
     [Record]
@@ -136,7 +139,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
     }
 
     void initializeZoomFactor(float initialDuration) {
-      var timelineEditorWidth = timelineZone.width;
+      var timelineEditorWidth = Math.Max(timelineZone.width, 100f);
 
       var contentDuration =
         Math.Max(0, initialDuration)
@@ -692,6 +695,10 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       const float SCALE = 5f;
       Handles.color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
       var count = 0;
+      if (_visualsSettings.timeZoomFactor <= 0) {
+        log.error($"{_visualsSettings.timeZoomFactor.echo()} should be a positive number.");
+        return;
+      }
       for (var x = timeRect.x - _visualsSettings.scroll.x; x < timeRect.width; x += ZOOM / SCALE * _visualsSettings.timeZoomFactor) {
         Handles.color = new Color(0.5f, 0.5f, 0.5f, 0.7f);
         if (x >= _visualsSettings.timelineOffset) {
