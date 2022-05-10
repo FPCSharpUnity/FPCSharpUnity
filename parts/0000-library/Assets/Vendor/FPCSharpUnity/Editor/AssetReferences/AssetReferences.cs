@@ -332,7 +332,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
           i += STRING_GUID.Length;
           simpleBuffer.skipWhitespace(ref i);
-          var childGuid = new AssetGuid(simpleBuffer.readGuid(i));
+          var childGuid = simpleBuffer.readGuid(i);
           i += childGuid.guid.Length;
           if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
 
@@ -484,9 +484,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       public bool isWhiteSpace(int index) => (char)buffer[index] is '\n' or '\r' or ' ' or '\t';
       
       /// <summary>
-      /// Skips all whitespace character from given <see cref="index"/> or until buffer end is reached.
+      /// Skips all whitespace characters from given <see cref="index"/> or until buffer end is reached.
       /// </summary>
-      /// <param name="index"></param>
       public void skipWhitespace(ref int index) {
         while (
           index < length && isWhiteSpace(index)
@@ -495,6 +494,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         }
       }
       
+      /// <summary>
+      /// Skips all specified characters from given <see cref="index"/> or until buffer end is reached.
+      /// </summary>
       public bool skipCharacter(ref int index, char character) {
         if (index < length && buffer[index] == character) {
           index++;
@@ -503,6 +505,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         return false;
       }
       
+      /// <summary>
+      /// Skips all numeric characters from given <see cref="index"/> or until buffer end is reached.
+      /// </summary>
       public void skipNumerals(ref int index) {
         while (
           index < length && 
@@ -514,7 +519,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       
       static readonly ThreadLocal<StringBuilder> stringBuilderCache = new(() => new StringBuilder());
 
-      public string readGuid(int index) {
+      /// <summary>Reads Unity style guid from the buffer.</summary>
+      public AssetGuid readGuid(int index) {
         var sb = stringBuilderCache.Value;
         sb.Clear();
         while (
@@ -527,7 +533,18 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           sb.Append((char) buffer[index]);
           index++;
         }
-        return sb.ToString();
+        return new AssetGuid(sb.ToString());
+      }
+
+      /// <summary>Reads a number from the buffer and returns it as long. Advances <see cref="index"/>.</summary>
+      public long readLong(ref int index) {
+        var sb = stringBuilderCache.Value;
+        sb.Clear();
+        while (index < length && buffer[index] >= (byte) '0' && buffer[index] <= (byte) '9') {
+          sb.Append((char) buffer[index]);
+          index++;
+        }
+        return long.Parse(sb.ToString());
       }
     }
   }
