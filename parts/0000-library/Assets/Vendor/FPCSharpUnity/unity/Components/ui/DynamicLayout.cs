@@ -54,10 +54,23 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull, PublicAccessor] ScrollRect _scrollRect;
     [SerializeField, NotNull] RectTransform _container;
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
+    [SerializeField, NotNull] Padding _padding;
+    [SerializeField, NotNull] float _spacing;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
 
     #endregion
+
+    [Serializable] public partial class Padding {
+      #region Unity Serialized Fields
+#pragma warning disable 649
+      // ReSharper disable NotNullMemberIsNotInitialized
+      [SerializeField, PublicAccessor] float _left, _right, _top, _bottom;
+      // ReSharper restore NotNullMemberIsNotInitialized
+#pragma warning restore 649
+
+      #endregion
+    }
 
     /// <summary>
     /// Visual part of layout item.
@@ -109,6 +122,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
       readonly bool renderLatestItemsFirst;
       readonly bool isHorizontal;
+      readonly Padding padding;
+      readonly float spacing;
 
       // If Option is None, that means there is no backing view, it is only a spacer.
       readonly IDictionary<IElementData, Option<IElementView>> _items = 
@@ -127,11 +142,13 @@ namespace FPCSharpUnity.unity.Components.ui {
         ITracker dt,
         bool renderLatestItemsFirst = false
       ) : this(
-        backing._container, backing._maskRect, layoutData, backing._scrollRect.horizontal,
+        backing._container, backing._maskRect, layoutData,
+        isHorizontal: backing._scrollRect.horizontal,
+        backing._padding,
+        spacing: backing._spacing,
         dt, renderLatestItemsFirst
       ) {
         backing._scrollRect.onValueChanged.subscribe(dt, _ => updateLayout());
-
       }
 
       /// <summary>
@@ -140,7 +157,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public Init(
         RectTransform _container, RectTransform _maskRect,
         IEnumerable<IElementData> layoutData,
-        bool isHorizontal,
+        bool isHorizontal, Padding padding, float spacing,
         ITracker tracker,
         bool renderLatestItemsFirst = false
       ) {
@@ -148,6 +165,8 @@ namespace FPCSharpUnity.unity.Components.ui {
         this._maskRect = _maskRect;
         this.layoutData = layoutData.ToList();
         this.isHorizontal = isHorizontal;
+        this.padding = padding;
+        this.spacing = spacing;
         this.renderLatestItemsFirst = renderLatestItemsFirst;
 
         // When we add elements to layout and enable it on the same frame,
@@ -308,10 +327,25 @@ namespace FPCSharpUnity.unity.Components.ui {
         var containerRect = _container.rect;
         var containerHeight = containerRect.height;
         var containerWidth = containerRect.width;
+
+        // Depending on orientation it's top or left
+        float paddingPercentageStart;
+        // Depending on orientation it's bottom or right
+        float paddingPercentageEnd;
+        if (isHorizontal) {
+          paddingPercentageStart = padding.top / containerHeight;
+          paddingPercentageEnd = padding.bottom / containerHeight;
+        }
+        else {
+          paddingPercentageStart = padding.left / containerWidth;
+          paddingPercentageEnd = padding.right / containerWidth;
+        }
+
+        var secondaryAxisRemapMultiplier = 1f - paddingPercentageStart - paddingPercentageEnd;
         
-        var totalOffsetUntilThisRow = 0f;
+        var totalOffsetUntilThisRow = isHorizontal ? padding.left : padding.top;
         var currentRowSizeInScrollableAxis = 0f;
-        var currentSizeInSecondaryAxisPerc = 0f;
+        var currentSizeInSecondaryAxisPerc = paddingPercentageStart;
 
         var direction = renderLatestItemsFirst ? -1 : 1;
         for (
@@ -320,11 +354,12 @@ namespace FPCSharpUnity.unity.Components.ui {
           idx += direction
         ) {
           var data = layoutData[idx];
-          var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value;
+          var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
           var itemLeftPerc = 0f;
-          if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc > 1f + EPS) {
-            currentSizeInSecondaryAxisPerc = itemSizeInSecondaryAxisPerc;
-            totalOffsetUntilThisRow += currentRowSizeInScrollableAxis;
+          if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
+            itemLeftPerc = paddingPercentageStart;
+            currentSizeInSecondaryAxisPerc = paddingPercentageStart + itemSizeInSecondaryAxisPerc;
+            totalOffsetUntilThisRow += currentRowSizeInScrollableAxis + spacing;
             currentRowSizeInScrollableAxis = data.sizeInScrollableAxis;
           }
           else {
@@ -371,7 +406,8 @@ namespace FPCSharpUnity.unity.Components.ui {
 
           updateElement(data, placementVisible, cellRect, dataA);
         }
-        
+
+        totalOffsetUntilThisRow += isHorizontal ? padding.right : padding.bottom;
         containerSizeInScrollableAxis_ = totalOffsetUntilThisRow + currentRowSizeInScrollableAxis;
       }
     }
