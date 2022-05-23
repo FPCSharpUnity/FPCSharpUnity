@@ -2,6 +2,7 @@
 using FPCSharpUnity.unity.Components.gradient;
 using FPCSharpUnity.unity.Components.ui;
 using FPCSharpUnity.unity.core.Utilities;
+using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
@@ -196,6 +197,14 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     protected override Vector2 lerp(float percentage) => Vector2.LerpUnclamped(_start, _end, percentage);
     protected override Vector2 add(Vector2 a, Vector2 b) => a + b;
     protected override Vector2 subtract(Vector2 a, Vector2 b) => a - b;
+  }
+  
+  public abstract class SerializedTweenerPercentage<T> : SerializedTweenerV2<T, Percentage> {
+    protected override Percentage lerp(float percentage) => 
+      new(Mathf.LerpUnclamped(_start.value, _end.value, percentage));
+    
+    protected override Percentage add(Percentage a, Percentage b) => a + b;
+    protected override Percentage subtract(Percentage a, Percentage b) => a - b;
   }
   
   public abstract class SerializedTweenerFloat<T> : SerializedTweenerV2<T, float> {
