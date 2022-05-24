@@ -6,11 +6,13 @@ using UnityEngine;
 namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
   public static class SerializedEasePreview {
 #if UNITY_EDITOR
-    static Dictionary<SimpleSerializedEase, Texture2D> _imagesCache = new();
+    static readonly Dictionary<SimpleSerializedEase, Texture2D> _imagesCache = new();
 
     public static Texture2D editorPreview(SimpleSerializedEase simple) => 
       // ReSharper disable once ConvertClosureToMethodGroup
-      _imagesCache.getOrUpdate(simple, simple_ => generateTexture(simple_.toEase()));
+      _imagesCache.TryGetValue(simple, out var texture) && texture
+        ? texture
+        : _imagesCache[simple] = generateTexture(simple.toEase());
 
     public static Texture2D generateTexture(Ease ease) {
       const float VERTICAL_OFFSET = 0.25f;
