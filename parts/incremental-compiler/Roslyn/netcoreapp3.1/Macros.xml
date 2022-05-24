@@ -91,5 +91,52 @@
         <member name="T:GenerationAttributes.TypesWithMacroAttributes">
             <summary> Used internally by compiler. </summary>
         </member>
+        <member name="P:GenerationAttributes.Macros.className">
+            <summary>
+            Replaces the invocation to the full class name of where the invocation is located.
+            </summary>
+            <example>
+            <code><![CDATA[
+            SomeNamespace.SubNamespace.MacroTestsClass.NestedClassGeneric<A>
+            ]]></code>
+            </example>
+        </member>
+        <member name="P:GenerationAttributes.Macros.classNameShort">
+            <summary>
+            Replaces the invocation to the short class name of where the invocation is located.
+            </summary>
+            <example>
+            <code>NestedClassGeneric</code>
+            </example>
+        </member>
+        <member name="P:GenerationAttributes.Macros.classAndMethodName">
+            <summary>
+            Replaces the invocation to the full class name (<see cref="P:GenerationAttributes.Macros.className"/>) and the method name
+            (<see cref="P:GenerationAttributes.Macros.methodName"/>) of where the invocation is located.
+            </summary>
+            <example>
+            <code><![CDATA[
+            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
+            ]]></code>
+            </example>
+        </member>
+        <member name="P:GenerationAttributes.Macros.classAndMethodNameShort">
+            <summary>
+            Replaces the invocation to the short class name (<see cref="P:GenerationAttributes.Macros.classNameShort"/>) and the method name
+            (<see cref="P:GenerationAttributes.Macros.methodName"/>) of where the invocation is located.
+            </summary>
+            <example>
+            <code>NestedClassGeneric.sampleMethod.localFunc.nestedLocalFunc</code>
+            </example>
+        </member>
+        <member name="P:GenerationAttributes.Macros.methodName">
+            <summary>
+            Replaces the invocation to the method name of where the invocation is located. If it is located in a local
+            function, then it also prints a full path starting from the method.
+            </summary>
+            <example>
+            <code>sampleMethod.localFunc.nestedLocalFunc</code>
+            </example>
+        </member>
     </members>
 </doc>
