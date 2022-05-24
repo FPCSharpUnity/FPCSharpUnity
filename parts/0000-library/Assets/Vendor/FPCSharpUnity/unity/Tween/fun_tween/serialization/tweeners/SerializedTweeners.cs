@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using FPCSharpUnity.unity.Components;
 using FPCSharpUnity.unity.Components.gradient;
 using FPCSharpUnity.unity.Components.ui;
 using FPCSharpUnity.unity.core.Utilities;
@@ -7,6 +9,7 @@ using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using FPCSharpUnity.unity.Utilities;
+using FPCSharpUnity.unity.validations;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -718,6 +721,23 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
         exitTween: exitTween, isReset: isReset
       );
     }
+  }
+  
+  [Serializable] public class PercentageCombinerSetterValue : SerializedTweenerPercentage<PercentageCombinerSetter> {
+    [SerializeField, NonEmpty, ValueDropdown(nameof(allIds)), ValidateInput(nameof(validateIds))] string _id;
+
+    bool validateIds(string id) => allIds.Any(_ => _.Value == id);
+
+    ValueDropdownList<string> allIds { get {
+      var list = new ValueDropdownList<string>();
+      if (_target) {
+        foreach (var kvp in _target.variables.a) { list.Add(kvp.Key); }
+      }
+      return list;
+    } }
+
+    protected override Percentage get => _target.calculate();
+    protected override void set(Percentage value) => _target.set(_id, value);
   }
 
   // ReSharper restore NotNullMemberIsNotInitialized
