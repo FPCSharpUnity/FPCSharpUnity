@@ -50,6 +50,12 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     // Equals(null) checks if unity object is alive
     protected bool hasTarget => _target != null && !_target.Equals(null);
 
+    /// <summary>
+    /// This method gets called when user interacts with Timeline UI. User can change the duration by dragging on the
+    /// edge of the element.
+    /// <para/>
+    /// If you have a custom duration login implemented, then you can ignore this action from the user.
+    /// </summary>
     public abstract void trySetDuration(float duration);
     public bool isValid => hasTarget;
     public virtual Color editorColor => Color.white;
