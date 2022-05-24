@@ -24,7 +24,7 @@ namespace FPCSharpUnity.unity.Logger {
     }
 
     public bool willLog(LogLevel l) => backing.willLog(l);
-    public void log(LogLevel l, LogEntry entry) => defer(() => backing.log(l, entry));
+    public void logRaw(LogLevel l, LogEntry entry) => defer(() => backing.log(l, entry));
     static void defer(Action a) => ASync.OnMainThread(a, runNowIfOnMainThread: false);
 
     public event ILogMessageLogged messageLogged {

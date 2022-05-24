@@ -45,6 +45,12 @@ namespace FPCSharpUnity.unity.Utilities {
       // Just reuse the same function, not sure why Unity has 2 functions to do the same thing. 
       AssetPathToGUID(path);
 
+    /// <summary>Safe version of <see cref="AssetDatabase.LoadAssetAtPath{T}"/>.</summary>
+    public static Either<string, A> LoadAssetAtPath<A>(AssetPath assetPath) where A : Object => 
+      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRight(assetPath, static assetPath => 
+        $"Can't load asset of type {typeof(A).FullName} from {assetPath}: asset not found or has a different type"
+      );
+
     /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
     public static Either<string, Object> LoadMainAssetAtPath(AssetPath path) {
       try {
@@ -55,7 +61,11 @@ namespace FPCSharpUnity.unity.Utilities {
         return $"Error while loading main asset at {path}: {e}";
       }
     }
-    
+
+    /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
+    public static Either<string, A> LoadMainAssetAtPath<A>(AssetPath path) where A : Object => 
+      LoadMainAssetAtPath(path).flatMapRight(obj => obj.cast().toE<A>());
+
     public static IEnumerable<A> getPrefabsOfType<A>() {
       var prefabGuids = AssetDatabase.FindAssets("t:prefab");
 
