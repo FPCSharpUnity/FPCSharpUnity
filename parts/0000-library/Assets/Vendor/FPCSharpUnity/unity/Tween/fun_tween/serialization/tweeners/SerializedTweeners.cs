@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Linq;
+using FPCSharpUnity.unity.Components;
 using FPCSharpUnity.unity.Components.gradient;
 using FPCSharpUnity.unity.Components.ui;
 using FPCSharpUnity.unity.core.Utilities;
+using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using FPCSharpUnity.unity.Utilities;
+using FPCSharpUnity.unity.validations;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -49,6 +53,12 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     // Equals(null) checks if unity object is alive
     protected bool hasTarget => _target != null && !_target.Equals(null);
 
+    /// <summary>
+    /// This method gets called when user interacts with Timeline UI. User can change the duration by dragging on the
+    /// edge of the element.
+    /// <para/>
+    /// If you have a custom duration login implemented, then you can ignore this action from the user.
+    /// </summary>
     public abstract void trySetDuration(float duration);
     public bool isValid => hasTarget;
     public virtual Color editorColor => Color.white;
@@ -196,6 +206,14 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     protected override Vector2 lerp(float percentage) => Vector2.LerpUnclamped(_start, _end, percentage);
     protected override Vector2 add(Vector2 a, Vector2 b) => a + b;
     protected override Vector2 subtract(Vector2 a, Vector2 b) => a - b;
+  }
+  
+  public abstract class SerializedTweenerPercentage<T> : SerializedTweenerV2<T, Percentage> {
+    protected override Percentage lerp(float percentage) => 
+      new(Mathf.LerpUnclamped(_start.value, _end.value, percentage));
+    
+    protected override Percentage add(Percentage a, Percentage b) => a + b;
+    protected override Percentage subtract(Percentage a, Percentage b) => a - b;
   }
   
   public abstract class SerializedTweenerFloat<T> : SerializedTweenerV2<T, float> {
@@ -703,6 +721,23 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
         exitTween: exitTween, isReset: isReset
       );
     }
+  }
+  
+  [Serializable] public class PercentageCombinerSetterValue : SerializedTweenerPercentage<PercentageCombinerSetter> {
+    [SerializeField, NonEmpty, ValueDropdown(nameof(allIds)), ValidateInput(nameof(validateIds))] string _id;
+
+    bool validateIds(string id) => allIds.Any(_ => _.Value == id);
+
+    ValueDropdownList<string> allIds { get {
+      var list = new ValueDropdownList<string>();
+      if (_target) {
+        foreach (var kvp in _target.variables.a) { list.Add(kvp.Key); }
+      }
+      return list;
+    } }
+
+    protected override Percentage get => _target.calculate();
+    protected override void set(Percentage value) => _target.set(_id, value);
   }
 
   // ReSharper restore NotNullMemberIsNotInitialized

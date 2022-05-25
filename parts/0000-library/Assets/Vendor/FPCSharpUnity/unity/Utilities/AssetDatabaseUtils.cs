@@ -1,6 +1,7 @@
 ﻿#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using FPCSharpUnity.unity.Data;
@@ -21,6 +22,9 @@ namespace FPCSharpUnity.unity.Utilities {
   /// Safe versions of functions in <see cref="AssetDatabase"/> and extra utilities.
   /// </summary>
   [PublicAPI] public static class AssetDatabaseUtils {
+    /// <summary>Safe version of <see cref="AssetDatabase.GetAllAssetPaths"/>.</summary>
+    public static AssetPath[] GetAllAssetPaths() => AssetDatabase.GetAllAssetPaths().map(p => new AssetPath(p));
+    
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
     public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
       Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMap(_ => _.nonEmptyOpt()).map(path => new AssetPath(path))
@@ -41,6 +45,12 @@ namespace FPCSharpUnity.unity.Utilities {
       // Just reuse the same function, not sure why Unity has 2 functions to do the same thing. 
       AssetPathToGUID(path);
 
+    /// <summary>Safe version of <see cref="AssetDatabase.LoadAssetAtPath{T}"/>.</summary>
+    public static Either<string, A> LoadAssetAtPath<A>(AssetPath assetPath) where A : Object => 
+      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRight(assetPath, static assetPath => 
+        $"Can't load asset of type {typeof(A).FullName} from {assetPath}: asset not found or has a different type"
+      );
+
     /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
     public static Either<string, Object> LoadMainAssetAtPath(AssetPath path) {
       try {
@@ -51,7 +61,11 @@ namespace FPCSharpUnity.unity.Utilities {
         return $"Error while loading main asset at {path}: {e}";
       }
     }
-    
+
+    /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
+    public static Either<string, A> LoadMainAssetAtPath<A>(AssetPath path) where A : Object => 
+      LoadMainAssetAtPath(path).flatMapRight(obj => obj.cast().toE<A>());
+
     public static IEnumerable<A> getPrefabsOfType<A>() {
       var prefabGuids = AssetDatabase.FindAssets("t:prefab");
 
@@ -145,6 +159,28 @@ namespace FPCSharpUnity.unity.Utilities {
     public static ActionOnDispose doAssetEditing() {
       startAssetEditing();
       return new ActionOnDispose(stopAssetEditing);
+    }
+
+    /// <summary>
+    /// Returns all files from the <see cref="Selection.objects"/>. If a directory (or multiple directories) are
+    /// selected, returns all files in the subdirectories.
+    /// <para/>
+    /// Will return `Left` if given array contains Unity objects which can not be resolved to paths.
+    /// </summary>
+    public static Either<string, ImmutableHashSet<AssetPath>> assetsFromSelectionRecursive(Object[] selection) {
+      var paths = selection.Select(GetAssetPath).sequence().rightOr_RETURN();
+      var (directories, files) = paths.partition(path => Directory.Exists(path));
+      if (directories.isEmpty()) return paths.ToImmutableHashSet();
+      else {
+        var allAssetPaths = GetAllAssetPaths();
+        var filesInDirectories = allAssetPaths.Where(path =>
+          // Is a file
+          !Directory.Exists(path)
+          // is contained in a directory
+          && directories.Any(dir => path.path.StartsWithFast(dir.path))
+        );
+        return filesInDirectories.Concat(files).ToImmutableHashSet();
+      }
     }
   }
 }
