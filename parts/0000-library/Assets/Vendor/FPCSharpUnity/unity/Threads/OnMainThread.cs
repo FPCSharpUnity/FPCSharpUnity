@@ -85,7 +85,12 @@ namespace FPCSharpUnity.unity.Threads {
       return true;
     }
 
-    public static Future<Either<TaskFailed, A>> toFuture<A>(this Task<A> task, [Implicit] ILog log=default) => 
+    /// <summary>
+    /// Converts <see cref="Task{A}"/> to <see cref="Future{A}"/> continuing the execution on Unity main thread. 
+    /// </summary>
+    public static Future<Either<TaskFailed, A>> toFutureOnUnityMainThread<A>(
+      this Task<A> task, [Implicit] ILog log=default
+    ) => 
       task.toFuture(action => run(action));
   }
 }
