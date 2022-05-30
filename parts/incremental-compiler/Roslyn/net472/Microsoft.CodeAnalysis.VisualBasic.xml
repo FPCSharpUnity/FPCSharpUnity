@@ -5571,7 +5571,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Returns true when field is a backing field for a captured frame pointer (typically "Me").
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.HighestPriorityUseSiteError">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.IsHighestPriorityUseSiteError(System.Int32)">
  <summary>
  Return error code that has highest priority while calculating use site error for this symbol. 
  </summary>
@@ -5952,7 +5952,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  <paramref name="meParameter"/> (e.g. fails for shared methods).
  </returns>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.HighestPriorityUseSiteError">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.IsHighestPriorityUseSiteError(System.Int32)">
  <summary>
  Return error code that has highest priority while calculating use site error for this symbol. 
  </summary>
@@ -7170,7 +7170,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Get the "this" parameter for this property.  This is only valid for source fields.
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.PropertySymbol.HighestPriorityUseSiteError">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.PropertySymbol.IsHighestPriorityUseSiteError(System.Int32)">
  <summary>
  Return error code that has highest priority while calculating use site error for this symbol. 
  </summary>
@@ -14054,7 +14054,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  with the given cardinality. 
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol.HighestPriorityUseSiteError">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol.IsHighestPriorityUseSiteError(System.Int32)">
  <summary>
  Return error code that has highest priority while calculating use site error for this symbol. 
  </summary>
@@ -18326,9 +18326,9 @@ End Class
  Derive dependencies and error info from a type symbol.
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbol.HighestPriorityUseSiteError">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.IsHighestPriorityUseSiteError(System.Int32)">
  <summary>
- Return error code that has highest priority while calculating use site error for this symbol. 
+ Returns true if the error code is highest priority while calculating use site error for this symbol. 
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.GetAttributes">
@@ -81381,10 +81381,16 @@ Parse the input for leading trivia.
  <summary>The CallerArgumentExpressionAttribute applied to parameter will have no effect. It is applied with an invalid parameter name.</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_BadAbstractStaticMemberAccess">
- <summary>A shared abstract interface member cannot be accessed.</summary>
+ <summary>A shared abstract or virtual interface member cannot be accessed.</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_UnimplementedSharedMember">
- <summary>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract '{2}'.</summary>
+ <summary>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_UnsupportedCompilerFeature">
+ <summary>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_DoNotUseCompilerFeatureRequired">
+ <summary>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer">
  <summary>

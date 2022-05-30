@@ -1926,6 +1926,9 @@
             </summary>
             <param name="value">The value.</param>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.Internal.BitHelper.ToIntArrayLength(System.Int32)">
+            <summary>How many ints must be allocated to represent n bits. Returns (n+31)/32, but avoids overflow.</summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Collections.Internal.HashHelpers.GetFastModMultiplier(System.UInt32)">
             <summary>Returns approximate reciprocal of the divisor: ceil(2**64 / divisor).</summary>
             <remarks>This should only be used on 64-bit.</remarks>
@@ -2057,6 +2060,9 @@
             </summary>
             <param name="segmentSize">The number of elements in each page of the segmented array. Must be a power of 2.</param>
             <returns>The bit mask to obtain the index within a page from an absolute index within a segmented array.</returns>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Collections.Internal.SegmentedHashSetEqualityComparer`1">
+            <summary>Equality comparer for hashsets of hashsets</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Collections.Internal.SR.Arg_ArrayPlusOffTooSmall">
             <summary>Destination array is not long enough to copy all the items in the collection. Check array index and length.</summary>
@@ -2397,6 +2403,243 @@
             </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Collections.SegmentedDictionary`2.Entry._next">
+            <summary>
+            0-based index of next entry in chain: -1 means end of chain
+            also encodes whether this entry _itself_ is part of the free list by changing sign and subtracting 3,
+            so -2 means end of free list, -3 means index 0 but on free list, -4 means index 1 but on free list, etc.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.StackAllocThreshold">
+            <summary>Cutoff point for stackallocs. This corresponds to the number of ints.</summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.ShrinkThreshold">
+            <summary>
+            When constructing a hashset from an existing collection, it may contain duplicates,
+            so this is used as the max acceptable excess ratio of capacity to count. Note that
+            this is only used on the ctor and not to automatically shrink if the hashset has, e.g,
+            a lot of adds followed by removes. Users must explicitly shrink by calling TrimExcess.
+            This is set to 3 because capacity is acceptable as 2x rounded up to nearest prime.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1._comparer">
+            <summary>
+            <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/> doesn't devirtualize on .NET Framework, so we always ensure
+            <see cref="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1._comparer"/> is initialized to a non-<see langword="null"/> value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.ConstructFrom(Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0})">
+            <summary>Initializes the SegmentedHashSet from another SegmentedHashSet with the same element type and equality comparer.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Clear">
+            <summary>Removes all elements from the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Contains(`0)">
+            <summary>Determines whether the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> contains the specified element.</summary>
+            <param name="item">The element to locate in the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object contains the specified element; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.FindItemIndex(`0)">
+            <summary>Gets the index of the item in <see cref="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1._entries"/>, or -1 if it's not in the set.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.GetBucketRef(System.Int32)">
+            <summary>Gets a reference to the specified hashcode's bucket, containing an index into <see cref="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1._entries"/>.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Count">
+            <summary>Gets the number of elements that are contained in the set.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Add(`0)">
+            <summary>Adds the specified element to the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/>.</summary>
+            <param name="item">The element to add to the set.</param>
+            <returns>true if the element is added to the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object; false if the element is already present.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.TryGetValue(`0,`0@)">
+            <summary>Searches the set for a given value and returns the equal value it finds, if any.</summary>
+            <param name="equalValue">The value to search for.</param>
+            <param name="actualValue">The value from the set that the search found, or the default value of <typeparamref name="T"/> when the search yielded no match.</param>
+            <returns>A value indicating whether the search was successful.</returns>
+            <remarks>
+            This can be useful when you want to reuse a previously stored reference instead of
+            a newly constructed one (so that more sharing of references can occur) or to look up
+            a value that has more complete data than the value you currently have, although their
+            comparer functions indicate they are equal.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.UnionWith(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Modifies the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object to contain all elements that are present in itself, the specified collection, or both.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IntersectWith(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Modifies the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object to contain only elements that are present in that object and in the specified collection.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.ExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Removes all elements in the specified collection from the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.SymmetricExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Modifies the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object to contain only elements that are present either in that object or in the specified collection, but not both.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a subset of the specified collection.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a subset of <paramref name="other"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a proper subset of the specified collection.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a proper subset of <paramref name="other"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a proper superset of the specified collection.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a superset of <paramref name="other"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a proper superset of the specified collection.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is a proper superset of <paramref name="other"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Overlaps(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object and a specified collection share common elements.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object and <paramref name="other"/> share at least one common element; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.SetEquals(System.Collections.Generic.IEnumerable{`0})">
+            <summary>Determines whether a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object and the specified collection contain the same elements.</summary>
+            <param name="other">The collection to compare to the current <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</param>
+            <returns>true if the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object is equal to <paramref name="other"/>; otherwise, false.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.CopyTo(`0[],System.Int32)">
+            <summary>Copies the elements of a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object to an array, starting at the specified array index.</summary>
+            <param name="array">The destination array.</param>
+            <param name="arrayIndex">The zero-based index in array at which copying begins.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.RemoveWhere(System.Predicate{`0})">
+            <summary>Removes all elements that match the conditions defined by the specified predicate from a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> collection.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Comparer">
+            <summary>Gets the <see cref="T:System.Collections.IEqualityComparer"/> object that is used to determine equality for the values in the set.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.EnsureCapacity(System.Int32)">
+            <summary>Ensures that this hash set can hold the specified number of elements without growing.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.TrimExcess">
+            <summary>
+            Sets the capacity of a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object to the actual number of elements it contains,
+            rounded up to a nearby, implementation-specific value.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.CreateSetComparer">
+            <summary>Returns an <see cref="T:System.Collections.IEqualityComparer"/> object that can be used for equality testing of a <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object.</summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Initialize(System.Int32)">
+            <summary>
+            Initializes buckets and slots arrays. Uses suggested capacity by finding next prime
+            greater than or equal to capacity.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.AddIfNotPresent(`0,System.Int32@)">
+            <summary>Adds the specified element to the set if it's not already contained.</summary>
+            <param name="value">The element to add to the set.</param>
+            <param name="location">The index into <see cref="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1._entries"/> of the element.</param>
+            <returns>true if the element is added to the <see cref="T:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1"/> object; false if the element is already present.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.ContainsAllElements(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Checks if this contains of other's elements. Iterates over other's elements and
+            returns false as soon as it finds an element in other that's not in this.
+            Used by SupersetOf, ProperSupersetOf, and SetEquals.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IsSubsetOfHashSetWithSameComparer(Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0})">
+             <summary>
+             Implementation Notes:
+             If other is a hashset and is using same equality comparer, then checking subset is
+             faster. Simply check that each element in this is in other.
+            
+             Note: if other doesn't use same equality comparer, then Contains check is invalid,
+             which is why callers must take are of this.
+            
+             If callers are concerned about whether this is a proper subset, they take care of that.
+             </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IntersectWithHashSetWithSameComparer(Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0})">
+            <summary>
+            If other is a hashset that uses same equality comparer, intersect is much faster
+            because we can use other's Contains
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.IntersectWithEnumerable(System.Collections.Generic.IEnumerable{`0})">
+             <summary>
+             Iterate over other. If contained in this, mark an element in bit array corresponding to
+             its position in _slots. If anything is unmarked (in bit array), remove it.
+            
+             This attempts to allocate on the stack, if below StackAllocThreshold.
+             </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.SymmetricExceptWithUniqueHashSet(Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0})">
+             <summary>
+             if other is a set, we can assume it doesn't have duplicate elements, so use this
+             technique: if can't remove, then it wasn't present in this set, so add.
+            
+             As with other methods, callers take care of ensuring that other is a hashset using the
+             same equality comparer.
+             </summary>
+             <param name="other"></param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.SymmetricExceptWithEnumerable(System.Collections.Generic.IEnumerable{`0})">
+             <summary>
+             Implementation notes:
+            
+             Used for symmetric except when other isn't a SegmentedHashSet. This is more tedious because
+             other may contain duplicates. SegmentedHashSet technique could fail in these situations:
+             1. Other has a duplicate that's not in this: SegmentedHashSet technique would add then
+             remove it.
+             2. Other has a duplicate that's in this: SegmentedHashSet technique would remove then add it
+             back.
+             In general, its presence would be toggled each time it appears in other.
+            
+             This technique uses bit marking to indicate whether to add/remove the item. If already
+             present in collection, it will get marked for deletion. If added from other, it will
+             get marked as something not to remove.
+            
+             </summary>
+             <param name="other"></param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.CheckUniqueAndUnfoundElements(System.Collections.Generic.IEnumerable{`0},System.Boolean)">
+             <summary>
+             Determines counts that can be used to determine equality, subset, and superset. This
+             is only used when other is an IEnumerable and not a SegmentedHashSet. If other is a SegmentedHashSet
+             these properties can be checked faster without use of marking because we can assume
+             other has no duplicates.
+            
+             The following count checks are performed by callers:
+             1. Equals: checks if unfoundCount = 0 and uniqueFoundCount = _count; i.e. everything
+             in other is in this and everything in this is in other
+             2. Subset: checks if unfoundCount >= 0 and uniqueFoundCount = _count; i.e. other may
+             have elements not in this and everything in this is in other
+             3. Proper subset: checks if unfoundCount > 0 and uniqueFoundCount = _count; i.e
+             other must have at least one element not in this and everything in this is in other
+             4. Proper superset: checks if unfound count = 0 and uniqueFoundCount strictly less
+             than _count; i.e. everything in other was in this and this had at least one element
+             not contained in other.
+            
+             An earlier implementation used delegates to perform these checks rather than returning
+             an ElementCount struct; however this was changed due to the perf overhead of delegates.
+             </summary>
+             <param name="other"></param>
+             <param name="returnIfUnfound">Allows us to finish faster for equals and proper superset
+             because unfoundCount must be 0.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.EqualityComparersAreEqual(Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0},Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0})">
+            <summary>
+            Checks if equality comparers are equal. This is used for algorithms that can
+            speed up if it knows the other item has unique elements. I.e. if they're using
+            different equality comparers, then uniqueness assumption between sets break.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.SegmentedHashSet`1.Entry._next">
             <summary>
             0-based index of next entry in chain: -1 means end of chain
             also encodes whether this entry _itself_ is part of the free list by changing sign and subtracting 3,
@@ -10713,6 +10956,100 @@
             The <see cref="T:Microsoft.CodeAnalysis.SyntaxTree"/> is marked as automatically generated.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.IImportScope">
+            <summary>
+            Represents the set of symbols that are imported to a particular position in a source file. Each import has a
+            reference to the location the import directive was declared at.  For the <see cref="T:Microsoft.CodeAnalysis.IAliasSymbol"/> import, the
+            location can be found using either <see cref="P:Microsoft.CodeAnalysis.ISymbol.Locations"/> or <see
+            cref="P:Microsoft.CodeAnalysis.ISymbol.DeclaringSyntaxReferences"/> on the <see cref="T:Microsoft.CodeAnalysis.IAliasSymbol"/> itself.  For <see cref="P:Microsoft.CodeAnalysis.IImportScope.Imports"/>
+            or <see cref="P:Microsoft.CodeAnalysis.IImportScope.XmlNamespaces"/> the location is found through <see
+            cref="P:Microsoft.CodeAnalysis.ImportedNamespaceOrType.DeclaringSyntaxReference"/> or <see
+            cref="P:Microsoft.CodeAnalysis.ImportedXmlNamespace.DeclaringSyntaxReference"/> respectively.
+            </summary>
+            <remarks>
+            <list type="bullet">
+            <item>Scopes returned will always have at least one non-empty property value in them.</item>
+            <item>Symbols may be imported, but may not necessarily be available at that location (for example, an alias
+            symbol hidden by another symbol).</item>
+            <item>
+            In C# there will be an <see cref="T:Microsoft.CodeAnalysis.IImportScope"/> for every containing namespace-declarations that include any
+            import directives.  There will also be an <see cref="T:Microsoft.CodeAnalysis.IImportScope"/> for the containing compilation-unit if it
+            includes any import directives or if there are global import directives pulled in from other files.
+            </item>
+            <item>
+            In Visual Basic there will commonly be one or two <see cref="T:Microsoft.CodeAnalysis.IImportScope"/>s returned for any position.  This will
+            commonly be a scope for the containing compilation unit if it includes any import directives.  As well as a scope
+            representing any imports specified at the project level.
+            </item>
+            <item>
+            Elements of any property have no defined order.  Even if they represent items from a single document, they are
+            not guaranteed to be returned in any specific file-oriented order.
+            </item>
+            <item>There is no guarantee that the same scope instances will be returned from successive calls to <see
+            cref="M:Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(System.Int32,System.Threading.CancellationToken)"/>.</item> 
+            </list>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IImportScope.Aliases">
+            <summary>
+            Aliases defined at this level of the chain.  This corresponds to <c>using X = TypeOrNamespace;</c> in C# or
+            <c>Imports X = TypeOrNamespace</c> in Visual Basic.  This will include global aliases if present for both
+            languages.
+            </summary>
+            <remarks>May be <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/>, will never be <see cref="P:System.Collections.Immutable.ImmutableArray`1.IsDefault"/>.</remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IImportScope.ExternAliases">
+            <summary>
+            Extern aliases defined at this level of the chain.  This corresponds to <c>extern alias X;</c> in C#.  It
+            will be empty in Visual Basic.
+            </summary>
+            <remarks>May be <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/>, will never be <see cref="P:System.Collections.Immutable.ImmutableArray`1.IsDefault"/>.</remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IImportScope.Imports">
+            <summary>
+            Types or namespaces imported at this level of the chain.  This corresponds to <c>using Namespace;</c> or
+            <c>using static Type;</c> in C#, or <c>Imports TypeOrNamespace</c> in Visual Basic.  This will include
+            global namespace or type imports for both languages.
+            </summary>
+            <remarks>May be <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/>, will never be <see cref="P:System.Collections.Immutable.ImmutableArray`1.IsDefault"/>.</remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IImportScope.XmlNamespaces">
+            <summary>
+            Xml namespaces imported at this level of the chain.  This corresponds to <c>Imports &lt;xmlns:prefix =
+            "name"&gt;</c> in Visual Basic.  It will be empty in C#.
+            </summary>
+            <remarks>May be <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/>, will never be <see cref="P:System.Collections.Immutable.ImmutableArray`1.IsDefault"/>.</remarks>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.ImportedNamespaceOrType">
+            <summary>
+            Represents an <see cref="T:Microsoft.CodeAnalysis.INamespaceOrTypeSymbol"/> that has been imported, and the location the import was
+            declared at.  This corresponds to <c>using Namespace;</c> or <c>using static Type;</c> in C#, or <c>Imports
+            TypeOrNamespace</c> in Visual Basic.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.ImportedNamespaceOrType.DeclaringSyntaxReference">
+            <summary>
+            Location in source where the <c>using</c> directive or <c>Imports</c> clause was declared. Will never be
+            null for C#, may be null for Visual Basic for a project-level import directive.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.ImportedXmlNamespace">
+            <summary>
+            Represents an imported xml namespace name. This corresponds to <c>Imports &lt;xmlns:prefix = "name"&gt;</c> in
+            Visual Basic.  It does not exist for C#.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.ImportedXmlNamespace.DeclaringSyntaxReference">
+            <summary>
+            Location in source where the <c>Imports</c> clause was declared. May be null for a project-level import
+            directive.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.SimpleImportScope">
+            <summary>
+            Simple POCO implementation of the import scope, usable by both C# and VB.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.NullableContext">
             <summary>
             Represents the state of the nullable analysis at a specific point in a file. Bits one and
@@ -11620,6 +11957,13 @@
             <summary>
             Given a position in the SyntaxTree for this SemanticModel returns the innermost Symbol
             that the position is considered inside of.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Given a position in the SyntaxTree for this SemanticModel returns the <see cref="T:Microsoft.CodeAnalysis.IImportScope"/>s at that
+            point.  Scopes are ordered from closest to the passed in <paramref name="position"/> to the furthest. See
+            <see cref="T:Microsoft.CodeAnalysis.IImportScope"/> for a deeper description of what information is available for each scope.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SemanticModel.IsAccessible(System.Int32,Microsoft.CodeAnalysis.ISymbol)">
@@ -13005,6 +13349,12 @@
             <summary>
             Get an analyzer config value for the given key, using the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.KeyComparer"/>.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptions.Keys">
+            <summary>
+            Enumerates unique keys of all available options in no specific order.
+            </summary>
+            <exception cref="T:System.NotImplementedException">Not implemented by the derived type.</exception>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerConfigOptionsProvider">
             <summary>
@@ -17371,13 +17721,6 @@
             internal for unit testing
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Text.LargeText.IsBinary(System.Char[])">
-            <summary>
-            Check for occurrence of two consecutive NUL (U+0000) characters.
-            This is unlikely to appear in genuine text, so it's a good heuristic
-            to detect binary files.
-            </summary>
-        </member>
         <member name="M:Microsoft.CodeAnalysis.Text.LargeText.GetLinesCore">
             <summary>
             Called from <see cref="P:Microsoft.CodeAnalysis.Text.SourceText.Lines"/> to initialize the <see cref="T:Microsoft.CodeAnalysis.Text.TextLineCollection"/>. Thereafter,
@@ -17613,7 +17956,7 @@
             <returns>The decoded text.</returns>
             <exception cref="T:System.Text.DecoderFallbackException">If the given encoding is set to use a throwing decoder as a fallback</exception>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Text.SourceText.IsBinary(System.String)">
+        <member name="M:Microsoft.CodeAnalysis.Text.SourceText.IsBinary(System.ReadOnlySpan{System.Char})">
             <summary>
             Check for occurrence of two consecutive NUL (U+0000) characters.
             This is unlikely to appear in genuine text, so it's a good heuristic
@@ -17622,6 +17965,9 @@
             <remarks>
             internal for unit testing
             </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Text.SourceText.IsBinary(System.String)">
+            <inheritdoc cref="M:Microsoft.CodeAnalysis.Text.SourceText.IsBinary(System.ReadOnlySpan{System.Char})" />
         </member>
         <member name="P:Microsoft.CodeAnalysis.Text.SourceText.ChecksumAlgorithm">
             <summary>
@@ -23968,10 +24314,59 @@
             An identifier provided by the generator that identifies the added <see cref="P:Microsoft.CodeAnalysis.GeneratedSourceResult.SourceText"/>.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.GeneratorDriverTimingInfo">
+            <summary>
+            Contains timing information for a full generation pass.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.ElapsedTime">
+            <summary>
+            The wall clock time that the entire generation pass took.
+            </summary>
+            <remarks>
+            This can be more than the sum of times in <see cref="P:Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorTimes"/> as it includes other costs such as setup.
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorDriverTimingInfo.GeneratorTimes">
+            <summary>
+            Individual timings per generator.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.GeneratorTimingInfo">
+            <summary>
+            Contains timing information for a single generator.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorTimingInfo.Generator">
+            <summary>
+            The <see cref="T:Microsoft.CodeAnalysis.ISourceGenerator"/> that was running during the recorded time.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorTimingInfo.ElapsedTime">
+            <summary>
+            The wall clock time the generator spent running.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.SyntaxContextReceiverAdaptor">
             <summary>
             Wraps an <see cref="T:Microsoft.CodeAnalysis.ISyntaxReceiver"/> in an <see cref="T:Microsoft.CodeAnalysis.ISyntaxContextReceiver"/>
             </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SyntaxStore.Builder.GetRuntimeAdjustment(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.SyntaxInputNode})">
+            <summary>
+            Gets the adjustment to wall clock time that should be applied for a set of input nodes.
+            </summary>
+            <remarks>
+            The syntax store updates all input nodes in parallel the first time an input node is asked to update,
+            so that it can share the semantic model between multiple nodes and improve perf. 
+            
+            Unfortunately that means that the first generator to request the results of a syntax node will incorrectly 
+            have its wall clock time contain the time of all other syntax nodes. And conversely other input nodes will 
+            not have the true time taken.
+            
+            This method gets the adjustment that should be applied to the wall clock time for a set of input nodes
+            so that the correct time is attributed to each.
+            </remarks>
         </member>
         <member name="T:Microsoft.CodeAnalysis.WellKnownGeneratorInputs">
             <summary>
@@ -26575,6 +26970,11 @@
             Returns true if this field was declared as "volatile". 
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.IFieldSymbol.IsRequired">
+            <summary>
+            True if this field is required to be set in an object initializer during construction.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.IFieldSymbol.IsFixedSizeBuffer">
             <summary>
             Returns true if this field was declared as "fixed".
@@ -27485,6 +27885,11 @@
         <member name="P:Microsoft.CodeAnalysis.IPropertySymbol.IsWriteOnly">
             <summary>
             True if this is a write-only property; that is, a property with no get accessor.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IPropertySymbol.IsRequired">
+            <summary>
+            True if this property is required to be set in an object initializer during construction.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.IPropertySymbol.IsWithEvents">
@@ -38663,6 +39068,9 @@
             The boxing would occur if the methods were defined in Roslyn.Utilities and the file calling these methods has <c>using Roslyn.Utilities</c>
             but not <c>using System.Linq</c>.
             </summary>
+        </member>
+        <member name="T:System.Linq.ImmutableSegmentedListExtensions">
+            <seealso cref="T:System.Linq.ImmutableArrayExtensions"/>
         </member>
         <member name="T:System.Index">
             <summary>Represent a type can be used to index a collection either from the start or the end.</summary>
