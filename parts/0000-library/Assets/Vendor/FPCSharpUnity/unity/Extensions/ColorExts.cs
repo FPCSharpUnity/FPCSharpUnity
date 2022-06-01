@@ -28,6 +28,11 @@ namespace FPCSharpUnity.unity.Extensions {
       );
     }
 
+    public static Color multAlpha(this Color color, float alpha) {
+      color.a *= alpha;
+      return color;
+    }
+
     public static Color withAlpha(this Color color, float alpha) => color.with(a: alpha);
 
     public static Color32 with32(
