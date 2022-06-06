@@ -1,8 +1,0 @@
-{
-  "runtimeOptions": {
-    "additionalProbingPaths": [
-      "C:\\Users\\evald\\.dotnet\\store\\|arch|\\|tfm|",
-      "C:\\Users\\evald\\.nuget\\packages"
-    ]
-  }
-}
