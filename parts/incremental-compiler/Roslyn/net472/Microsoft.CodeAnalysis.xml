@@ -1218,6 +1218,25 @@
             or lambda body syntax (<paramref name="isLambdaBody"/> is true).
             </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.GetFirstUnusedStateMachineState(System.Boolean)">
+            <summary>
+            State number to be used for next state of the state machine,
+            or <see langword="null"/> if none of the previous versions of the method was a state machine with a increasing state
+            </summary>
+            <param name="increasing">True if the state number increases with progress, false if it decreases.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousStateMachineState(Microsoft.CodeAnalysis.SyntaxNode,System.Int32@)">
+            <summary>
+            For a given node associated with entering a state of a state machine in the new compilation,
+            returns the ordinal of the corresponding state in the previous version of the state machine.
+            </summary>
+            <returns>
+            True if there is a corresponding node in the previous code version that matches the given <paramref name="syntax"/>.
+            </returns>
+            <remarks>
+            <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
+            </remarks>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.ArrayBuilderExtensions.SelectAsArray``2(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{``0},System.Func{``0,``1})">
             <summary>
             Maps an array builder to immutable array.
@@ -6014,7 +6033,19 @@
             <param name="compressedLambdaMap">Lambda and closure map.</param>
             <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.Create(System.Collections.Immutable.ImmutableArray{System.Byte},System.Collections.Immutable.ImmutableArray{System.Byte},System.Collections.Immutable.ImmutableArray{System.Byte})">
+            <summary>
+            Deserializes Edit and Continue method debug information from specified blobs.
+            </summary>
+            <param name="compressedSlotMap">Local variable slot map.</param>
+            <param name="compressedLambdaMap">Lambda and closure map.</param>
+            <param name="compressedStateMachineStateMap">State machine suspension points, if the method is the MoveNext method of the state machine.</param>
+            <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.UncompressSlotMap(System.Collections.Immutable.ImmutableArray{System.Byte})">
+            <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.UncompressStateMachineStates(System.Collections.Immutable.ImmutableArray{System.Byte})">
             <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Emit.DeltaMetadataWriter._changedTypeDefs">
@@ -12475,6 +12506,11 @@
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.TupleElementNames">
             <summary>
             C# and VB. Tuple element names for local variables and constants.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.EditAndContinueStateMachineStateMap">
+            <summary>
+            C# and VB. Syntax offsets of nodes associated with state machine states in an async/iterator method and their corresponding state numbers.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader">
@@ -21955,6 +21991,20 @@
             Represents an immutable snapshot of module CLI metadata.
             </summary>
             <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.ModuleMetadata._owner">
+            <summary>
+            Optional data that should be kept alive as long as this <see cref="T:Microsoft.CodeAnalysis.ModuleMetadata"/> is alive.  This can be
+            useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+            doesn't get garbage collected.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.ModuleMetadata._disposeOwner">
+            <summary>
+            Whether or not <see cref="F:Microsoft.CodeAnalysis.ModuleMetadata._owner"/> should be <see cref="M:System.IDisposable.Dispose"/>'d when this object is
+            Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream,System.Boolean)"/>, or
+            the <see cref="F:System.Reflection.PortableExecutable.PEStreamOptions.LeaveOpen"/> flag in <see cref="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream,System.Reflection.PortableExecutable.PEStreamOptions)"/>.
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr,System.Int32)">
             <summary>
@@ -34516,6 +34566,12 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.ChangesMustBeWithinBoundsOfSourceText">
             <summary>Changes must be within bounds of SourceText</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod">
+            <summary>Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod">
+            <summary>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</summary>
         </member>
         <member name="M:Microsoft.DiaSymReader.IMetadataImport.ResolveTypeRef(System.Int32,System.Guid@,System.Object@,System.Int32@)">
             <summary>
