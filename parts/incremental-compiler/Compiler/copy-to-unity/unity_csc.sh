@@ -1,4 +1,14 @@
-#!/bin/sh
+#!/bin/zsh
+
+# ###############################################
+# ### This script is only intended for macos. ###
+# ###############################################
+
+# Source the profile configuration file to make sure our environment is as close to
+# users shell as possible (for example the $PATH).
+if [[ -f "$HOME/.zprofile" ]]; then
+  source "$HOME/.zprofile"
+fi
 
 APPLICATION_CONTENTS=$(dirname "$0")/../..
 
