@@ -9,6 +9,12 @@
 if [[ -f "$HOME/.zprofile" ]]; then
   source "$HOME/.zprofile"
 fi
+if [[ -f "$HOME/.zshrc" ]]; then
+  source "$HOME/.zshrc"
+fi
+
+# Add common paths for `dotnet` and `mono` to the $PATH
+export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
 
 APPLICATION_CONTENTS=$(dirname "$0")/../..
 
