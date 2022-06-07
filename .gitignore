@@ -16,3 +16,5 @@ obj
 
 /parts/incremental-compiler/Roslyn/net472/CodeGenerator.FPCSharpUnity.*
 /parts/incremental-compiler/Roslyn/net472/FPCSharpUnity.core.macros.*
+/parts/incremental-compiler/Roslyn/net6.0/CodeGenerator.FPCSharpUnity.*
+/parts/incremental-compiler/Roslyn/net6.0/FPCSharpUnity.core.macros.*
