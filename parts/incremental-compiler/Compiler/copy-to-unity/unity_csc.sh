@@ -14,7 +14,10 @@ if [[ -f "$HOME/.zshrc" ]]; then
 fi
 
 # Add common paths for `dotnet` and `mono` to the $PATH
-export PATH="$PATH:/opt/homebrew/bin:/usr/local/bin"
+export PATH="$PATH:/opt/homebrew/bin"
+export PATH="$PATH:/usr/local/bin"
+export PATH="$PATH:/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+export PATH="$PATH:/Library/Frameworks/Mono.framework/Commands"
 
 APPLICATION_CONTENTS=$(dirname "$0")/../..
 
@@ -28,7 +31,7 @@ fi
 
 CURRENT_DIR=$(dirname "$0")
 
-eval "/Library/Frameworks/Mono.framework/Commands/mono \"$CURRENT_DIR/csc.wrapper.exe\" "$@""
+eval "mono \"$CURRENT_DIR/csc.wrapper.exe\" "$@""
 
 EXITCODE=$?
 
