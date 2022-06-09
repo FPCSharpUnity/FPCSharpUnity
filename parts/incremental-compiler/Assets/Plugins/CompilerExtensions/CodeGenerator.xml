@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>CodeGenerator</name>
+    </assembly>
+    <members>
+        <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Collections.Generic.List{Microsoft.CodeAnalysis.Diagnostic},System.Collections.Concurrent.ConcurrentBag{IncrementalCompiler.CodeGeneration.IGenerationResult},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
+             <summary>
+            
+             </summary>
+             <param name="attributeMacroType"></param>
+             <param name="attributeToCheck"></param>
+             <param name="typeSymbol"></param>
+             <param name="maybeFieldSymbol">
+             If set, then the attribute (<see cref="!:attributeToCheck"/>) sits on a field.
+             Otherwise it sits on a type (<see cref="!:typeSymbol"/>).
+             </param>
+             <param name="maybePropertySymbol">
+             If set, then the attribute (<see cref="!:attributeToCheck"/>) sits on a property.
+             Otherwise it sits on a type (<see cref="!:typeSymbol"/>).
+             </param>
+             <param name="diagnostic"></param>
+             <returns>New class members as string if there are any.</returns>
+        </member>
+        <member name="T:IncrementalCompiler.CodeGeneration.FieldOrProp.FieldOrPropTypeKind">
+            <summary>
+            Special enum used only here. Add more values when you need them.
+            </summary>
+        </member>
+        <member name="T:IncrementalCompiler.RegisterGeneratorsBase">
+            <summary>
+            To register custom code generators on your own attributes: <br/>
+            1. Extend this class. <br/>
+            2. Add <see cref="T:Microsoft.CodeAnalysis.GeneratorAttribute"/> attribute to that class. <br/>
+            3. Compile the dll.<br/>
+            4. Put his dll in the same folder as Microsoft.CodeAnalysis.dll<br/>
+            5. Reference that dll or a project as an `analyzer` in the project that needs this code generator
+            (https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview).
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.RegisterGeneratorsBase.registerGenerators(IncrementalCompiler.IRegisterActions)">
+            <summary> Register custom generators. </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.getAllMembers(Microsoft.CodeAnalysis.ITypeSymbol)">
+            <summary>
+            Gets all members of a type, includes members in base types.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.AddAncestors(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax,System.Boolean)">
+            <summary>
+              Copies namespace and class hierarchy from the original <see cref="!:memberNode" />
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.CleanUsings(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax})">
+            <summary>
+            Cleans comments and regions from `using` directives list.
+            </summary>
+        </member>
+        <member name="T:IncrementalCompiler.GeneratorCtx">
+            <summary>
+            This class is instantiated per file.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addNewTypeMember(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax)">
+            <summary>
+            Adds a new member to the root of a generated file. Usually a class, interface or a struct. Can also be a
+            namespace that nests other types.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addNewTypeMembers(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax[])">
+            <summary>
+            Adds new members to the root of a generated file. Usually a class, interface or a struct. Can also be a
+            namespace that nests other types.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addMemberToPartialClass(System.String,System.String)">
+            <summary>
+            Adds new class members to a partial class definition.
+            </summary>
+            <param name="generatorLabel">
+            Label used in the comments of generated code.
+            <br/>
+            All code generated with the same label will get a comment above it that helps you track which code generator is
+            responsible for which code.
+            <br/>
+            It is recommended to use attribute call name as the label.
+            </param>
+            <param name="memberSyntax">Code that contains one or more class members.</param>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,System.String)">
+            <summary>
+            Adds a `using` directive to the top of the generated file.
+            <para/>
+            It should not contain `using` keyword or a semicolon.
+            <example><code>ctx.addUsing("System.Linq");</code></example>
+            </summary>
+            <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
+            <param name="value">E.g. `System.Linq`</param>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax)">
+            <summary>
+            Adds a `using` directive to the top of the generated file.
+            </summary>
+            <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
+            <param name="value">Using statement syntax</param>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addBaseInterfaceToPartialClass(System.String)">
+            <summary>
+            Adds new base interfaces to a partial class definition.
+            </summary>
+            <param name="baseTypeSyntax">Code that contains one or more types separated by commas.</param>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)">
+            <summary>
+            Adds new class members to a static class definition, commonly used for extension methods.
+            </summary>
+            <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
+            <param name="memberSyntax">Code that contains one or more class members.</param>
+        </member>
+        <member name="M:IncrementalCompiler.MacroProcessorImplicits.AfterCheckAttributes(System.Action{System.String})">
+            <returns>Added implicit parameters to passthrough methods.</returns>
+        </member>
+    </members>
+</doc>

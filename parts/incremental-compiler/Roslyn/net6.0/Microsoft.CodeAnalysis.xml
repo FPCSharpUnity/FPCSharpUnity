@@ -2904,6 +2904,117 @@
              then regular Dictionary is a better choice.
              </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions.AsRef``1(Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray{``0}@)">
+             <summary>
+             Gets a mutable reference to a <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/> stored in a <c>using</c> variable.
+             </summary>
+             <remarks>
+             <para>This supporting method allows <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/>, a non-copyable <see langword="struct"/>
+             implementing <see cref="T:System.IDisposable"/>, to be used with <c>using</c> statements while still allowing them to
+             be passed by reference in calls. The following two calls are equivalent:</para>
+            
+             <code>
+             using var array = TemporaryArray&lt;T&gt;.Empty;
+            
+             // Using the 'Unsafe.AsRef' method
+             Method(ref Unsafe.AsRef(in array));
+            
+             // Using this helper method
+             Method(ref array.AsRef());
+             </code>
+            
+             <para>⚠ Do not move or rename this method without updating the corresponding
+             <see href="https://github.com/dotnet/roslyn-analyzers/blob/30180a51af8c4711e51d98df7345f14d083efb63/src/Roslyn.Diagnostics.Analyzers/Core/TemporaryArrayAsRefAnalyzer.cs">RS0049</see>
+             analyzer.</para>
+             </remarks>
+             <typeparam name="T">The type of element stored in the temporary array.</typeparam>
+             <param name="array">A read-only reference to a temporary array which is part of a <c>using</c> statement.</param>
+             <returns>A mutable reference to the temporary array.</returns>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1">
+            <summary>
+            Provides temporary storage for a collection of elements. This type is optimized for handling of small
+            collections, particularly for cases where the collection will eventually be discarded or used to produce an
+            <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>.
+            </summary>
+            <remarks>
+            This type stores small collections on the stack, with the ability to transition to dynamic storage if/when
+            larger number of elements are added.
+            </remarks>
+            <typeparam name="T">The type of elements stored in the collection.</typeparam>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.InlineCapacity">
+            <summary>
+            The number of elements the temporary can store inline. Storing more than this many elements requires the
+            array transition to dynamic storage.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0">
+            <summary>
+            The first inline element.
+            </summary>
+            <remarks>
+            This field is only used when <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is <see langword="null"/>. In other words, this type
+            stores elements inline <em>or</em> stores them in <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/>, but does not use both approaches
+            at the same time.
+            </remarks>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item1">
+            <summary>
+            The second inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item2">
+            <summary>
+            The third inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item3">
+            <summary>
+            The fourth inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._count">
+            <summary>
+            The number of inline elements held in the array. This value is only used when <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is
+            <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder">
+            <summary>
+            A builder used for dynamic storage of collections that may exceed the limit for inline elements.
+            </summary>
+            <remarks>
+            This field is initialized to non-<see langword="null"/> the first time the <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/>
+            needs to store more than four elements. From that point, <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is used instead of inline
+            elements, even if items are removed to make the result smaller than four elements.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.ToImmutableAndClear">
+            <summary>
+            Create an <see cref="T:System.Collections.Immutable.ImmutableArray`1"/> with the elements currently held in the temporary array, and clear
+            the array.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.MoveInlineToBuilder">
+            <summary>
+            Transitions the current <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/> from inline storage to dynamic storage storage. An
+            <see cref="T:Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder`1"/> instance is taken from the shared pool, and all elements currently in inline
+            storage are added to it. After this point, dynamic storage will be used instead of inline storage.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.ThrowIndexOutOfRangeException">
+            <summary>
+            Throws <see cref="T:System.IndexOutOfRangeException"/>.
+            </summary>
+            <remarks>
+            This helper improves the ability of the JIT to inline callers.
+            </remarks>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.TopologicalSort">
             <summary>
             A helper class that contains a topological sort algorithm.
@@ -21996,6 +22107,20 @@
             <exception cref="T:System.ArgumentNullException"><paramref name="metadata"/> is null.</exception>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr,System.Int32,System.IDisposable,System.Boolean)">
+            <summary>
+            Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+            Only manifest modules are currently supported.
+            </summary>
+            <param name="metadata">Pointer to the start of metadata block.</param>
+            <param name="size">The size of the metadata block.</param>
+            <param name="owner">Data that should be kept alive as long as this <see cref="T:Microsoft.CodeAnalysis.ModuleMetadata"/> is alive.  This can be
+            useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
+            doesn't get garbage collected.</param>
+            <param name="disposeOwner">Whether or not <paramref name="owner"/> should be <see cref="M:System.IDisposable.Dispose"/>'d when this object is
+            Disposed.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="owner"/> is null.</exception>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.IntPtr,System.Int32)">
             <summary>
             Create metadata module from a raw memory pointer to a PE image or an object file.
@@ -39062,6 +39187,21 @@
             iterations themselves. Performance-sensitive code should avoid the use of heavy parallelization APIs except
             for known entry points to the parallel portion of code.</para>
             </remarks>
+        </member>
+        <member name="T:CompilationExtension.ProcessCompilationBase">
+            <summary>
+            To hook into the compilation process: <br/>
+            1. Extend this class. <br/>
+            2. Add <see cref="T:Microsoft.CodeAnalysis.GeneratorAttribute"/> attribute to that class. <br/>
+            3. Compile the dll.<br/>
+            4. Reference that dll as an `analyzer` in the project that needs this compiler extension
+            (https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview).
+            </summary>
+        </member>
+        <member name="M:CompilationExtension.ProcessCompilationBase.process(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ISourceGenerator},System.String,System.Boolean)">
+            <summary>
+            Process compiler extension.
+            </summary>
         </member>
         <member name="T:System.Runtime.CompilerServices.InternalImplementationOnlyAttribute">
             <summary>
