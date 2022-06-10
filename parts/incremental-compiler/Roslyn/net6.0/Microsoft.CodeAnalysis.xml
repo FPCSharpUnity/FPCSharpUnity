@@ -39063,6 +39063,18 @@
             for known entry points to the parallel portion of code.</para>
             </remarks>
         </member>
+        <member name="T:CompilationExtensionInterfaces.ProcessCompilationBase">
+            <summary>
+            Implement this and put the resulting dll in the compiler directory with a name "CompilationExtensionYOUR_NAME.dll" to hook into the compilation process.
+            </summary>
+        </member>
+        <member name="M:CompilationExtensionInterfaces.ProcessCompilationBase.process(Microsoft.CodeAnalysis.Compilation@,System.String,System.Boolean)">
+            <summary>
+            Untyped, because we can't reference Microsoft.CodeAnalysis due to circular references.
+            </summary>
+            <param name="compilation">Microsoft.CodeAnalysis.Compilation</param>
+            <returns>IEnumerable&lt;Microsoft.CodeAnalysis.Diagnostic&gt;</returns>
+        </member>
         <member name="T:System.Runtime.CompilerServices.InternalImplementationOnlyAttribute">
             <summary>
             This is a marker attribute that can be put on an interface to denote that only internal implementations
