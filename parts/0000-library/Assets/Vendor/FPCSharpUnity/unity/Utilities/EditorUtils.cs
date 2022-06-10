@@ -84,11 +84,22 @@ namespace FPCSharpUnity.unity.Utilities {
         )
       );
 #if UNITY_EDITOR
-      const int lineCount = 50;
-      var lines = body.Split('\n');
-      if (lines.Length > lineCount) body = $"{lines.Take(lineCount).mkString('\n')}\n... [Full message in logs]";
-      if (!InternalEditorUtility.inBatchMode) EditorUtility.DisplayDialog(title, body, "OK");
+      if (!InternalEditorUtility.inBatchMode) EditorUtility.DisplayDialog(title, truncateMessage(body), "OK");
 #endif
+    }
+
+    /// <summary>
+    /// Truncates the message to a specified number of lines.
+    /// This is useful when you want to display a message in the dialog, because if the message is too long, it will
+    /// hide the dialog buttons.
+    /// </summary>
+    public static string truncateMessage(
+      string message, int maxLines = 50, string appendIfTruncated = "\n... [Full message in logs]"
+    ) {
+      var lines = message.Split('\n');
+      return lines.Length > maxLines 
+        ? $"{lines.Take(maxLines).mkString('\n')}{appendIfTruncated}" 
+        : message;
     }
 
     [PublicAPI] public static Exception userException(string title, string body, object context = null) {
