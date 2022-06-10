@@ -15,7 +15,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
     // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local
     [SerializeField, HideLabel, HorizontalGroup, OnValueChanged(nameof(complexChanged)), PublicAccessor] bool _isComplex;
     [SerializeField, HideLabel, HorizontalGroup, ShowIf(nameof(isSimple))] SimpleSerializedEase _simple;
-    [SerializeField, HideLabel, HorizontalGroup, ShowIf(nameof(isComplex)), TLPCreateDerived, NotNull] ComplexSerializedEase _complex;
+    [SerializeField, HideLabel, HorizontalGroup, ShowIf(nameof(_isComplex)), TLPCreateDerived, NotNull] ComplexSerializedEase _complex;
     // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local
 #pragma warning restore 649
 
