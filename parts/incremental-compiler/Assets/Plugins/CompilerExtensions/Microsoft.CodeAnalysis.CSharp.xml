@@ -3637,7 +3637,7 @@
             NOTE: Keep this method in sync with <see cref="M:Microsoft.CodeAnalysis.CSharp.ConversionsBase.AnalyzeImplicitUserDefinedConversionForV6SwitchGoverningType(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.CSharp.Symbols.AssemblySymbol}@)"/>.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.ConversionsBase.ComputeApplicableUserDefinedImplicitConversionSet(Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CSharp.UserDefinedConversionAnalysis},Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.CSharp.Symbols.AssemblySymbol}@,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.ConversionsBase.ComputeApplicableUserDefinedImplicitConversionSet(Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.ValueTuple{Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.TypeParameterSymbol}},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CSharp.UserDefinedConversionAnalysis},Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.CSharp.Symbols.AssemblySymbol}@,System.Boolean)">
             <summary>
             This method find the set of applicable user-defined and lifted conversion operators, u.
             The set consists of the user-defined and lifted implicit conversion operators declared by
@@ -23319,17 +23319,6 @@
             initial bound tree.  However, we may be able to optimize away (or entirely disregard) the conversion
             so we pull out the bound node for the underlying expression.
             </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.MakeWhileTrueLoop(Microsoft.CodeAnalysis.CSharp.BoundForEachStatement,Microsoft.CodeAnalysis.CSharp.BoundBlock)">
-             <summary>
-             Produce a while(true) loop
-            
-             <![CDATA[
-             still-true:
-             /* body */
-             goto still-true;
-             ]]> 
-             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.MakePatternIndexOffsetExpression(Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.LocalRewriter.PatternIndexOffsetLoweringStrategy)">
             <summary>
@@ -43252,9 +43241,6 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureInferredDelegateType">
             <summary>inferred delegate type</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureLineSpanDirective">
-            <summary>line span directive</summary>
-        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureAutoDefaultStructs">
             <summary>auto default struct fields</summary>
         </member>
@@ -43263,6 +43249,9 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_LineSpanDirectiveEndLessThanStart">
             <summary>The #line directive end position must be greater than or equal to the start position</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_LineSpanDirectiveRequiresSpace">
+            <summary>The #line span directive requires space before the first parenthesis, before the character offset, and before the file name</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_DoNotCompareFunctionPointers">
             <summary>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</summary>
@@ -43457,7 +43446,7 @@
             <summary>Target runtime doesn't support static abstract members in interfaces.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_GenericConstraintNotSatisfiedInterfaceWithStaticAbstractMembers">
-            <summary>The interface '{3}' cannot be used as type parameter '{2}' in the generic type or method '{0}'. The constraint interface '{1}' or its base interface has static abstract or virtual members.</summary>
+            <summary>The interface '{0}' cannot be used as type argument. Static member '{1}' does not have a most specific implementation in the interface.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadAbstractUnaryOperatorSignature">
             <summary>The parameter of a unary operator must be the containing type, or its type parameter constrained to it.</summary>
@@ -43692,6 +43681,9 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_MisplacedUnchecked">
             <summary>Unexpected keyword 'unchecked'</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
+            <summary>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer">
             <summary>

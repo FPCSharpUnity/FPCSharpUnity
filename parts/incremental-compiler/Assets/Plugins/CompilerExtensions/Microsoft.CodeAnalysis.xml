@@ -12715,16 +12715,6 @@
             Tuple element names for locals.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.ReadRawRecordBody(System.Byte[],System.Int32@,System.Int32,System.Collections.Immutable.ImmutableArray{System.Byte}@)">
-            <summary>
-            Returns the raw bytes of a record.
-            </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.SkipRecord(System.Byte[],System.Int32@,System.Int32)">
-            <summary>
-            Skips past a record.
-            </summary>
-        </member>
         <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.GetCSharpGroupedImportStrings``1(System.Int32,``0,System.Func{System.Int32,``0,System.Byte[]},System.Func{System.Int32,``0,System.Collections.Immutable.ImmutableArray{System.String}},System.Collections.Immutable.ImmutableArray{System.String}@)">
             <summary>
             Get the import strings for a given method, following forward pointers as necessary.
@@ -24055,6 +24045,17 @@
             Creates a new generator state that contains information, constant trees and an execution pipeline
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.SourceGeneration.GlobalAliases">
+            <summary>
+            Simple wrapper class around an immutable array so we can have the value-semantics needed for the incremental
+            generator to know when a change actually happened and it should run later transform stages.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SourceGeneration.ISyntaxHelper.AddAliases(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.ValueTuple{System.String,System.String}},System.Boolean)">
+            <summary>
+            <paramref name="node"/> must be a compilation unit or namespace block.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.IIncrementalGenerator">
             <summary>
             The base interface required to implement an incremental generator
@@ -24373,6 +24374,16 @@
             Allows a user to create Syntax based input nodes for incremental generation
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxNodeGrouping`1">
+            <summary>
+            Wraps a grouping of nodes within a syntax tree so we can have value-semantics around them usable by the
+            incremental driver.  Note: we do something very sneaky here.  Specifically, as long as we have the same <see
+            cref="F:Microsoft.CodeAnalysis.SyntaxValueProvider.SyntaxNodeGrouping`1.SyntaxTree"/> from before, then we know we must have the same nodes as before (since the nodes are
+            entirely determined from the text+options which is exactly what the syntax tree represents).  Similarly, if the
+            syntax tree changes, we will always get different nodes (since they point back at the syntax tree).  So we can
+            just use the syntax tree itself to determine value semantics here.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxProvider``1(System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.GeneratorSyntaxContext,System.Threading.CancellationToken,``0})">
             <summary>
             Creates an <see cref="T:Microsoft.CodeAnalysis.IncrementalValueProvider`1"/> that can provide a transform over <see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/>s
@@ -24385,6 +24396,69 @@
         <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxReceiverProvider(Microsoft.CodeAnalysis.SyntaxContextReceiverCreator)">
             <summary>
             Creates a syntax receiver input node. Only used for back compat in <see cref="T:Microsoft.CodeAnalysis.SourceGeneratorAdaptor"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithMetadataName``1(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext,System.Threading.CancellationToken,``0})">
+            <summary>
+            Creates an <see cref="T:Microsoft.CodeAnalysis.IncrementalValuesProvider`1"/> that can provide a transform over all <see
+            cref="T:Microsoft.CodeAnalysis.SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/> with the
+            same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
+            name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
+            <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute</c> for <see
+            cref="T:System.CLSCompliantAttribute"/>.
+            </summary>
+            <param name="predicate">A function that determines if the given <see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/> attribute target (<see
+            cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode"/>) should be transformed.  Nodes that do not pass this
+            predicate will not have their attributes looked at at all.</param>
+            <param name="transform">A function that performs the transform. This will only be passed nodes that return <see
+            langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="T:Microsoft.CodeAnalysis.AttributeData"/> whose
+            <see cref="P:Microsoft.CodeAnalysis.AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
+            name="fullyQualifiedMetadataName"/>.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithSimpleName(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean})">
+            <summary>
+            Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
+            could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
+            simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
+            generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
+            cref="T:System.CLSCompliantAttribute"/>.
+            <para/> This provider understands <see langword="using"/> (<c>Import</c> in Visual Basic) aliases and will find
+            matches even when the attribute references an alias name.  For example, given:
+            <code>
+            using XAttribute = System.CLSCompliantAttribute;
+            [X]
+            class C { }
+            </code>
+            Then
+            <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
+            will find the <c>C</c> class.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode">
+            <summary>
+            The syntax node the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would
+            the class declaration node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol">
+            <summary>
+            The symbol that the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would be
+            the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/> for <c>"C"</c>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel">
+            <summary>
+            Semantic model for the file that <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode"/> is contained within.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.Attributes">
+            <summary>
+            <see cref="T:Microsoft.CodeAnalysis.AttributeData"/>s for any matching attributes on <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol"/>.  Always non-empty.  All
+            these attributes will have an <see cref="P:Microsoft.CodeAnalysis.AttributeData.AttributeClass"/> whose fully qualified name metadata
+            name matches the name requested in <see cref="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithMetadataName``1(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext,System.Threading.CancellationToken,``0})"/>.
+            <para>
+            To get the entire list of attributes, use <see cref="M:Microsoft.CodeAnalysis.ISymbol.GetAttributes"/> on <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol"/>.
+            </para>
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.GeneratorDriverRunResult">
@@ -25105,6 +25179,11 @@
             Display `System.[U]IntPtr` instead of `n[u]int`.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes">
+            <summary>
+            Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayDelegateStyle">
             <summary>
             Specifies how to display delegates (just the name or the name with the signature).
@@ -25592,6 +25671,11 @@
             <returns>
             A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/> stripped away from the original object.
             </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddCompilerInternalOptions(Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions)">
+            <summary>
+            Creates a copy of the SymbolDisplayFormat but with added set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions"/>.
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithCompilerInternalOptions(Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions)">
             <summary>
