@@ -181,11 +181,11 @@ namespace FPCSharpUnity.unity.Data {
     const string key = nameof(PrefValTestCollection);
 
     class BadRW : ISerializedRW<int> {
-      public Either<string, DeserializeInfo<int>> deserialize<S>(S stream, IStreamReader<S> reader) =>
-        SerializedRW.integer.deserialize(stream, reader).rightValue.filter(i => i.value % 2 != 0).toRight("failed");
+      public Either<string, DeserializeInfo<int>> deserialize(IStreamReaderWithStream reader) =>
+        SerializedRW.integer.deserialize(reader).rightValue.filter(i => i.value % 2 != 0).toRight("failed");
 
-      public void serialize<S>(S stream, IStreamWriter<S> writer, int a) =>
-        SerializedRW.integer.serialize(stream, writer, a);
+      public void serialize(IStreamWriterWithStream writer, int a) =>
+        SerializedRW.integer.serialize(writer, a);
     }
 
     static readonly ImmutableList<int> defaultNonEmpty = ImmutableList.Create(1, 2, 3);

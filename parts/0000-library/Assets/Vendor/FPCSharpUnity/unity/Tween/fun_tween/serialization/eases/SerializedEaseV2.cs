@@ -25,7 +25,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
     SimpleSerializedEase _simple;
     [
       SerializeReference, NotNull, HideLabel, HorizontalGroup, OnValueChanged(nameof(invalidate)),
-      ShowIf(nameof(isComplex), animate: false), InlineProperty
+      ShowIf(nameof(_isComplex), animate: false), InlineProperty
     ]
     IComplexSerializedEase _complex;
     // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local

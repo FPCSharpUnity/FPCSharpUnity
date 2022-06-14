@@ -388,7 +388,7 @@ namespace FPCSharpUnity.unity.Logger.Reporting {
       // The list of frames should be ordered by the oldest call first.
       var stacktraceFrames = data.entry.backtrace.fromNullable().map(
         // ReSharper disable once ConvertClosureToMethodGroup - MCS bug
-        b => b.elements.a.Select(a => backtraceElemToJson(a)).Reverse().ToList()
+        b => b.elements.neVal.Select(a => backtraceElemToJson(a)).Reverse().ToList()
       );
 
       // Beware of the order! Do not mutate static tags!

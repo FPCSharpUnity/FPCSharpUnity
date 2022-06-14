@@ -734,14 +734,14 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.startTime < selectedNode.startTime
         ).ToList().toNonEmpty().map(
-          channelNodes => channelNodes.a.OrderBy(channelNode => channelNode.startTime).Last()
+          channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).Last()
         );
 
       Option<TimelineNode> getRightNode(TimelineNode selectedNode) =>
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.getEnd() > selectedNode.getEnd()
         ).ToList().toNonEmpty().map(
-          channelNodes => channelNodes.a.OrderBy(channelNode => channelNode.startTime).First()
+          channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).First()
         );
 
       Option<TimelineNode> getOverlappingNode(TimelineNode node) {
