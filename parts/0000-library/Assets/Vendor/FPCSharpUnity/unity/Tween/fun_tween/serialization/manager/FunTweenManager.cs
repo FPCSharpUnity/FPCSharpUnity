@@ -38,6 +38,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.manager {
     // ReSharper disable FieldCanBeMadeReadOnly.Local
     [
       SerializeField, TabGroup(TAB_FIELDS),
+      InfoBox($"This component is obsolete. Use {nameof(FunTweenManagerV2)} instead.", InfoMessageType.Error),
       InfoBox(
         infoMessageType: InfoMessageType.Info, 
         message: 
