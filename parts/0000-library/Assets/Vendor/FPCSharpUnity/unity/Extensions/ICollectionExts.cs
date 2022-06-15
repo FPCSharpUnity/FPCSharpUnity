@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using Range = FPCSharpUnity.unity.Data.Range;
 
 namespace FPCSharpUnity.unity.Extensions {
   [PublicAPI]

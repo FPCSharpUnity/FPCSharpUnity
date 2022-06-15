@@ -5,6 +5,7 @@ using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Functional;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.functional;
+using Range = FPCSharpUnity.unity.Data.Range;
 
 namespace FPCSharpUnity.unity.Extensions {
   [PublicAPI] public static class ImmutableArrayExts {
