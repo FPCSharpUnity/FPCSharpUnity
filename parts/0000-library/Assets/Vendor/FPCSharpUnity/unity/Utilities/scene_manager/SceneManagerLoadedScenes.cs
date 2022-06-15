@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FPCSharpUnity.core.collection;
 using GenerationAttributes;
 using UnityEngine.SceneManagement;
 
@@ -11,7 +12,8 @@ namespace FPCSharpUnity.unity.Utilities;
 public readonly partial struct SceneManagerLoadedScenes {
   public readonly LoadedSceneCount loadedSceneCount;
   
-  public SceneManagerLoadedScenesEnumerator GetEnumerator() => new(loadedSceneCount);
+  public CollectionEnumerator<Scene> GetEnumerator() => 
+    new(static idx => SceneManagerBetter.instance.getLoadedSceneAtE(idx).rightOrThrow, loadedSceneCount);
 
   /// <summary>Converts this into <see cref="IEnumerable{T}"/>.</summary>
   /// <note><b>This allocates on the heap.</b></note>
@@ -20,23 +22,4 @@ public readonly partial struct SceneManagerLoadedScenes {
       foreach (var scene in this) yield return scene;
     }
   }
-}
-
-public struct SceneManagerLoadedScenesEnumerator {
-  readonly LoadedSceneCount loadedSceneCount;
-  int currentSceneIdx;
-
-  public SceneManagerLoadedScenesEnumerator(LoadedSceneCount loadedSceneCount) {
-    this.loadedSceneCount = loadedSceneCount;
-    currentSceneIdx = -1;
-  }
-
-  public bool MoveNext() {
-    currentSceneIdx++;
-    return currentSceneIdx < loadedSceneCount;
-  }
-
-  public void Reset() => currentSceneIdx = -1;
-  
-  public Scene Current =>  SceneManagerBetter.instance.getLoadedSceneAtE(currentSceneIdx).rightOrThrow;
 }

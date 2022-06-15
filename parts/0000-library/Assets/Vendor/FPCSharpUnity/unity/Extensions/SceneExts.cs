@@ -5,7 +5,6 @@ using FPCSharpUnity.unity.Data.scenes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
-using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -34,6 +33,17 @@ namespace FPCSharpUnity.unity.Extensions {
 
     public static SceneName sceneName(this in Scene scene) => new SceneName(scene.name);
     public static ScenePath scenePath(this in Scene scene) => new ScenePath(scene.path);
-    public static SceneBuildIndex sceneBuildIndex(this in Scene scene) => new SceneBuildIndex(scene.buildIndex);
+    
+    public static Either<SceneBuildIndexError, SceneBuildIndex> sceneBuildIndex(this in Scene scene) {
+      var idx = scene.buildIndex;
+      
+      // If the Scene is loaded through an AssetBundle, Scene.buildIndex returns -1.
+      if (idx == -1) return SceneBuildIndexError.SceneLoadedThroughAssetBundle;
+      // A Scene that is not added to the Scenes in Build window returns a buildIndex one more than the highest in the
+      // list. For example, if you don’t add a Scene to a Scenes in Build window that already has 6 Scenes in it,
+      // then Scene.buildIndex returns 6 as its index .
+      else if (idx >= SceneManager.sceneCountInBuildSettings) return SceneBuildIndexError.SceneNotIncludedInBuildScenesList;
+      else return new SceneBuildIndex(idx);
+    }
   }
 }

@@ -119,7 +119,7 @@ public readonly partial struct SceneLoadedData {
     getLoadedSceneAt(loadedSceneCount.count - 1)
       .getOrThrow("Unity does not allow having no scenes loaded, this should never happen!");
   
-  /// <summary>Unloads all other scenes and loads the scene specified by it's build index.</summary>
+  /// <summary>Synchronously loads the scene specified by it's build index.</summary>
   public Scene loadScene(SceneBuildIndex sceneBuildIndex, LoadSceneParametersBetter? loadSceneParams=null) {
     var loadSceneParams_ = loadSceneParams ?? LoadSceneMode.Single;
     if (loadSceneParams_.loadSceneMode == LoadSceneMode.Single) {
@@ -132,7 +132,7 @@ public readonly partial struct SceneLoadedData {
     return SceneManager.LoadScene(sceneBuildIndex, loadSceneParams_);
   }
 
-  /// <summary>Unloads all other scenes and loads the scene specified by it's name.</summary>
+  /// <summary>Synchronously loads the scene specified by it's name.</summary>
   public Scene loadScene(SceneName sceneName, LoadSceneParametersBetter? loadSceneParams=null) {
     var loadSceneParams_ = loadSceneParams ?? LoadSceneMode.Single;
     if (loadSceneParams_.loadSceneMode == LoadSceneMode.Single) {
@@ -228,7 +228,7 @@ public readonly partial struct SceneLoadedData {
   #endregion
   
   /// <summary>
-  /// Notifies all scenes, except the given scene that they are about to get unloaded via
+  /// Notifies all scenes, except the given `<see cref="maybeExceptThisScene"/>` that they are about to get unloaded via
   /// <see cref="_beforeSceneUnload"/>.
   /// </summary>
   void notifyAllScenesAboutUnloading<A>(
