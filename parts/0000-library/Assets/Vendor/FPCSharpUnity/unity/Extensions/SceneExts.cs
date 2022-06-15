@@ -5,6 +5,7 @@ using FPCSharpUnity.unity.Data.scenes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -14,7 +15,7 @@ namespace FPCSharpUnity.unity.Extensions {
     // may not work on scene awake
     // http://forum.unity3d.com/threads/bug-getrootgameobjects-is-not-working-in-awake.379317/
     public static IEnumerable<T> findObjectsOfTypeAll<T>(
-      this Scene scene, bool includeInactive = true
+      this in Scene scene, bool includeInactive = true
     ) where T : Component =>
       scene.GetRootGameObjects().SelectMany(o => o.GetComponentsInChildren<T>(includeInactive));
 
@@ -26,11 +27,13 @@ namespace FPCSharpUnity.unity.Extensions {
     /// <summary>
     /// Retrieve first <see cref="A"/> attached to a root <see cref="GameObject"/> in the <see cref="Scene"/>.
     /// </summary>
-    public static Either<ErrorMsg, A> findComponentOnRootGameObjects<A>(this Scene scene) where A : Component =>
+    public static Either<ErrorMsg, A> findComponentOnRootGameObjects<A>(this in Scene scene) where A : Component =>
       scene.GetRootGameObjects()
-      .collectFirst(go => go.GetComponent<A>().opt())
-      .toRight(() => new ErrorMsg($"Couldn't find {typeof(A)} in scene '{scene.path}' root game objects"));
+      .collectFirst(static go => go.GetComponent<A>().opt())
+      .toRight(scene.path, static path => new ErrorMsg($"Couldn't find {typeof(A)} in scene '{path}' root game objects"));
 
-    public static ScenePath scenePath(this Scene scene) => new ScenePath(scene.path);
+    public static SceneName sceneName(this in Scene scene) => new SceneName(scene.name);
+    public static ScenePath scenePath(this in Scene scene) => new ScenePath(scene.path);
+    public static SceneBuildIndex sceneBuildIndex(this in Scene scene) => new SceneBuildIndex(scene.buildIndex);
   }
 }

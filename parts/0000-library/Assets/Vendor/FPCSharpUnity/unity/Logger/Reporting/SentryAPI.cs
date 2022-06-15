@@ -11,6 +11,7 @@ using FPCSharpUnity.core.json;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.core.utils;
+using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static FPCSharpUnity.core.typeclasses.Str;
@@ -200,7 +201,7 @@ namespace FPCSharpUnity.unity.Logger.Reporting {
     /// <summary>Tags that might change during runtime.</summary>
     public static Dictionary<string, Tag> dynamicTags() => new Dictionary<string, Tag> {
       {"App:LoadedLevelNames", new Tag(
-        Enumerable2.fromImperative(SceneManager.sceneCount, SceneManager.GetSceneAt).
+        SceneManagerBetter.instance.loadedScenes.asEnumerable.
           Select(_ => $"{_.name}({_.buildIndex})").OrderBySafe(_ => _).mkString(", ")
       )},
       {"App:InternetReachability", Tag.a(Application.internetReachability)},

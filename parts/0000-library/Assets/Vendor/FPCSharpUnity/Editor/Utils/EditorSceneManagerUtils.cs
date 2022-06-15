@@ -11,13 +11,14 @@ using UnityEngine.SceneManagement;
 namespace FPCSharpUnity.unity.Editor.Utils {
   public static class EditorSceneManagerUtils {
     public static A withScene<A>(ScenePath scenePath, Func<Scene, A> f) {
-      var isLoaded = SceneManagerUtils.loadedScenes.Any(s => s.path == scenePath);
-      var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
+      var sceneManager = SceneManagerBetter.instance;
+      var isLoaded = sceneManager.loadedScenes.asEnumerable.Any(s => s.path == scenePath);
+      var scene = sceneManager.__EDITOR.openScene(scenePath, OpenSceneMode.Additive);
       try {
         return f(scene);
       }
       finally {
-        if (!isLoaded) SceneManager.UnloadSceneAsync(scene);
+        if (!isLoaded) sceneManager.unloadSceneAsync(scene);
       }
     }
 
