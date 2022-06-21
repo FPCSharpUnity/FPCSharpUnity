@@ -88,6 +88,26 @@
                <li>${argumentName} - refers to argument named 'argumentName'</li>
              </ul>
         </member>
+        <member name="T:GenerationAttributes.CompilationErrorMethodMacroAttribute">
+             <summary>
+             Fails the compilation with the specified message.
+             <para/>
+             This might seem useless, but it is very useful in "banning" methods if you do not have
+             <see cref="T:System.ObsoleteAttribute"/> banned.
+             <para/>
+             For example:
+             <code><![CDATA[
+             [CompilationErrorMethodMacro("Do not use `orElse`, instead use `|` operator.")]
+             public static Option<A> orElse<A>(this Option<A> o1, Option<A> o2) => throw new MacroException();
+             ]]></code>
+            
+             This will fail the compilation, while still allowing other methods marked with <see cref="T:System.ObsoleteAttribute"/> to
+             work.
+             <para/>
+             In addition - no one will be able to define the `orElse` method with the same signature, because it is already
+             defined, thus it will prevent them from thinking "I'll add it, because it's a great idea" :)
+             </summary>
+        </member>
         <member name="T:GenerationAttributes.TypesWithMacroAttributes">
             <summary> Used internally by compiler. </summary>
         </member>

@@ -41,11 +41,12 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static Future<bool> fromCoroutine(IEnumerator enumerator) =>
       Future.fromCoroutine(ASync.StartCoroutine(enumerator));
 
+    /// <summary>Complete when checker returns `Some`.</summary>
     public static Future<A> fromBusyLoop<A>(
       Func<Option<A>> checker, YieldInstruction delay=null
     ) => Future.async<A>(p => ASync.StartCoroutine(busyLoopEnum(delay, p, checker)));
 
-    /// <summary>Complete when checker returns true</summary>
+    /// <summary>Complete when checker returns true.</summary>
     public static Future<Unit> fromBusyLoop(
       Func<bool> checker, YieldInstruction delay=null
     ) => Future.async<Unit>(p => ASync.StartCoroutine(busyLoopEnum(delay, p, checker)));

@@ -46,6 +46,7 @@ namespace FPCSharpUnity.unity.Utilities {
       Action afterScenesProcessed = null
     ) {
       var ranAfterScenesProcessed = false;
+      var sceneManager = SceneManagerBetter.instance;
       try {
         if (askToSave && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
           return None._;
@@ -53,7 +54,7 @@ namespace FPCSharpUnity.unity.Utilities {
         var builder = ImmutableDictionary.CreateBuilder<ScenePath, A>();
         var scenesToUse = scenes.toImmutableArrayC();
         var sceneCount = scenesToUse.Count;
-        var initialScene = SceneManager.GetActiveScene().scenePath();
+        var initialScene = sceneManager.getActiveScene().scenePath();
         try {
           var loadedScenes = new List<Scene>(sceneCount);
           for (var i = 0; i < sceneCount; i++) {
@@ -62,7 +63,7 @@ namespace FPCSharpUnity.unity.Utilities {
               return None._;
             }
             var mode = (!allAtOnce || i == 0) ? OpenSceneMode.Single : OpenSceneMode.Additive;
-            var loadedScene = EditorSceneManager.OpenScene(currentPath, mode);
+            var loadedScene = sceneManager.__EDITOR.openScene(currentPath, mode);
             if (allAtOnce) {
               loadedScenes.Add(loadedScene);
             }
@@ -88,10 +89,10 @@ namespace FPCSharpUnity.unity.Utilities {
           // unload all scenes and load previously opened scene
           if (initialScene.path.isNullOrEmpty()) {
             // if path is empty, that means empty scene was loaded before
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            sceneManager.__EDITOR.newScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
           }
           else {
-            EditorSceneManager.OpenScene(initialScene, OpenSceneMode.Single);
+            sceneManager.__EDITOR.openScene(initialScene, OpenSceneMode.Single);
           }
         }
 
