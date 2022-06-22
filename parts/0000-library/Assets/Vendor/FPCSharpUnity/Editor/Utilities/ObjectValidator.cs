@@ -72,7 +72,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         return;
       }
 
-      var scene = SceneManager.GetActiveScene();
+      var scene = SceneManagerBetter.instance.getActiveScene();
       var (errors, timeSpan) = checkSceneWithTime(scene, None._, DEFAULT_ON_PROGRESS, DEFAULT_ON_FINISH);
       showErrors(Log.d, errors);
       if (Log.d.isInfo()) Log.d.info(

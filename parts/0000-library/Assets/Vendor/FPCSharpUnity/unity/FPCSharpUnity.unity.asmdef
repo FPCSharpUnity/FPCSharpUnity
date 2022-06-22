@@ -10,6 +10,7 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
+        "ExhaustiveMatching.dll",
         "FPCSharpUnity.core.dll",
         "FPCSharpUnity.core.macros.dll",
         "System.Collections.Immutable.dll",
