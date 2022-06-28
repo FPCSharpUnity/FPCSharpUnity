@@ -9,8 +9,8 @@ namespace FPCSharpUnity.unity.Dispose {
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DisposableTrackerU));
 
     /// <summary>
-    /// Use this in methods with RuntimeInitializeOnLoadMethod instead of NoOpDisposableTracker to dispose properly
-    /// in editor
+    /// Use this in methods with <see cref="UnityEngine.RuntimeInitializeOnLoadMethodAttribute"/> instead of
+    /// <see cref="NoOpDisposableTracker"/> to dispose properly in editor.
     /// </summary>
     [LazyProperty] static IDisposableTracker _disposeOnExitPlayMode => new DisposableTracker(log);
     public static IInspectableTracker disposeOnExitPlayMode => _disposeOnExitPlayMode;
