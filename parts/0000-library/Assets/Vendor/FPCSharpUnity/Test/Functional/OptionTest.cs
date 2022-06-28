@@ -108,29 +108,6 @@ namespace FPCSharpUnity.unity.Functional {
     }
   }
 
-  public class OptionTestFoldValueValue {
-    [Test]
-    public void WhenSomeGood() {
-      new Option<string>("this is a set option").
-        fold(false, true).
-        shouldBeTrue();
-    }
-
-    [Test]
-    public void WhenNone() {
-      Option<string>.None.
-        fold(false, true).
-        shouldBeFalse();
-    }
-
-    [Test]
-    public void WhenSomeDiffer() {
-      new Option<string>("This is").
-        fold(false, true).
-        shouldBeTrue();
-    }
-  }
-
   public class OptionTestGetOrElseFunction {
     [Test]
     public void WhenSome() {
