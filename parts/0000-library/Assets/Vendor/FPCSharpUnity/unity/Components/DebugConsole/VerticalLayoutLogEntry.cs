@@ -35,6 +35,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       public void Dispose() => backing.Dispose();
       public RectTransform rectTransform => backing.value.baseTransform;
+      public virtual void onUpdateLayout(Rect viewportSize, DynamicLayout.Padding padding) {}
     }
   }
 }

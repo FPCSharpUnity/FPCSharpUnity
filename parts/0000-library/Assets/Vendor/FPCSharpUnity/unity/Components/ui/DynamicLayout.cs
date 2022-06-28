@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.unity.Components.Forwarders;
-using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
@@ -15,7 +14,6 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
-using FPCSharpUnity.unity.Functional;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -54,7 +52,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull, PublicAccessor] ScrollRect _scrollRect;
     [SerializeField, NotNull] RectTransform _container;
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
-    [SerializeField, NotNull] Padding _padding;
+    [SerializeField, NotNull, PublicAccessor] Padding _padding;
     [SerializeField, NotNull] float _spacing;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
@@ -68,8 +66,10 @@ namespace FPCSharpUnity.unity.Components.ui {
       [SerializeField, PublicAccessor] float _left, _right, _top, _bottom;
       // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
-
       #endregion
+
+      public float horizontal => _left + _right;
+      public float vertical => _top + _bottom;
     }
 
     /// <summary>
@@ -77,6 +77,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// </summary>
     public interface IElementView : IDisposable {
       RectTransform rectTransform { get; }
+      void onUpdateLayout(Rect viewportSize, Padding padding);
     }
 
     /// <summary>
@@ -124,6 +125,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       readonly bool isHorizontal;
       readonly Padding padding;
       readonly float spacing;
+      public readonly IRxVal<Rect> maskSize;
 
       // If Option is None, that means there is no backing view, it is only a spacer.
       readonly IDictionary<IElementData, Option<IElementView>> _items = 
@@ -182,8 +184,9 @@ namespace FPCSharpUnity.unity.Components.ui {
         // We need oncePerFrame() because Unity doesn't allow doing operations like gameObject.SetActive()
         // from OnRectTransformDimensionsChange()
         // oncePerFrame() performs operation in LateUpdate
-        var maskSize = 
-          mask.gameObject.EnsureComponent<OnRectTransformDimensionsChangeForwarder>().rectDimensionsChanged
+        // ReSharper disable once LocalVariableHidesMember
+        var maskSize = this.maskSize = mask.gameObject.EnsureComponent<OnRectTransformDimensionsChangeForwarder>()
+          .rectDimensionsChanged
           .oncePerFrame()
           .filter(_ => mask) // mask can go away before late update, so double check it.
           .map(_ => mask.rect)
@@ -194,7 +197,6 @@ namespace FPCSharpUnity.unity.Components.ui {
           : RectTransform.Axis.Vertical;
         maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (_, size) => {
           _container.SetSizeWithCurrentAnchors(rectTransformAxis, size);
-          clearLayout();
           updateLayout();
         });
       }
@@ -245,17 +247,24 @@ namespace FPCSharpUnity.unity.Components.ui {
         updateForEachElement(
           this, static (data, placementVisible, cellRect, dis) => {
             switch (placementVisible) {
-              case true when !dis._items.ContainsKey(data): {
-                var instanceOpt = Option<IElementView>.None;
-                foreach (var elementWithView in data.asElementWithView) {
-                  var instance = elementWithView.createItem(dis._container);
+              case true: {
+                if (!dis._items.TryGetValue(data, out var instanceOpt)) {
+                  {if (data.asElementWithView.valueOut(out var elementWithView)) {
+                    var instance = elementWithView.createItem(dis._container);
+                    instanceOpt = instance.some();  
+                    dis._items.Add(data, instanceOpt);
+                  }}                  
+                }
+                
+                {if (instanceOpt.valueOut(out var instance)) {
+                  // Call this first, because in there could be code which resizes this item's rectTransform.
+                  instance.onUpdateLayout(dis.maskSize.value, dis.padding);
+                  
                   var rectTrans = instance.rectTransform;
                   rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
                   rectTrans.localPosition = Vector3.zero;
-                  rectTrans.anchoredPosition = cellRect.center;
-                  instanceOpt = instance.some();
-                }
-                dis._items.Add(data, instanceOpt);
+                  rectTrans.anchoredPosition = cellRect.center;    
+                }}
                 break;
               }
               case false when dis._items.ContainsKey(data): {
@@ -315,7 +324,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         );
         return result;
       }
-
+      
       public delegate void UpdateForEachElementAction<in Data>(
         IElementData elementData, bool placementVisible, Rect cellRect, Data data
       );
@@ -423,6 +432,8 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
       
+      public virtual void onUpdateLayout(Rect viewportSize, Padding padding) {}
+      
       public NonPooledRectTransformElementWithViewData(
         RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
       ) {
@@ -443,6 +454,10 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
     }
 
+    public delegate void OnUpdateLayout<in Obj>(
+      Obj view, Rect viewportSize, RectTransform viewRt, Padding padding
+    ) where Obj : Component;
+    
     /// <summary>
     /// Represents layout data for <see cref="DynamicLayout"/>. When this layout element becomes visible in viewport,
     /// it uses <see cref="GameObjectPool"/> to create it's visual part. You need to override this class for your
@@ -451,7 +466,8 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <typeparam name="Obj"></typeparam>
     public abstract class ElementWithViewData<Obj> : IElementWithViewData where Obj : Component {
       readonly GameObjectPool<Obj> pool;
-      public float sizeInScrollableAxis { get; }
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
+      public float sizeInScrollableAxis { get; set; }
       public Percentage sizeInSecondaryAxis { get; }
       
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
@@ -459,16 +475,18 @@ namespace FPCSharpUnity.unity.Components.ui {
       protected abstract IDisposable setup(Obj view);
 
       public ElementWithViewData(
-        GameObjectPool<Obj> pool, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
+        GameObjectPool<Obj> pool, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis, 
+        [CanBeNull] OnUpdateLayout<Obj> maybeOnUpdateLayout = null
       ) {
         this.pool = pool;
+        this.maybeOnUpdateLayout = maybeOnUpdateLayout;
         this.sizeInSecondaryAxis = sizeInSecondaryAxis;
         this.sizeInScrollableAxis = sizeInScrollableAxis;
       }
 
       public IElementView createItem(Transform parent) {
         var view = pool.borrow();
-        return new PooledElementView<Obj>(view, setup(view), pool);
+        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout);
       }
     }
     
@@ -481,13 +499,21 @@ namespace FPCSharpUnity.unity.Components.ui {
       readonly Obj visual;
       readonly IDisposable disposable;
       readonly GameObjectPool<Obj> pool;
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayoutFunc;
       public RectTransform rectTransform { get; }
+
+      public virtual void onUpdateLayout(Rect viewportSize, Padding padding) {
+        maybeOnUpdateLayoutFunc?.Invoke(visual, viewportSize, rectTransform, padding);
+      }
       
-      public PooledElementView(Obj visual, IDisposable disposable, GameObjectPool<Obj> pool) {
+      public PooledElementView(
+        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout
+      ) {
         this.visual = visual;
         this.disposable = disposable;
         this.pool = pool;
         rectTransform = (RectTransform) visual.transform;
+        maybeOnUpdateLayoutFunc = maybeOnUpdateLayout;
       }
       public void Dispose() {
         if (visual) pool.release(visual);

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Linq;
-using FPCSharpUnity.core.exts;
+using ExhaustiveMatching;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
-using FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners;
 using FPCSharpUnity.unity.unity_serialization;
 using FPCSharpUnity.unity.validations;
 using GenerationAttributes;
@@ -44,10 +43,15 @@ public partial class PercentageCombinerSetter : MonoBehaviour, IMB_Start {
     /// <summary> Finds maximum of all <see cref="_variables"/>. </summary>
     Max = 0, 
     /// <summary> Finds minimum of all <see cref="_variables"/>. </summary>
-    Min = 1
+    Min = 1,
+    /// <summary>
+    /// Multiply all <see cref="_variables"/> together. This useful when we can't have nested <see cref="CanvasGroup"/>
+    /// components (ex: due to prefab inheritance).
+    /// </summary>
+    Multiply = 2
   }
 
-  void update() {
+  [Button] void update() {
     var value = calculate();
 
     foreach (var setter in _setters) {
@@ -59,14 +63,16 @@ public partial class PercentageCombinerSetter : MonoBehaviour, IMB_Start {
     var value = _formula switch {
       Formula.Max => 0f,
       Formula.Min => 1f,
-      _ => throw _formula.argumentOutOfRange()
+      Formula.Multiply => 1f,
+      _ => throw ExhaustiveMatch.Failed(_formula)
     };
     
     foreach (var kvp in _variables.a) {
       value = _formula switch {
         Formula.Max => Mathf.Max(kvp.Value.value, value),
         Formula.Min => Mathf.Min(kvp.Value.value, value),
-        _ => throw _formula.argumentOutOfRange()
+        Formula.Multiply => kvp.Value.value * value,
+        _ => throw ExhaustiveMatch.Failed(_formula)
       };
     }
     return new Percentage(value);
@@ -89,5 +95,27 @@ public partial class PercentageCombinerSetter : MonoBehaviour, IMB_Start {
       get => new Percentage(_canvasGroup.alpha);
       set => _canvasGroup.alpha = value.value;
     }
+  }
+  
+  [Serializable]
+  public class SetPercentageCombinerValue {
+#pragma warning disable 649
+    // ReSharper disable NotNullMemberIsNotInitialized
+    [SerializeField, NotNull] PercentageCombinerSetter _setter;
+    [SerializeField, NonEmpty, ValueDropdown(nameof(allIds)), ValidateInput(nameof(validateIds))] string _id;
+    // ReSharper restore NotNullMemberIsNotInitialized
+#pragma warning restore 649
+      
+    bool validateIds(string id) => allIds.Any(_ => _.Value == id);
+
+    ValueDropdownList<string> allIds { get {
+      var list = new ValueDropdownList<string>();
+      if (_setter) {
+        foreach (var kvp in _setter.variables.a) { list.Add(kvp.Key); }
+      }
+      return list;
+    } }
+
+    public Percentage setValue { set => _setter.set(_id, value); }
   }
 }
