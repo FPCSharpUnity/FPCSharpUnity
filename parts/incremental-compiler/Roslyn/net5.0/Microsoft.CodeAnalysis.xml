@@ -19946,6 +19946,12 @@
             <param name="condition">The conditional expression to evaluate.</param>
             <param name="message">An optional message to be recorded in the dump in case of failure. Can be <c>null</c>.</param>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.ErrorReporting.OperationCanceledIgnoringCallerTokenException">
+            <summary>
+            Thrown when async code must cancel the current execution but does not have access to the <see cref="T:System.Threading.CancellationTokenSource"/> of the <see cref="T:System.Threading.CancellationToken"/> passed to the code.
+            Should be used in very rare cases where the <see cref="T:System.Threading.CancellationTokenSource"/> is out of our control (e.g. owned but not exposed by JSON RPC in certain call-back scenarios).
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler">
             <summary>
             Set by the host to handle an error report; this may crash the process or report telemetry.
