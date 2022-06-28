@@ -38457,7 +38457,7 @@
             <summary>The first operand of an overloaded shift operator must have the same type as the containing type</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_InterfacesCantContainConversionOrEqualityOperators">
-            <summary>Conversion, equality, or inequality operators declared in interfaces must be abstract</summary>
+            <summary>Conversion, equality, or inequality operators declared in interfaces must be abstract or virtual</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_EnumsCantContainDefaultConstructor">
             <summary>Enums cannot contain explicit parameterless constructors</summary>
@@ -38811,7 +38811,7 @@
             <summary>Inconsistent accessibility: constraint type '{1}' is less accessible than '{0}'</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_LookupInTypeVariable">
-            <summary>Cannot do member lookup in '{0}' because it is a type parameter</summary>
+            <summary>Cannot do non-virtual member lookup in '{0}' because it is a type parameter</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadConstraintType">
             <summary>Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.</summary>
@@ -43684,6 +43684,15 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ImplicitImplementationOfInaccessibleInterfaceMember">
             <summary>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement an inaccessible member.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScriptsAndSubmissionsCannotHaveRequiredMembers">
+            <summary>Required members are not allowed on the top level of a script or submission.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadAbstractEqualityOperatorSignature">
+            <summary>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadBinaryReadOnlySpanConcatenation">
+            <summary>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer">
             <summary>
