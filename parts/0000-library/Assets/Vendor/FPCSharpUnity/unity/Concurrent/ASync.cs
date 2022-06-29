@@ -178,10 +178,9 @@ namespace FPCSharpUnity.unity.Concurrent {
     }
 
     /// <summary>
-    /// Turn this request to future. Automatically cleans up the request. Allows you to cancel the request by invoking
-    /// the returned <see cref="IO{A}"/>.
+    /// Turn this request to <see cref="ICancellableFuture{A}"/>. Automatically cleans up the request.
     /// </summary>
-    public static (Future<Either<WebRequestError, A>> future, IO<Unit> cancel) toFutureCancellable<A>(
+    public static ICancellableFuture<Either<WebRequestError, A>> toFutureCancellable<A>(
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes, 
       Func<UnityWebRequest, A> onSuccess
     ) {
@@ -189,7 +188,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       var op = req.SendWebRequest();
       // Was `req.Dispose()` invoked?
       var reqDisposed = false;
-      op.completed += operation => {
+      op.completed += _ => {
         var responseCode = req.responseCode;
         if (req.result.toNonSuccessfulResult().valueOut(out var nonSuccessfulResult)) {
           // Capture data before disposing the request.
@@ -236,7 +235,9 @@ namespace FPCSharpUnity.unity.Concurrent {
           promise.complete(result);
         }
       };
-      var cancel = IO.a(() => {
+      return CancellableFuture.a(f, cancel);
+
+      void cancel() {
         // Only do something if the request is not already disposed of.
         if (!reqDisposed) {
           // Aborted UnityWebRequests are considered to have encountered a system error. Either the isNetworkError or
@@ -245,9 +246,8 @@ namespace FPCSharpUnity.unity.Concurrent {
           // https://docs.unity3d.com/ScriptReference/Networking.UnityWebRequest.Abort.html
           op.webRequest.Abort();
         }
-      });
-      return (f, cancel);
-
+      };
+      
       void disposeReq() {
         req.Dispose();
         reqDisposed = true;
