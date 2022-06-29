@@ -20,7 +20,8 @@ namespace FPCSharpUnity.unity.Threads {
 #if UNITY_EDITOR
   [UnityEditor.InitializeOnLoad]
 #endif
-  [PublicAPI] public static class OnMainThread {
+  [PublicAPI] 
+  public static class OnMainThread {
     static readonly Queue<Action> actions = new Queue<Action>();
     static Thread mainThread;
     public static TaskScheduler mainThreadScheduler;
@@ -61,7 +62,11 @@ namespace FPCSharpUnity.unity.Threads {
 #endif
     }
 
-    /* Run the given action in the main thread. */
+    public static readonly RunAction runAction = action => run(action);
+
+    /// <summary>
+    /// Run the given action in the main thread.
+    /// </summary>
     public static void run(Action action, bool runNowIfOnMainThread=true) {
       if (isMainThread && runNowIfOnMainThread) {
         try { action(); }
@@ -91,6 +96,6 @@ namespace FPCSharpUnity.unity.Threads {
     public static Future<Either<TaskFailed, A>> toFutureOnUnityMainThread<A>(
       this Task<A> task, [Implicit] ILog log=default
     ) => 
-      task.toFuture(action => run(action));
+      task.toFuture(runAction);
   }
 }
