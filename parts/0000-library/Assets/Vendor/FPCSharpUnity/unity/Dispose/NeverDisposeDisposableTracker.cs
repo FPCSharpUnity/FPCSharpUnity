@@ -11,8 +11,8 @@ using UnityEngine;
 namespace FPCSharpUnity.unity.Dispose {
   /// <summary>
   /// Tracker that allows you to register a subscription to be kept forever.
-  ///
-  /// This should only be used for things that should never go out
+  /// <para/>
+  /// This should only be used for things that should never go out of scope.
   /// </summary>
 #if UNITY_EDITOR
   [UnityEditor.InitializeOnLoad]
