@@ -14,6 +14,10 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.macros;
+using FPCSharpUnity.unity.Logger;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -53,11 +57,32 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull] RectTransform _container;
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
     [SerializeField, NotNull, PublicAccessor] Padding _padding;
-    [SerializeField, NotNull] float _spacing;
+    [SerializeField] float _spacing;
+    [SerializeField, InfoBox(
+      DynamicLayout_ExpandElementsRectSizeInSecondaryAxisExts.SUMMARY_EXPAND_ELEMENTS_RECT_SIZE_IN_SECONDARY_AXIS
+    )] ExpandElementsRectSizeInSecondaryAxis _expandElements;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
 
     #endregion
+
+    /// <summary>
+    /// Whether to modify all elements sizes in secondary axis. Having an enum instead of bool helps us to have
+    /// more commented code (there are a lot of placed where summary tags are missing). Also InfoBox summary is
+    /// generated.
+    /// </summary>
+    [GenEnumXMLDocConstStrings] public enum ExpandElementsRectSizeInSecondaryAxis {
+      /// <summary>
+      /// Don't modify all dynamic layout elements sizes in secondary axis to match
+      /// <see cref="DynamicLayout._container"/> size.
+      /// </summary>
+      DontExpand = 0,
+      /// <summary>
+      /// Modify all dynamic layout elements sizes in secondary axis to match <see cref="DynamicLayout._container"/>
+      /// size.
+      /// </summary>
+      Expand = 1
+    }
 
     [Serializable] public partial class Padding {
       #region Unity Serialized Fields
@@ -77,7 +102,12 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// </summary>
     public interface IElementView : IDisposable {
       RectTransform rectTransform { get; }
-      void onUpdateLayout(Rect viewportSize, Padding padding);
+      /// <summary>Item width portion of vertical layout width OR height in horizontal layout.</summary>
+      Percentage sizeInSecondaryAxis { get; }
+      /// <summary>
+      /// Is called when <see cref="onUpdateLayout"/> is called, just before the rect position is set.
+      /// </summary>
+      void onUpdateLayout(Rect containerSize, Padding padding);
     }
 
     /// <summary>
@@ -104,27 +134,45 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <summary>
     /// Empty spacer element
     /// </summary>
-    public class EmptyElement : IElementData {
+    [Record] public partial class EmptyElement : IElementData {
       public float sizeInScrollableAxis { get; }
       public Percentage sizeInSecondaryAxis { get; }
       public Option<IElementWithViewData> asElementWithView => None._;
-      
-      public EmptyElement(float sizeInScrollableAxis, Percentage sizeInSecondaryAxis) {
-        this.sizeInScrollableAxis = sizeInScrollableAxis;
-        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
-      }
     }
     
     public class Init {
       const float EPS = 1e-9f;
 
-      readonly RectTransform _container, _maskRect;
+      /// <summary> A place where all layout elements gets put into. </summary>
+      readonly RectTransform _container;
+      /// <summary>
+      /// A viewport where all layout elements are rendered in if they are inside this rect. Its name has a 'mask' in
+      /// it, because in most of the cases, this <see cref="RectTransform"/> has <see cref="RectMask2D"/> component
+      /// attached to it as well.
+      /// </summary>
+      readonly RectTransform _maskRect;
+      /// <summary> All layout elements that are present in this layout. </summary>
       readonly List<IElementData> layoutData;
+      /// <summary> A reactive value of how much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
+      /// <summary>
+      /// If true - elements in UI are ordered in reversed order from <see cref="layoutData"/>.
+      /// If false - elements in UI are ordered in same order as <see cref="layoutData"/>.<br/>
+      /// </summary>
       readonly bool renderLatestItemsFirst;
+      /// <summary>
+      /// Whether <see cref="DynamicLayout._scrollRect"/> is horizontal or vertical. Can't be both.
+      /// </summary>
       readonly bool isHorizontal;
+      /// <summary>
+      /// How many UI units to move all layout elements away from the <see cref="_container"/> sides.
+      /// </summary>
       readonly Padding padding;
+      /// <summary> A spacing between layout elements. </summary>
       readonly float spacing;
+      /// <inheritdoc cref="ExpandElementsRectSizeInSecondaryAxis"/>
+      readonly ExpandElementsRectSizeInSecondaryAxis expandElements;
+      /// <summary> A reactive value of <see cref="_maskRect"/> size. </summary>
       public readonly IRxVal<Rect> maskSize;
 
       // If Option is None, that means there is no backing view, it is only a spacer.
@@ -148,7 +196,8 @@ namespace FPCSharpUnity.unity.Components.ui {
         isHorizontal: backing._scrollRect.horizontal,
         backing._padding,
         spacing: backing._spacing,
-        dt, renderLatestItemsFirst
+        dt, renderLatestItemsFirst, 
+        expandElements: backing._expandElements
       ) {
         backing._scrollRect.onValueChanged.subscribe(dt, _ => updateLayout());
       }
@@ -161,7 +210,8 @@ namespace FPCSharpUnity.unity.Components.ui {
         IEnumerable<IElementData> layoutData,
         bool isHorizontal, Padding padding, float spacing,
         ITracker tracker,
-        bool renderLatestItemsFirst = false
+        bool renderLatestItemsFirst = false,
+        ExpandElementsRectSizeInSecondaryAxis expandElements = ExpandElementsRectSizeInSecondaryAxis.DontExpand
       ) {
         this._container = _container;
         this._maskRect = _maskRect;
@@ -170,6 +220,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         this.padding = padding;
         this.spacing = spacing;
         this.renderLatestItemsFirst = renderLatestItemsFirst;
+        this.expandElements = expandElements;
 
         // When we add elements to layout and enable it on the same frame,
         // layout does not work correctly due to rect sizes == 0.
@@ -192,13 +243,25 @@ namespace FPCSharpUnity.unity.Components.ui {
           .map(_ => mask.rect)
           .toRxVal(mask.rect);
 
+
+        maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (rectSize, size) => {
+          onRectSizeChange(container: _container,
+            expandElements: expandElements,
+            isHorizontal: isHorizontal, containerSizeInScrollableAxis: size, rectSize: rectSize
+          );
+          updateLayout();
+        });
+      }
+
+      /// <summary> What should happen after <see cref="_maskRect"/> gets resized. </summary>
+      public static void onRectSizeChange(
+        RectTransform container, ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal, 
+        float containerSizeInScrollableAxis, Rect rectSize
+      ) {
         var rectTransformAxis = isHorizontal
           ? RectTransform.Axis.Horizontal
           : RectTransform.Axis.Vertical;
-        maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (_, size) => {
-          _container.SetSizeWithCurrentAnchors(rectTransformAxis, size);
-          updateLayout();
-        });
+        container.SetSizeWithCurrentAnchors(rectTransformAxis, containerSizeInScrollableAxis);
       }
 
       /// <param name="element"></param>
@@ -233,10 +296,13 @@ namespace FPCSharpUnity.unity.Components.ui {
         }
         _items.Clear();
       }
-      
-      public Rect calculateVisibleRect => _maskRect.rect.convertCoordinateSystem(
-        ((Transform) _maskRect).some(), _container
-      );
+
+      public Rect calculateVisibleRect => calculateVisibleRectStatic(container: _container, maskRect: _maskRect);
+
+      public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
+        maskRect.rect.convertCoordinateSystem(
+          ((Transform) maskRect).some(), container
+        );
 
       /// <summary>
       /// You can call this after modifying the underlying data to update the layout so
@@ -255,15 +321,12 @@ namespace FPCSharpUnity.unity.Components.ui {
                     dis._items.Add(data, instanceOpt);
                   }}                  
                 }
-                
+
                 {if (instanceOpt.valueOut(out var instance)) {
-                  // Call this first, because in there could be code which resizes this item's rectTransform.
-                  instance.onUpdateLayout(dis.maskSize.value, dis.padding);
-                  
-                  var rectTrans = instance.rectTransform;
-                  rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
-                  rectTrans.localPosition = Vector3.zero;
-                  rectTrans.anchoredPosition = cellRect.center;    
+                  updateVisibleElement(
+                    instance, cellRect: cellRect, padding: dis.padding, isHorizontal: dis.isHorizontal,
+                    expandElements: dis.expandElements, containerSize: dis._container.rect
+                  );
                 }}
                 break;
               }
@@ -281,6 +344,44 @@ namespace FPCSharpUnity.unity.Components.ui {
         );
         
         containerSizeInScrollableAxis.value = containerSizeInScrollableAxis_;
+      }
+
+      /// <summary>
+      /// Is called when an <see cref="IElementData"/> becomes visible inside <see cref="_maskRect"/>.
+      /// </summary>
+      public static void updateVisibleElement(
+        IElementView instance, Rect cellRect, Padding padding, Rect containerSize,
+        ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal
+      ) {
+        if (expandElements == ExpandElementsRectSizeInSecondaryAxis.Expand) {
+          if (isHorizontal) {
+            instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
+              (containerSize.height - padding.vertical) * instance.sizeInSecondaryAxis.value
+            );
+          } 
+          else {
+            instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+              (containerSize.width - padding.horizontal) * instance.sizeInSecondaryAxis.value
+            );         
+          }
+        }
+        
+        // Call this first, because in there could be code which resizes this item's rectTransform.
+        instance.onUpdateLayout(containerSize: containerSize, padding);
+
+        var rectTrans = instance.rectTransform;
+        rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
+        rectTrans.localPosition = Vector3.zero;
+        rectTrans.anchoredPosition = cellRect.center;
+
+#if UNITY_EDITOR
+        if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
+          Log.d.error(
+            $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
+            + $"{rectTrans.pivot} => {0.5f}", rectTrans
+          );
+        }
+#endif
       }
 
       /// <summary>
@@ -328,12 +429,22 @@ namespace FPCSharpUnity.unity.Components.ui {
       public delegate void UpdateForEachElementAction<in Data>(
         IElementData elementData, bool placementVisible, Rect cellRect, Data data
       );
-      
+
       void updateForEachElement<Data>(
         Data dataA, UpdateForEachElementAction<Data> updateElement, out float containerSizeInScrollableAxis_
+      ) =>
+        updateForEachElementStatic(spacing: spacing, iElementDatas: layoutData,
+          renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
+          containersRectTransform: _container, visibleRect: calculateVisibleRect, dataA: dataA,
+          updateElement: updateElement, containerSizeInScrollableAxis: out containerSizeInScrollableAxis_
+        );
+
+      public static void updateForEachElementStatic<Data>(
+        float spacing, List<IElementData> iElementDatas, bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
+        RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
+        UpdateForEachElementAction<Data> updateElement, out float containerSizeInScrollableAxis
       ) {
-        var visibleRect = calculateVisibleRect;
-        var containerRect = _container.rect;
+        var containerRect = containersRectTransform.rect;
         var containerHeight = containerRect.height;
         var containerWidth = containerRect.width;
 
@@ -358,11 +469,11 @@ namespace FPCSharpUnity.unity.Components.ui {
 
         var direction = renderLatestItemsFirst ? -1 : 1;
         for (
-          var idx = renderLatestItemsFirst ? layoutData.Count - 1 : 0;
-          renderLatestItemsFirst ? idx >= 0 : idx < layoutData.Count;
+          var idx = renderLatestItemsFirst ? iElementDatas.Count - 1 : 0;
+          renderLatestItemsFirst ? idx >= 0 : idx < iElementDatas.Count;
           idx += direction
         ) {
-          var data = layoutData[idx];
+          var data = iElementDatas[idx];
           var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
           var itemLeftPerc = 0f;
           if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
@@ -417,7 +528,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         }
 
         totalOffsetUntilThisRow += isHorizontal ? padding.right : padding.bottom;
-        containerSizeInScrollableAxis_ = totalOffsetUntilThisRow + currentRowSizeInScrollableAxis;
+        containerSizeInScrollableAxis = totalOffsetUntilThisRow + currentRowSizeInScrollableAxis;
       }
     }
 
@@ -432,7 +543,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
       
-      public virtual void onUpdateLayout(Rect viewportSize, Padding padding) {}
+      public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
       
       public NonPooledRectTransformElementWithViewData(
         RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
@@ -454,6 +565,11 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
     }
 
+    /// <summary>
+    /// It's a callback when <see cref="Init.updateLayout"/> is called. This happens before setting item's position in
+    /// <see cref="DynamicLayout._container"/>.
+    /// </summary>
+    /// <typeparam name="Obj">A view type.</typeparam>
     public delegate void OnUpdateLayout<in Obj>(
       Obj view, Rect viewportSize, RectTransform viewRt, Padding padding
     ) where Obj : Component;
@@ -486,7 +602,9 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public IElementView createItem(Transform parent) {
         var view = pool.borrow();
-        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout);
+        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout,
+          sizeInSecondaryAxis: sizeInSecondaryAxis
+        );
       }
     }
     
@@ -501,14 +619,17 @@ namespace FPCSharpUnity.unity.Components.ui {
       readonly GameObjectPool<Obj> pool;
       [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayoutFunc;
       public RectTransform rectTransform { get; }
+      public Percentage sizeInSecondaryAxis { get; }
 
-      public virtual void onUpdateLayout(Rect viewportSize, Padding padding) {
-        maybeOnUpdateLayoutFunc?.Invoke(visual, viewportSize, rectTransform, padding);
+      public virtual void onUpdateLayout(Rect containerSize, Padding padding) {
+        maybeOnUpdateLayoutFunc?.Invoke(visual, containerSize, rectTransform, padding);
       }
       
       public PooledElementView(
-        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout
+        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout,
+        Percentage sizeInSecondaryAxis
       ) {
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
         this.visual = visual;
         this.disposable = disposable;
         this.pool = pool;

@@ -452,7 +452,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       public DynamicLayout.IElementView createItem(Transform parent) {
         var logEntry = pool.BorrowDisposable();
         logEntry.value.transform.SetParent(parent, false);
-        return new VerticalLayoutLogEntry.Init(logEntry, data);      
+        return new VerticalLayoutLogEntry.Init(logEntry, data, sizeInSecondaryAxis: sizeInSecondaryAxis);      
       }
     }
 
