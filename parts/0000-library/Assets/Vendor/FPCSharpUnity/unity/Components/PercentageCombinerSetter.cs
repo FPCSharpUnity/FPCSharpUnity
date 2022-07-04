@@ -97,8 +97,12 @@ public partial class PercentageCombinerSetter : MonoBehaviour, IMB_Start {
     }
   }
   
-  [Serializable]
-  public class SetPercentageCombinerValue {
+  /// <summary>
+  /// This is similar to
+  /// <see cref="Tween.fun_tween.serialization.tweeners.PercentageCombinerSetterValue"/>, but you
+  /// can have it outside <see cref="FunTweenManagerV2"/>.
+  /// </summary>
+  [Serializable] public class SetPercentageCombinerValue {
 #pragma warning disable 649
     // ReSharper disable NotNullMemberIsNotInitialized
     [SerializeField, NotNull] PercentageCombinerSetter _setter;
