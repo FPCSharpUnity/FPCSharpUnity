@@ -8,11 +8,6 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
   [PublicAPI] public static partial class TMP_TextMeshProExts {
-    /// <summary>Returns Some(<see cref="TMP_LinkInfo"/>) if the specified index points to a valid link info.</summary>
-    public static Option<TMP_LinkInfo> getLinkInfo(
-      this TMP_Text text, int index
-    ) => text.textInfo.linkInfo.get(index);
-
     /// <summary>Searches for an intersection with a <see cref="TMP_LinkInfo"/>.</summary>
     /// <param name="text">Text to look the intersection for.</param>
     /// <param name="pos">Position in screen space.</param>
@@ -110,7 +105,7 @@ namespace FPCSharpUnity.unity.Extensions {
           )) return None._;
           else return
             (new IntersectingLinkInfo(
-              i, new Rect(bl, tr - bl)
+              linkInfo, new Rect(bl, tr - bl)
             )).some();
         }
       }
@@ -124,7 +119,7 @@ namespace FPCSharpUnity.unity.Extensions {
     /// </summary>
     [Record] public readonly partial struct IntersectingLinkInfo {
       /// <summary>The intersected link's index within the <see cref="TMP_Text"/>.</summary>
-      public readonly int index;
+      public readonly TMP_LinkInfo linkInfo;
 
       /// <summary>
       /// The intersected link's boundaries in the text's local space.
