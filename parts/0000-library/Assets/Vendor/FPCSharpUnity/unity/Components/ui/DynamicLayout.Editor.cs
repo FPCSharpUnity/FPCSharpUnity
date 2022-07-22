@@ -121,7 +121,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       var containerSize = _container.rect;
       var isHorizontal = _scrollRect.horizontal;
 
-      Init.updateForEachElementStatic(spacing: _spacing,
+      Init.updateForEachElementStatic(spacing: _spacingInScrollableAxis,
         iElementDatas: _editorTestEntries.Select(_ => _.upcast(default(IElementData))).ToList(),
         renderLatestItemsFirst: false, padding: _padding, isHorizontal: isHorizontal,
         containersRectTransform: _container,

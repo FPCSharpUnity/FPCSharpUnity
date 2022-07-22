@@ -20,6 +20,7 @@ using FPCSharpUnity.unity.Logger;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace FPCSharpUnity.unity.Components.ui {
@@ -57,7 +58,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull] RectTransform _container;
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
     [SerializeField, NotNull, PublicAccessor] Padding _padding;
-    [SerializeField] float _spacing;
+    [SerializeField, FormerlySerializedAs("_spacing")] float _spacingInScrollableAxis;
     [SerializeField, InfoBox(
       DynamicLayout_ExpandElementsRectSizeInSecondaryAxisExts.SUMMARY_EXPAND_ELEMENTS_RECT_SIZE_IN_SECONDARY_AXIS
     )] ExpandElementsRectSizeInSecondaryAxis _expandElements;
@@ -67,9 +68,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     #endregion
 
     /// <summary>
-    /// Whether to modify all elements sizes in secondary axis. Having an enum instead of bool helps us to have
-    /// more commented code (there are a lot of placed where summary tags are missing). Also InfoBox summary is
-    /// generated.
+    /// Whether to modify all elements` sizes in secondary axis.
     /// </summary>
     [GenEnumXMLDocConstStrings] public enum ExpandElementsRectSizeInSecondaryAxis {
       /// <summary>
@@ -102,10 +101,11 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// </summary>
     public interface IElementView : IDisposable {
       RectTransform rectTransform { get; }
-      /// <summary>Item width portion of vertical layout width OR height in horizontal layout.</summary>
+      /// <summary>Item width portion in vertical layout width OR height in horizontal layout.</summary>
       Percentage sizeInSecondaryAxis { get; }
       /// <summary>
-      /// Is called when <see cref="onUpdateLayout"/> is called, just before the rect position is set.
+      /// Is called when <see cref="DynamicLayout.Init.updateVisibleElement"/> is
+      /// called, just before the rect position is set.
       /// </summary>
       void onUpdateLayout(Rect containerSize, Padding padding);
     }
@@ -169,7 +169,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </summary>
       readonly Padding padding;
       /// <summary> A spacing between layout elements. </summary>
-      readonly float spacing;
+      readonly float spacingInScrollableAxis;
       /// <inheritdoc cref="ExpandElementsRectSizeInSecondaryAxis"/>
       readonly ExpandElementsRectSizeInSecondaryAxis expandElements;
       /// <summary> A reactive value of <see cref="_maskRect"/> size. </summary>
@@ -195,7 +195,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         backing._container, backing._maskRect, layoutData,
         isHorizontal: backing._scrollRect.horizontal,
         backing._padding,
-        spacing: backing._spacing,
+        spacingInScrollableAxis: backing._spacingInScrollableAxis,
         dt, renderLatestItemsFirst, 
         expandElements: backing._expandElements
       ) {
@@ -208,7 +208,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public Init(
         RectTransform _container, RectTransform _maskRect,
         IEnumerable<IElementData> layoutData,
-        bool isHorizontal, Padding padding, float spacing,
+        bool isHorizontal, Padding padding, float spacingInScrollableAxis,
         ITracker tracker,
         bool renderLatestItemsFirst = false,
         ExpandElementsRectSizeInSecondaryAxis expandElements = ExpandElementsRectSizeInSecondaryAxis.DontExpand
@@ -218,7 +218,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         this.layoutData = layoutData.ToList();
         this.isHorizontal = isHorizontal;
         this.padding = padding;
-        this.spacing = spacing;
+        this.spacingInScrollableAxis = spacingInScrollableAxis;
         this.renderLatestItemsFirst = renderLatestItemsFirst;
         this.expandElements = expandElements;
 
@@ -433,7 +433,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       void updateForEachElement<Data>(
         Data dataA, UpdateForEachElementAction<Data> updateElement, out float containerSizeInScrollableAxis_
       ) =>
-        updateForEachElementStatic(spacing: spacing, iElementDatas: layoutData,
+        updateForEachElementStatic(spacing: spacingInScrollableAxis, iElementDatas: layoutData,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: _container, visibleRect: calculateVisibleRect, dataA: dataA,
           updateElement: updateElement, containerSizeInScrollableAxis: out containerSizeInScrollableAxis_
