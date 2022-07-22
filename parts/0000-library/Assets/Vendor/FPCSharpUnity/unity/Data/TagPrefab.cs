@@ -31,6 +31,11 @@ namespace FPCSharpUnity.unity.Data {
     public bool onObjectValidateIsThreadSafe => false;
     public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) {
 #if UNITY_EDITOR
+      if (!_prefab) {
+        yield return new ErrorMsg($"The {nameof(_prefab)} field is not set.");
+        yield break;
+      }
+
       var type = UnityEditor.PrefabUtility.GetPrefabAssetType(_prefab);
       if (type != UnityEditor.PrefabAssetType.Regular && type != UnityEditor.PrefabAssetType.Variant)
         yield return new ErrorMsg($"Expected {_prefab} to be a prefab, but it was {type}!");
