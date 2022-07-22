@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.unity_serialization;
@@ -12,7 +13,8 @@ namespace FPCSharpUnity.unity.unity_serialization;
 /// </summary>
 [Serializable]
 public class SerializableDictionaryMutable<K, V> : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver {
-  Option<Dictionary<K, V>> cachedValue;
+  // Exposed in editor for debugging purposes.
+  [ShowInInspector, ReadOnly] Option<Dictionary<K, V>> cachedValue;
   
   Dictionary<K, V> dictMutable {
     get {
