@@ -42,7 +42,7 @@
         </member>
         <member name="M:IncrementalCompiler.Extensions.AddAncestors(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax,Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax,System.Boolean)">
             <summary>
-              Copies namespace and class hierarchy from the original <see cref="!:memberNode" />
+            Copies namespace and class hierarchy from the original <see cref="!:memberNode" />
             </summary>
         </member>
         <member name="M:IncrementalCompiler.Extensions.CleanUsings(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax})">
