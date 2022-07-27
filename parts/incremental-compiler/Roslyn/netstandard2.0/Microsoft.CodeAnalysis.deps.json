@@ -7,15 +7,15 @@
   "targets": {
     ".NETStandard,Version=v2.0": {},
     ".NETStandard,Version=v2.0/": {
-      "Microsoft.CodeAnalysis/4.3.0-dev": {
+      "Microsoft.CodeAnalysis/4.4.0-dev": {
         "dependencies": {
           "Microsoft.CodeAnalysis.Analyzers": "3.3.3",
           "Microsoft.CodeAnalysis.NetAnalyzers": "7.0.0-preview1.22218.1",
           "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "3.3.4-beta1.22204.1",
-          "Microsoft.DotNet.XliffTasks": "1.0.0-beta.22311.1",
+          "Microsoft.DotNet.XliffTasks": "1.0.0-beta.22373.1",
           "Microsoft.Net.Compilers.Toolset": "4.2.0-1.final",
-          "Microsoft.SourceLink.AzureRepos.Git": "1.2.0-beta-22271-02",
-          "Microsoft.SourceLink.GitHub": "1.2.0-beta-22271-02",
+          "Microsoft.SourceLink.AzureRepos.Git": "1.2.0-beta-22374-01",
+          "Microsoft.SourceLink.GitHub": "1.2.0-beta-22374-01",
           "Microsoft.VisualStudio.Threading.Analyzers": "17.2.32",
           "NETStandard.Library": "2.0.3",
           "RichCodeNav.EnvVarDump": "0.1.1643-alpha",
@@ -72,26 +72,26 @@
           }
         }
       },
-      "Microsoft.Build.Tasks.Git/1.2.0-beta-22271-02": {},
+      "Microsoft.Build.Tasks.Git/1.2.0-beta-22374-01": {},
       "Microsoft.CodeAnalysis.Analyzers/3.3.3": {},
       "Microsoft.CodeAnalysis.BannedApiAnalyzers/3.3.4-beta1.22204.1": {},
       "Microsoft.CodeAnalysis.NetAnalyzers/7.0.0-preview1.22218.1": {},
       "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers/3.3.4-beta1.22204.1": {},
       "Microsoft.CodeAnalysis.PublicApiAnalyzers/3.3.4-beta1.22204.1": {},
-      "Microsoft.DotNet.XliffTasks/1.0.0-beta.22311.1": {},
+      "Microsoft.DotNet.XliffTasks/1.0.0-beta.22373.1": {},
       "Microsoft.Net.Compilers.Toolset/4.2.0-1.final": {},
       "Microsoft.NETCore.Platforms/1.1.0": {},
-      "Microsoft.SourceLink.AzureRepos.Git/1.2.0-beta-22271-02": {
+      "Microsoft.SourceLink.AzureRepos.Git/1.2.0-beta-22374-01": {
         "dependencies": {
-          "Microsoft.Build.Tasks.Git": "1.2.0-beta-22271-02",
-          "Microsoft.SourceLink.Common": "1.2.0-beta-22271-02"
+          "Microsoft.Build.Tasks.Git": "1.2.0-beta-22374-01",
+          "Microsoft.SourceLink.Common": "1.2.0-beta-22374-01"
         }
       },
-      "Microsoft.SourceLink.Common/1.2.0-beta-22271-02": {},
-      "Microsoft.SourceLink.GitHub/1.2.0-beta-22271-02": {
+      "Microsoft.SourceLink.Common/1.2.0-beta-22374-01": {},
+      "Microsoft.SourceLink.GitHub/1.2.0-beta-22374-01": {
         "dependencies": {
-          "Microsoft.Build.Tasks.Git": "1.2.0-beta-22271-02",
-          "Microsoft.SourceLink.Common": "1.2.0-beta-22271-02"
+          "Microsoft.Build.Tasks.Git": "1.2.0-beta-22374-01",
+          "Microsoft.SourceLink.Common": "1.2.0-beta-22374-01"
         }
       },
       "Microsoft.VisualStudio.Threading.Analyzers/17.2.32": {},
@@ -192,17 +192,17 @@
     }
   },
   "libraries": {
-    "Microsoft.CodeAnalysis/4.3.0-dev": {
+    "Microsoft.CodeAnalysis/4.4.0-dev": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
     },
-    "Microsoft.Build.Tasks.Git/1.2.0-beta-22271-02": {
+    "Microsoft.Build.Tasks.Git/1.2.0-beta-22374-01": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-xPUd45G6yjbr8tB3AUGuxbcN5uwyuaW+7Hs+TrYwbLJWIixxDiT6jtSa+kggJIhY0lsvc2ekOsqflS7NNwOZNw==",
-      "path": "microsoft.build.tasks.git/1.2.0-beta-22271-02",
-      "hashPath": "microsoft.build.tasks.git.1.2.0-beta-22271-02.nupkg.sha512"
+      "sha512": "sha512-1QaS40xDsEJM/Tvmjku2OCAA6mNH5dlmamvAf/ghRsZMDoAutWRm2QNOdYKYQS2hzMDSyJwPGa6L1DkgYyWT9w==",
+      "path": "microsoft.build.tasks.git/1.2.0-beta-22374-01",
+      "hashPath": "microsoft.build.tasks.git.1.2.0-beta-22374-01.nupkg.sha512"
     },
     "Microsoft.CodeAnalysis.Analyzers/3.3.3": {
       "type": "package",
@@ -239,12 +239,12 @@
       "path": "microsoft.codeanalysis.publicapianalyzers/3.3.4-beta1.22204.1",
       "hashPath": "microsoft.codeanalysis.publicapianalyzers.3.3.4-beta1.22204.1.nupkg.sha512"
     },
-    "Microsoft.DotNet.XliffTasks/1.0.0-beta.22311.1": {
+    "Microsoft.DotNet.XliffTasks/1.0.0-beta.22373.1": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-yROBT9MoquKzIHtueNEXETxcL+4t1e7sEdOfTneXCpm/zoCPVbd5RiCjaZHDleohfLsxNG7TkWz0+YhegIT14A==",
-      "path": "microsoft.dotnet.xlifftasks/1.0.0-beta.22311.1",
-      "hashPath": "microsoft.dotnet.xlifftasks.1.0.0-beta.22311.1.nupkg.sha512"
+      "sha512": "sha512-nRGKtkFFg4Mym97kNEaczD7h5HH18rZCVdgLYLGkXC3PHKvEFqRyEFiYhGfPu4pKj/MJ2u8nTpP6jMmrAxvFAA==",
+      "path": "microsoft.dotnet.xlifftasks/1.0.0-beta.22373.1",
+      "hashPath": "microsoft.dotnet.xlifftasks.1.0.0-beta.22373.1.nupkg.sha512"
     },
     "Microsoft.Net.Compilers.Toolset/4.2.0-1.final": {
       "type": "package",
@@ -260,26 +260,26 @@
       "path": "microsoft.netcore.platforms/1.1.0",
       "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
     },
-    "Microsoft.SourceLink.AzureRepos.Git/1.2.0-beta-22271-02": {
+    "Microsoft.SourceLink.AzureRepos.Git/1.2.0-beta-22374-01": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-qmmgZ0rAPcTBYmijbMz0uKTut3m/AZsBXl0eMcYca5Ze0eAj4PcVPJ7K5uO9sVixLiz1Yn1dAvbdpZsp4gD1FA==",
-      "path": "microsoft.sourcelink.azurerepos.git/1.2.0-beta-22271-02",
-      "hashPath": "microsoft.sourcelink.azurerepos.git.1.2.0-beta-22271-02.nupkg.sha512"
+      "sha512": "sha512-isSmMtPExfkA8kqPtq1gbvuXtcM2OXdF+kF3g106nfNDSyBuhpbDCGw72oOS/u8xoVT27Kgm7z9byPeYy3ZHkQ==",
+      "path": "microsoft.sourcelink.azurerepos.git/1.2.0-beta-22374-01",
+      "hashPath": "microsoft.sourcelink.azurerepos.git.1.2.0-beta-22374-01.nupkg.sha512"
     },
-    "Microsoft.SourceLink.Common/1.2.0-beta-22271-02": {
+    "Microsoft.SourceLink.Common/1.2.0-beta-22374-01": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-j+vjAeYjE+4XO15mrtSqA8sl8mpwNn3TyQ9vW6boAT8vTCRQQCeKKNCj2cJ8us3PI82PDo41jNJ/g28gAitX/g==",
-      "path": "microsoft.sourcelink.common/1.2.0-beta-22271-02",
-      "hashPath": "microsoft.sourcelink.common.1.2.0-beta-22271-02.nupkg.sha512"
+      "sha512": "sha512-JqoPAZ4y9Nc9QOEPyPzIuO+xZmr/RqBHPS1ZUNdToL3VToqi7qB+bBR7jkPfQtUhAx8sfOxuQ4PfUB37UK5xig==",
+      "path": "microsoft.sourcelink.common/1.2.0-beta-22374-01",
+      "hashPath": "microsoft.sourcelink.common.1.2.0-beta-22374-01.nupkg.sha512"
     },
-    "Microsoft.SourceLink.GitHub/1.2.0-beta-22271-02": {
+    "Microsoft.SourceLink.GitHub/1.2.0-beta-22374-01": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-q3aqBQZzQneAEIsg1gwpfUwH7+XKz81E7xnxHXIAdRgBwXiBR6dg+ZeIjDeUNLJziAMPEy7D5wGnxn3Dta+TRw==",
-      "path": "microsoft.sourcelink.github/1.2.0-beta-22271-02",
-      "hashPath": "microsoft.sourcelink.github.1.2.0-beta-22271-02.nupkg.sha512"
+      "sha512": "sha512-/2gX80Ey0ezTCUHBtZhu6Wg/BH3tKS7/in+DfFgm0R9CtgOK8WJ2npsLbI3//Pv4p/gdftcNNeg3KH2f//kLXA==",
+      "path": "microsoft.sourcelink.github/1.2.0-beta-22374-01",
+      "hashPath": "microsoft.sourcelink.github.1.2.0-beta-22374-01.nupkg.sha512"
     },
     "Microsoft.VisualStudio.Threading.Analyzers/17.2.32": {
       "type": "package",

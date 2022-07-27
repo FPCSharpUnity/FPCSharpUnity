@@ -308,7 +308,7 @@
             <summary>
             Expression can be the LHS of a ref-assign operation.
             Example:
-             ref local, ref parameter, out parameter
+             ref local, ref parameter, out parameter, ref field
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.Binder.BindValueKind.RValueOrMethodGroup">
@@ -396,6 +396,13 @@
             production code that won't build with the restriction in place (see DevDiv #15674).
             </remarks>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.UseRefEscapeOfInvocationArgument(Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.RefKind,System.Boolean,Microsoft.CodeAnalysis.CSharp.Symbols.DeclarationScope)">
+            <summary>
+            Returns true if the argument contributes _ref-safe-to-escape_;
+            returns false if the argument contributes _safe-to-escape_; and
+            returns null if the argument contributes neither.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.GetInvocationEscapeScope(Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.BoundExpression},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.RefKind},System.Collections.Immutable.ImmutableArray{System.Int32},System.UInt32,System.Boolean)">
             <summary>
             Computes the scope to which the given invocation can escape
@@ -422,22 +429,13 @@
             Returns <see langword="false"/> when it is not valid and produces diagnostics (possibly more than one recursively) that helps to figure the reason.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.GetEffectiveRefKindAndMarkMatchedInParameter(System.Int32,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.RefKind},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol},System.Collections.Immutable.ImmutableArray{System.Int32},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Boolean}@)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.GetEffectiveRefKind(System.Int32,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.RefKind},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol},System.Collections.Immutable.ImmutableArray{System.Int32},Microsoft.CodeAnalysis.CSharp.Symbols.DeclarationScope@)">
             <summary>
-            Gets "effective" ref kind of an argument. 
-            If the ref kind is 'in', marks that that corresponding parameter was matched with a value
-            We need that to detect when there were optional 'in' parameters for which values were not supplied.
+            Gets "effective" ref kind of an argument.
             
             NOTE: Generally we know if a formal argument is passed as ref/out/in by looking at the call site. 
             However, 'in' may also be passed as an ordinary val argument so we need to take a look at corresponding parameter, if such exists. 
             There are cases like params/vararg, when a corresponding parameter may not exist, then val cannot become 'in'.
-            </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.TryGetunmatchedInParameterAndFreeMatchedArgs(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Boolean}@)">
-            <summary>
-            Gets a "in" parameter for which there is no argument supplied, if such exists. 
-            That indicates an optional "in" parameter. We treat it as an RValue passed by reference via a temporary.
-            The effective scope of such variable is the immediately containing scope.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.ValidateEscape(Microsoft.CodeAnalysis.CSharp.BoundExpression,System.UInt32,System.Boolean,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag)">
@@ -1553,13 +1551,13 @@
             non-negative lengths.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.BindExpressionOrTypeForPattern(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.ConstantValue@,System.Boolean@)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.BindExpressionOrTypeForPattern(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.ConstantValue@,System.Boolean@,Microsoft.CodeAnalysis.CSharp.Conversion@)">
             <summary>
             Binds the expression for a pattern.  Sets <paramref name="wasExpression"/> if it was a type rather than an expression,
             and in that case it returns a <see cref="T:Microsoft.CodeAnalysis.CSharp.BoundTypeExpression"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.BindExpressionForPattern(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.ConstantValue@,System.Boolean@)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Binder.BindExpressionForPattern(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.ConstantValue@,System.Boolean@,Microsoft.CodeAnalysis.CSharp.Conversion@)">
             <summary>
             Binds the expression for an is-type right-hand-side, in case it does not bind as a type.
             </summary>
@@ -2155,6 +2153,15 @@
         <member name="T:Microsoft.CodeAnalysis.CSharp.BuckStopsHereBinder">
             <summary>
             A binder that knows no symbols and will not delegate further.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.CSharp.BuckStopsHereBinder.AssociatedSyntaxTree">
+            <summary>
+            In non-speculative scenarios, the syntax tree being bound.
+            In speculative scenarios, the syntax tree from the original compilation used as the speculation context.
+            This is <see langword="null"/> in some scenarios, such as the binder used for <see cref="P:Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Conversions" />
+            or the binder used to bind usings in <see cref="T:Microsoft.CodeAnalysis.CSharp.CSharpCompilation.UsingsFromOptionsAndDiagnostics"/>.
+            https://github.com/dotnet/roslyn/issues/62332: what about in EE scenarios?
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.BuckStopsHereBinder.QuickAttributeChecker">
@@ -3395,6 +3402,12 @@
             User-defined conversions are described in section 6.4 of the C# language specification.
             </remarks>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Conversion.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.CSharp.Conversion.MethodSymbol" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.CSharp.Conversion.MethodSymbol" /> is resolved statically, or is null.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.Conversion.ResultKind">
             <summary>
             Gives an indication of how successful the conversion was.
@@ -3421,7 +3434,7 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.Conversion.ToCommonConversion">
             <summary>
-            Creates a <seealso cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> from this C# conversion.
+            Creates a <see cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> from this C# conversion.
             </summary>
             <returns>The <see cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> that represents this conversion.</returns>
             <remarks>
@@ -10014,11 +10027,21 @@
             Return the name including the metadata arity suffix.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol.AssociatedSyntaxTree">
+            <summary>
+            If this type is a file-local type, returns the syntax tree where this type is visible. Otherwise, returns null.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol.MangleName">
             <summary>
             Should the name returned by Name property be mangled with [`arity] suffix in order to get metadata name.
             Must return False for a type with Arity == 0.
             </summary>
+            <remarks>
+            Some types with Arity > 0 still have MangleName == false. For example, EENamedTypeSymbol.
+            Note that other differences between source names and metadata names exist and are not controlled by this property,
+            such as the 'AssociatedFileIdentifier' prefix for file types.
+            </remarks>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol.MemberNames">
             <summary>
@@ -15406,12 +15429,12 @@
             Similarly parameters on delegate invoke method are cloned to delegate begin/end invoke methods.
             </summary>
         </member>
-        <member name="T:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol">
+        <member name="T:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase">
             <summary>
             A source parameter, potentially with a default value, attributes, etc.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.BoundAttributesSource">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.BoundAttributesSource">
             <summary>
             Symbol to copy bound attributes from, or null if the attributes are not shared among multiple source parameter symbols.
             </summary>
@@ -15420,12 +15443,12 @@
             part and copy them over to the implementation.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.GetAttributeDeclarations">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.GetAttributeDeclarations">
             <summary>
             Gets the syntax list of custom attributes that declares attributes for this parameter symbol.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.GetDecodedWellKnownAttributeData">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.GetDecodedWellKnownAttributeData">
             <summary>
             Returns data decoded from well-known attributes applied to the symbol or null if there are no applied attributes.
             </summary>
@@ -15433,7 +15456,7 @@
             Forces binding and decoding of attributes.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.GetEarlyDecodedWellKnownAttributeData">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.GetEarlyDecodedWellKnownAttributeData">
             <summary>
             Returns data decoded from special early bound well-known attributes applied to the symbol or null if there are no applied attributes.
             </summary>
@@ -15441,7 +15464,7 @@
             Forces binding and decoding of attributes.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.GetAttributesBag">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.GetAttributesBag">
             <summary>
             Returns a bag of applied custom attributes and data decoded from well-known attributes. Returns null if there are no attributes applied on the symbol.
             </summary>
@@ -15449,14 +15472,14 @@
             Forces binding and decoding of attributes.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.VerifyParamDefaultValueMatchesAttributeIfAny(Microsoft.CodeAnalysis.ConstantValue,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.VerifyParamDefaultValueMatchesAttributeIfAny(Microsoft.CodeAnalysis.ConstantValue,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag)">
             <summary>
             Verify the default value matches the default value from any earlier attribute
             (DefaultParameterValueAttribute, DateTimeConstantAttribute or DecimalConstantAttribute).
             If not, report ERR_ParamDefaultValueDiffersFromAttribute.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.IsOnPartialImplementation(Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.IsOnPartialImplementation(Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax)">
             <summary>
             Is the attribute syntax appearing on a parameter of a partial method implementation part?
             Since attributes are merged between the parts of a partial, we need to look at the syntax where the
@@ -15465,12 +15488,12 @@
             <param name="node"></param>
             <returns></returns>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.HasDefaultArgumentSyntax">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.HasDefaultArgumentSyntax">
             <summary>
             True if the parameter has default argument syntax.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbol.HasOptionalAttribute">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.SourceComplexParameterSymbolBase.HasOptionalAttribute">
             <summary>
             True if the parameter is marked by <see cref="T:System.Runtime.InteropServices.OptionalAttribute"/>.
             </summary>
@@ -15649,7 +15672,7 @@
             Make a local variable symbol whose type can be inferred (if necessary) by binding and enclosing construct.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceLocalSymbol.MakeLocal(Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.CSharp.Binder,System.Boolean,Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Symbols.LocalDeclarationKind,Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax,Microsoft.CodeAnalysis.CSharp.Binder)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceLocalSymbol.MakeLocal(Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.CSharp.Binder,System.Boolean,Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.Symbols.LocalDeclarationKind,Microsoft.CodeAnalysis.CSharp.Syntax.EqualsValueClauseSyntax,System.Boolean,Microsoft.CodeAnalysis.CSharp.Binder)">
             <summary>
             Make a local variable symbol which can be inferred (if necessary) by binding its initializing expression.
             </summary>
@@ -15662,6 +15685,9 @@
             <param name="identifierToken"></param>
             <param name="declarationKind"></param>
             <param name="initializer"></param>
+            <param name="hasScopedModifier">
+            scoped modifier from syntax, before ref if any.
+            </param>
             <param name="initializerBinderOpt">
             Binder that should be used to bind initializer, if different from the <paramref name="scopeBinder"/>.
             </param>
@@ -15857,6 +15883,11 @@
             <returns>
             <see langword="true"/> if a diagnostic was added. Otherwise, <see langword="false"/>.
             </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceMemberContainerTypeSymbol.CheckValidScopedOverride``1(Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.CSharp.Symbols.ReportMismatchInParameterType{``0},``0,System.Boolean)">
+            <summary>
+            Returns true if a diagnostic was added.
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.SourceMemberContainerTypeSymbol.AddHidingAbstractDiagnostic(Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.Location,Microsoft.CodeAnalysis.CSharp.Symbol,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Boolean@)">
             <summary>
@@ -16646,6 +16677,11 @@
             Parses generated local function name out of a generated method name.
             </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.GeneratedNameParser.TryParseFileTypeName(System.String,System.String@,System.Int32@,System.String@)">
+            <remarks>
+            This method will work with either unmangled or mangled type names as input, but it does not remove any arity suffix if present.
+            </remarks>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.Symbols.GeneratedNames.MakeSynthesizedDelegateName(Microsoft.CodeAnalysis.CSharp.Symbols.RefKindVector,System.Boolean,System.Int32)">
             <summary>
             Produces name of the synthesized delegate symbol that encodes the parameter byref-ness and return type of the delegate.
@@ -16970,6 +17006,12 @@
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.TypeSubstitutedLocalSymbol.RefEscapeScope">
+            <summary>
+            Compiler should always be synthesizing locals with correct escape semantics.
+            Checking escape scopes is not valid here.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.Symbols.TypeSubstitutedLocalSymbol.Scope">
             <summary>
             Compiler should always be synthesizing locals with correct escape semantics.
             Checking escape scopes is not valid here.
@@ -19535,6 +19577,14 @@
         <member name="M:Microsoft.CodeAnalysis.CSharp.ErrorFacts.GetMessage(Microsoft.CodeAnalysis.CSharp.XmlParseErrorCode,System.Globalization.CultureInfo)">
             <remarks>Don't call this during a parse--it loads resources</remarks>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.ErrorFacts.IsBuildOnlyDiagnostic(Microsoft.CodeAnalysis.CSharp.ErrorCode)">
+            <summary>
+            Returns true if this is a build-only diagnostic that is never reported from
+            <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDiagnostics(System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)"/> API.
+            Diagnostics generated during compilation phases such as lowering, emit, etc.
+            are example of build-only diagnostics.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.ErrorFacts.PreventsSuccessfulDelegateConversion(Microsoft.CodeAnalysis.CSharp.ErrorCode)">
             <summary>
             When converting an anonymous function to a delegate type, there are some diagnostics
@@ -21237,32 +21287,30 @@
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp3">
             <summary>
             C# language version 3
-            </summary>
-            <remarks> 
+            <para>
             Features: LINQ.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp4">
             <summary>
             C# language version 4
-            </summary>
-            <remarks> 
+            <para>
             Features: dynamic.
-            </remarks>
+            </para>        
+            </summary>        
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp5">
             <summary>
             C# language version 5
-            </summary>
-            <remarks> 
+            <para>
             Features: async, caller info attributes.
-            </remarks>
+            </para>        
+            </summary> 
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6">
             <summary>
             C# language version 6
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Using of a static class</description></item>
@@ -21275,13 +21323,11 @@
             <item><description>nameof operator</description></item>
             <item><description>Dictionary initializer</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7">
             <summary>
             C# language version 7.0
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Out variables</description></item>
@@ -21296,13 +21342,11 @@
             <item><description>More expression-bodied members</description></item>
             <item><description>Throw expressions</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1">
             <summary>
             C# language version 7.1
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Async Main</description></item>
@@ -21310,13 +21354,11 @@
             <item><description>Inferred tuple element names</description></item>
             <item><description>Pattern-matching with generics</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2">
             <summary>
             C# language version 7.2
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Ref readonly</description></item>
@@ -21327,13 +21369,11 @@
             <item><description>Digit separators after base specifier</description></item>
             <item><description>Non-trailing named arguments</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_3">
             <summary>
             C# language version 7.3
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Indexing fixed fields does not require pinning</description></item>
@@ -21348,13 +21388,11 @@
             <item><description>Improved overload candidates</description></item>
             <item><description>New compiler options (-publicsign and -pathmap)</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp8">
             <summary>
             C# language version 8.0
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Readonly members</description></item>
@@ -21372,13 +21410,11 @@
             <item><description>Stackalloc in nested expressions</description></item>
             <item><description>Enhancement of interpolated verbatim strings</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp9">
             <summary>
             C# language version 9.0
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Records</description></item>
@@ -21398,13 +21434,11 @@
             <item><description>Module initializers</description></item>
             <item><description>New features for partial methods</description></item>
             </list>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp10">
             <summary>
             C# language version 10.0
-            </summary>
-            <remarks>
             <para>Features:</para>
             <list type="bullet">
             <item><description>Record structs</description></item>
@@ -21418,7 +21452,31 @@
             <item><description>Source Generator v2 APIs</description></item>
             <item><description>Method-level AsyncMethodBuilder</description></item>
             </list>
-            </remarks>
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11">
+            <summary>
+            C# language version 11.0
+            <br/>
+            Features:
+            <list type="bullet">
+            <item><description>Raw string literals</description></item>
+            <item><description>Static abstract members in interfaces</description></item>
+            <item><description>Generic attributes</description></item>
+            <item><description>Newlines in interpolations</description></item>
+            <item><description>List-patterns</description></item>
+            <item><description>Required members</description></item>
+            <item><description>Span&lt;char> constant pattern</description></item>
+            <item><description>Struct auto-default</description></item>
+            <item><description>Nameof(parameter)</description></item>
+            <item><description>Checked user-defined operators</description></item>
+            <item><description>UTF-8 string literals</description></item>
+            <item><description>Unsigned right-shift operator</description></item>
+            <item><description>Relaxed shift operator</description></item>
+            <item><description>Ref fields</description></item>
+            <item><description>File-local types</description></item>
+            </list> 
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.LanguageVersion.LatestMajor">
             <summary>
@@ -21444,10 +21502,10 @@
             <summary>
             Usages of TestOptions.RegularNext and LanguageVersionFacts.CSharpNext
             will be replaced with TestOptions.RegularN and LanguageVersion.CSharpN when language version N is introduced.
-            </summary>
-            <remarks>
+            <para>
             Corresponds to Microsoft.CodeAnalysis.CSharp.Shared.Extensions.LanguageVersionExtensions.CSharpNext.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(Microsoft.CodeAnalysis.CSharp.LanguageVersion)">
             <summary>
@@ -21605,7 +21663,7 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.AsyncIteratorMethodToStateMachineRewriter._iteratorStateAllocator">
             <summary>
-            States for `yield return` are decreasing from <see cref="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.InitialAsyncIteratorState"/>.
+            States for `yield return` are decreasing from <see cref="F:Microsoft.CodeAnalysis.StateMachineState.InitialAsyncIteratorState"/>.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.AsyncIteratorMethodToStateMachineRewriter.VisitBody(Microsoft.CodeAnalysis.CSharp.BoundStatement)">
@@ -23645,6 +23703,22 @@
             Assumes that using statements with multiple locals have already been split up into multiple using statements.
             </remarks>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.RewriteUsingStatementTryFinally(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CSharp.BoundBlock,Microsoft.CodeAnalysis.CSharp.BoundLocal,Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.CSharp.BoundAwaitableInfo,Microsoft.CodeAnalysis.CSharp.MethodArgumentInfo)">
+            <param name="resourceTypeSyntax">
+            The node that declares the type of the resource (might be shared by multiple resource declarations, e.g. <code>using T x = expr, y = expr;</code>)
+            </param>
+            <param name="resourceSyntax">
+            The node that declares the resource storage, e.g. <code>x = expr</code> in <code>using T x = expr, y = expr;</code>. 
+            </param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.GenerateDisposeCall(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.MethodArgumentInfo,Microsoft.CodeAnalysis.CSharp.BoundAwaitableInfo,Microsoft.CodeAnalysis.SyntaxToken)">
+            <param name="resourceTypeSyntax">
+            The node that declares the type of the resource (might be shared by multiple resource declarations, e.g. <code>using T x = expr, y = expr;</code>)
+            </param>
+            <param name="resourceSyntax">
+            The node that declares the resource storage, e.g. <code>x = expr</code> in <code>using T x = expr, y = expr;</code>. 
+            </param>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.MakeCallWithNoExplicitArgument(Microsoft.CodeAnalysis.CSharp.MethodArgumentInfo,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Boolean)">
             <summary>
             Synthesize a call `expression.Method()`, but with some extra smarts to handle extension methods, and to fill-in optional and params parameters. This call expects that the
@@ -23823,7 +23897,7 @@
             try block for all of those states.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.MethodToStateMachineRewriter.GenerateSetBothStates(System.Int32)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.MethodToStateMachineRewriter.GenerateSetBothStates(Microsoft.CodeAnalysis.StateMachineState)">
             <summary>
             Set the state field and the cached state
             </summary>
@@ -23883,12 +23957,12 @@
             Produce Environment.CurrentManagedThreadId if available, otherwise CurrentThread.ManagedThreadId
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.StateMachineRewriter.GenerateIteratorGetEnumerator(Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.CSharp.BoundExpression@,System.Int32)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.StateMachineRewriter.GenerateIteratorGetEnumerator(Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.CSharp.BoundExpression@,Microsoft.CodeAnalysis.StateMachineState)">
             <summary>
             Generate the GetEnumerator() method for iterators and GetAsyncEnumerator() for async-iterators.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.StateMachineRewriter.GenerateResetInstance(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CSharp.BoundStatement},System.Int32)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.StateMachineRewriter.GenerateResetInstance(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CSharp.BoundStatement},Microsoft.CodeAnalysis.StateMachineState)">
             <summary>
             Generate logic to reset the current instance (rather than creating a new instance)
             </summary>
@@ -23896,28 +23970,6 @@
         <member name="M:Microsoft.CodeAnalysis.CSharp.StateMachineRewriter.CanGetThreadId">
             <summary>
             Returns true if either Thread.ManagedThreadId or Environment.CurrentManagedThreadId are available
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.FirstResumableAsyncState">
-            <summary>
-            First state in async state machine that is used to resume the machine after await.
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.FirstResumableIteratorState">
-            <summary>
-            First state in iterator state machine that is used to resume the machine after yield return.
-            Initial state is not used to resume state machine that yielded.
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.InitialAsyncIteratorState">
-            <summary>
-            Used for async-iterators to distinguish initial state from <see cref="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.NotStartedOrRunningState"/> so that DisposeAsync can throw in latter case.
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.CSharp.StateMachineStates.FirstResumableAsyncIteratorState">
-            <summary>
-            First state in async iterator state machine that is used to resume the machine after yield return.
-            Initial state is not used to resume state machine that yielded.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CSharp.SynthesizedStateMachineMethod">
@@ -28270,7 +28322,7 @@
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.ArgListExpression"/></description></item>
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.NumericLiteralExpression"/></description></item>
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.StringLiteralExpression"/></description></item>
-            <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.UTF8StringLiteralExpression"/></description></item>
+            <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.Utf8StringLiteralExpression"/></description></item>
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.CharacterLiteralExpression"/></description></item>
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.TrueLiteralExpression"/></description></item>
             <item><description><see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.FalseLiteralExpression"/></description></item>
@@ -30991,9 +31043,8 @@
         <member name="M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier(System.String)">
             <summary>
             Creates a token with kind IdentifierToken containing the specified text.
-            <param name="text">The raw text of the identifier name, including any escapes or leading '@'
-            character.</param>
             </summary>
+            <param name="text">The raw text of the identifier name, including any escapes or leading '@' character.</param>        
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.SyntaxFactory.Identifier(Microsoft.CodeAnalysis.SyntaxTriviaList,System.String,Microsoft.CodeAnalysis.SyntaxTriviaList)">
             <summary>
@@ -35814,8 +35865,11 @@
             <summary>Represents <c>!</c> token.</summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.DollarToken">
-            <summary>Represents <c>$</c> token.</summary>
-            <remarks>This is a debugger special punctuation and not related to string interpolation.</remarks>
+            <summary>Represents <c>$</c> token.
+            <para>
+            This is a debugger special punctuation and not related to string interpolation.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.PercentToken">
             <summary>Represents <c>%</c> token.</summary>
@@ -36372,6 +36426,12 @@
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.RequiredKeyword">
             <summary>Represents <see langword="required"/>.</summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.ScopedKeyword">
+            <summary>Represents <see langword="scoped"/>.</summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.FileKeyword">
+            <summary>Represents <see langword="file"/>.</summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.ElifKeyword">
             <summary>Represents <see langword="elif"/>.</summary>
         </member>
@@ -36448,12 +36508,18 @@
             <summary>Represents <c>_</c> token.</summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedTypeArgumentToken">
-            <summary>Represents that nothing was specified as a type argument.</summary>
-            <remarks>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedTypeArgumentToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.CommaToken"/>.</remarks>
+            <summary>Represents that nothing was specified as a type argument.
+            <para>For example <c>Dictionary&lt;,&gt;</c> which has <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedTypeArgumentToken"/> as a child of
+            <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedTypeArgumentSyntax"/> before and after the <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.CommaToken"/>.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedArraySizeExpressionToken">
-            <summary>Represents that nothing was specified as an array size.</summary>
-            <remarks>For example <c>int[,]</c> which has <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedArraySizeExpressionToken"/> as a child of <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.CommaToken"/>.</remarks>
+            <summary>Represents that nothing was specified as an array size.
+            <para>For example <c>int[,]</c> which has <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.OmittedArraySizeExpressionToken"/> as a child of
+            <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.OmittedArraySizeExpressionSyntax"/> before and after the <see cref="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.CommaToken"/>.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.CSharp.SyntaxKind.EndOfDirectiveToken">
             <summary>Represents a token that comes after the end of a directive such as <c>#endif</c>.</summary>
@@ -39253,6 +39319,9 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadParameterModifiers">
             <summary>The parameter modifier '{0}' cannot be used with '{1}'</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadParameterModifiersOrder">
+            <summary>The parameter modifier '{0}' cannot follow '{1}'</summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadTypeforThis">
             <summary>The first parameter of an extension method cannot be of type '{0}'</summary>
         </member>
@@ -41254,9 +41323,6 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.InvalidGetDeclarationNameMultipleDeclarators">
             <summary>Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators.</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.TreeNotPartOfCompilation">
-            <summary>tree not part of compilation</summary>
-        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.PositionIsNotWithinSyntax">
             <summary>Position is not within syntax tree with full span {0}</summary>
         </member>
@@ -41656,7 +41722,7 @@
             <summary>Fields of static readonly field '{0}' cannot be returned by writable reference</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefReturnParameter">
-            <summary>Cannot return a parameter by reference '{0}' because it is not a ref or out parameter</summary>
+            <summary>Cannot return a parameter by reference '{0}' because it is not a ref parameter</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefReturnParameter2">
             <summary>Cannot return by reference a member of parameter '{0}' because it is not a ref or out parameter</summary>
@@ -41673,8 +41739,8 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_EscapeOther">
             <summary>Expression cannot be used in this context because it may indirectly expose variables outside of their declaration scope</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_EscapeLocal">
-            <summary>Cannot use local '{0}' in this context because it may expose referenced variables outside of their declaration scope</summary>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_EscapeVariable">
+            <summary>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_EscapeCall">
             <summary>Cannot use a result of '{0}' in this context because it may expose variables referenced by parameter '{1}' outside of their declaration scope</summary>
@@ -42370,7 +42436,7 @@
             <summary>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefLocalOrParamExpected">
-            <summary>The left-hand side of a ref assignment must be a ref local or parameter.</summary>
+            <summary>The left-hand side of a ref assignment must be a ref variable.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefAssignNarrower">
             <summary>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</summary>
@@ -43019,6 +43085,9 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FeatureNotAvailableInVersion10">
             <summary>Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FeatureNotAvailableInVersion11">
+            <summary>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_UnexpectedArgumentList">
             <summary>Unexpected argument list.</summary>
         </member>
@@ -43193,6 +43262,9 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureStructFieldInitializers">
             <summary>struct field initializers</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureRefFields">
+            <summary>ref fields</summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureVarianceSafetyForStaticInterfaceMembers">
             <summary>variance safety for static interface members</summary>
         </member>
@@ -43204,6 +43276,12 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_AnalyzerReferencesFramework_Title">
             <summary>The loaded assembly references .NET Framework, which is not supported.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_AnalyzerReferencesNewerCompiler">
+            <summary>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_AnalyzerReferencesNewerCompiler_Title">
+            <summary>The analyzer assembly references a newer version of the compiler than the currently running version.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadFieldTypeInRecord">
             <summary>The type '{0}' may not be used for a field of a record.</summary>
@@ -43318,6 +43396,27 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ListPatternRequiresLength">
             <summary>List patterns may not be used for a value of type '{0}'. No suitable 'Length' or 'Count' property was found.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScopedRefAndRefStructOnly">
+            <summary>The 'scoped' modifier can be used for refs and ref struct values only.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScopedMismatchInParameterOfOverrideOrImplementation">
+            <summary>The 'scoped' modifier of parameter '{0}' doesn't match overridden or implemented member.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScopedMismatchInParameterOfTarget">
+            <summary>The 'scoped' modifier of parameter '{0}' doesn't match target '{1}'.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScopedMismatchInParameterOfPartial">
+            <summary>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FixedFieldMustNotBeRef">
+            <summary>A fixed field must not be a ref field.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefFieldCannotReferToRefStruct">
+            <summary>A ref field cannot refer to a ref struct.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_RefFieldInNonRefStruct">
+            <summary>A ref field can only be declared in a ref struct.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_UseDefViolationPropertySupportedVersion">
             <summary>Auto-implemented property '{0}' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.</summary>
@@ -43646,13 +43745,13 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_CheckedOperatorNeedsMatch">
             <summary>The operator '{0}' requires a matching non-checked version of the operator to also be defined</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_CannotBeConvertedToUTF8">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_CannotBeConvertedToUtf8">
             <summary>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureUTF8StringLiterals">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureUtf8StringLiterals">
             <summary>UTF-8 string literals</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ExpressionTreeContainsUTF8StringLiterals">
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ExpressionTreeContainsUtf8StringLiterals">
             <summary>An expression tree may not contain UTF-8 string conversion or literal.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ChainingToSetsRequiredMembersRequiresSetsRequiredMembers">
@@ -43660,6 +43759,24 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_NewConstraintCannotHaveRequiredMembers">
             <summary>'{2}' cannot satisfy the 'new()' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FileTypeDisallowedInSignature">
+            <summary>File-local type '{0}' cannot be used in a member signature in non-file-local type '{1}'.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FileTypeNoExplicitAccessibility">
+            <summary>File-local type '{0}' cannot use accessibility modifiers.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FileTypeBase">
+            <summary>File-local type '{0}' cannot be used as a base type of non-file-local type '{1}'.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FileTypeNested">
+            <summary>File-local type '{0}' must be defined in a top level type; '{0}' is a nested type.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_GlobalUsingStaticFileType">
+            <summary>File-local type '{0}' cannot be used in a 'global using static' directive.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_FileTypeNameDisallowed">
+            <summary>Types and aliases cannot be named 'file'.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureUnsignedRightShift">
             <summary>unsigned right shift</summary>
@@ -43692,7 +43809,22 @@
             <summary>One of the parameters of an equality, or inequality operator declared in interface '{0}' must be a type parameter on '{0}' constrained to '{0}'</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_BadBinaryReadOnlySpanConcatenation">
-            <summary>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF8 byte representations</summary>
+            <summary>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_FeatureFileTypes">
+            <summary>file types</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_CannotMatchOnINumberBase">
+            <summary>Cannot use a numeric constant or relational pattern on '{0}' because it inherits from or extends 'INumberBase&lt;T&gt;'. Consider using a type pattern to narrow to a specifc numeric type.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_ArrayAccess">
+            <summary>array access</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_PointerElementAccess">
+            <summary>pointer element access</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_MisplacedScoped">
+            <summary>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer">
             <summary>
