@@ -344,7 +344,7 @@ namespace FPCSharpUnity.unity.Logger.Reporting {
           {
             "X-Sentry-Auth",
             $"Sentry sentry_version=7, sentry_client={userAgent}, " +
-            $"sentry_timestamp={timestamp.toUnixTimestamp()}, " +
+            $"sentry_timestamp={s(timestamp.toUnixTimestamp())}, " +
             $"sentry_key={keys.publicKey}, sentry_secret={keys.secretKey}"
           }
         };
