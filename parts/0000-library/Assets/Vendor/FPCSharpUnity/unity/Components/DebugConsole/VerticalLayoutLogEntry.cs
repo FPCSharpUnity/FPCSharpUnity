@@ -2,6 +2,7 @@
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
+using FPCSharpUnity.unity.Data;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,14 +28,17 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     public class Init : DynamicLayout.IElementView {
       readonly Disposable<VerticalLayoutLogEntry> backing;
 
-      public Init(Disposable<VerticalLayoutLogEntry> backing, Data data) {
+      public Init(Disposable<VerticalLayoutLogEntry> backing, Data data, Percentage sizeInSecondaryAxis) {
         this.backing = backing;
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
         backing.value.text.text = data.text;
         backing.value.text.color = data.color;
       }
 
       public void Dispose() => backing.Dispose();
       public RectTransform rectTransform => backing.value.baseTransform;
+      public Percentage sizeInSecondaryAxis { get; }
+      public virtual void onUpdateLayout(Rect containerSize, DynamicLayout.Padding padding) {}
     }
   }
 }
