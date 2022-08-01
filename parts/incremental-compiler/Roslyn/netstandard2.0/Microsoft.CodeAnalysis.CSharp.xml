@@ -43826,6 +43826,9 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_MisplacedScoped">
             <summary>Unexpected contextual keyword 'scoped'. Did you mean 'scoped ref' or '@scoped'?</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_ScopedTypeNameDisallowed">
+            <summary>Types and aliases cannot be named 'scoped'.</summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer">
             <summary>
             DiagnosticAnalyzer for C# compiler's syntax/semantic/compilation diagnostics.

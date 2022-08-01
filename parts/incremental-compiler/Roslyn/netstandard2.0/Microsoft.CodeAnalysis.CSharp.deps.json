@@ -13,7 +13,7 @@
           "Microsoft.CodeAnalysis.NetAnalyzers": "7.0.0-preview1.22218.1",
           "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "3.3.4-beta1.22204.1",
           "Microsoft.DotNet.XliffTasks": "1.0.0-beta.22373.1",
-          "Microsoft.Net.Compilers.Toolset": "4.2.0-1.final",
+          "Microsoft.Net.Compilers.Toolset": "4.3.0-1.final",
           "Microsoft.SourceLink.AzureRepos.Git": "1.2.0-beta-22374-01",
           "Microsoft.SourceLink.GitHub": "1.2.0-beta-22374-01",
           "Microsoft.VisualStudio.Threading.Analyzers": "17.2.32",
@@ -73,7 +73,7 @@
       "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers/3.3.4-beta1.22204.1": {},
       "Microsoft.CodeAnalysis.PublicApiAnalyzers/3.3.4-beta1.22204.1": {},
       "Microsoft.DotNet.XliffTasks/1.0.0-beta.22373.1": {},
-      "Microsoft.Net.Compilers.Toolset/4.2.0-1.final": {},
+      "Microsoft.Net.Compilers.Toolset/4.3.0-1.final": {},
       "Microsoft.NETCore.Platforms/1.1.0": {},
       "Microsoft.SourceLink.AzureRepos.Git/1.2.0-beta-22374-01": {
         "dependencies": {
@@ -240,12 +240,12 @@
       "path": "microsoft.dotnet.xlifftasks/1.0.0-beta.22373.1",
       "hashPath": "microsoft.dotnet.xlifftasks.1.0.0-beta.22373.1.nupkg.sha512"
     },
-    "Microsoft.Net.Compilers.Toolset/4.2.0-1.final": {
+    "Microsoft.Net.Compilers.Toolset/4.3.0-1.final": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-CUOK+36vEzH9Nydp/riTToRGaVD7Z5Um+BXhEmNpkkozqYcZqr68xwt2NTQVaFoJrWvzu6XVyKN4NtXlPFYqnA==",
-      "path": "microsoft.net.compilers.toolset/4.2.0-1.final",
-      "hashPath": "microsoft.net.compilers.toolset.4.2.0-1.final.nupkg.sha512"
+      "sha512": "sha512-pbMlTJG2kzhJ0ULH0+rwalh4NiZwIBA+QyC8JHVIKEG5RGAii/Y4ryfa0ojAjooquS9/0jQzxN0nhdluVK8FUg==",
+      "path": "microsoft.net.compilers.toolset/4.3.0-1.final",
+      "hashPath": "microsoft.net.compilers.toolset.4.3.0-1.final.nupkg.sha512"
     },
     "Microsoft.NETCore.Platforms/1.1.0": {
       "type": "package",
