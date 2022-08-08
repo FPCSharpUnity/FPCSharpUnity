@@ -14,7 +14,8 @@ obj
 # Intellij IDEA
 .idea
 
-/parts/incremental-compiler/Roslyn/net472/CodeGenerator.FPCSharpUnity.*
-/parts/incremental-compiler/Roslyn/net472/FPCSharpUnity.core.macros.*
-/parts/incremental-compiler/Roslyn/net6.0/CodeGenerator.FPCSharpUnity.*
-/parts/incremental-compiler/Roslyn/net6.0/FPCSharpUnity.core.macros.*
+# We exclude compiled dlls, but keep meta files, because we need specific settings in those meta files.
+/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.codegen.dll
+/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.codegen.pdb
+/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.dll
+/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.pdb

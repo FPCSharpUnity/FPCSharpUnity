@@ -426,12 +426,6 @@ Microsoft.CodeAnalysis.VisualBasic
  </summary>
  <remarks>receiver will be changed as a result</remarks>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.UnionBitArrays(Microsoft.CodeAnalysis.BitVector@,Microsoft.CodeAnalysis.BitVector)">
- <summary>
- Union bit arrays taking into account 'all bits set' flag
- </summary>
- <remarks>receiver will be changed as a result</remarks>
-</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.DataFlowPass.LocalState.Clone">
  <summary>
  Produce a duplicate of this flow analysis state.
@@ -3054,12 +3048,6 @@ Figure out the set of best candidates in the following preference order:
  The LookupResult will always have at most one symbol in it, since types and namespaces are not overloadable symbols.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.TypeBinder.CheckSymbolIsType(Microsoft.CodeAnalysis.VisualBasic.Symbols.NamespaceOrTypeSymbol,Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
- <summary>
- Check that the given symbol is a type. If it is a namespace, report an error into the diagnostic bag
- and return an error symbol.
- </summary>
-</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.TypeBinder.LookupPredefinedTypeName(Microsoft.CodeAnalysis.VisualBasic.Syntax.PredefinedTypeSyntax,Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Boolean@,System.Boolean)">
  <summary>
  Bind a built in type name to the correct type symbol.
@@ -5438,6 +5426,16 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Get the original definition of this symbol. If this symbol is derived from another
  symbol by (say) type substitution, this gets the original symbol, as it was defined
  in source or metadata.
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.RefKind">
+ <summary>
+ Returns the RefKind of the field. 
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.RefCustomModifiers">
+ <summary>
+ Custom modifiers associated with the ref modifier, or an empty array if there are none.
  </summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.Type">
@@ -11799,13 +11797,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  The implementation part is not listed among the "members" of the enclosing type.
  </summary>
 </member>
-<member name="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceMemberMethodSymbol._asyncStateMachineType">
- <summary>
- In case the method is an 'Async' method, stores the reference to a state machine type 
- synthesized in AsyncRewriter. Note, that this field is mutable and is being assigned  
- by calling AssignAsyncStateMachineType(...).
- </summary>
-</member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceMemberMethodSymbol.StateFlags.SuppressDuplicateProcDefDiagnostics">
  <summary>
  If this flag is set this method will be ignored 
@@ -15083,6 +15074,26 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  sure we don't have anything unexpected in between.
  </summary>
 </member>
+<member name="T:Microsoft.CodeAnalysis.VisualBasic.ResumableStateMachineStateAllocator">
+ <summary>
+ Allocates resumable states, i.e. states that resume execution of the state machine after await expression or yield return.
+ </summary>
+</member>
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.ResumableStateMachineStateAllocator._nextState">
+ <summary>
+ The number of the next generated resumable state (i.e. state that resumes execution of the state machine after await expression or yield return).
+ </summary>
+</member>
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.ResumableStateMachineStateAllocator._matchedStateCount">
+ <summary>
+ EnC support: number of states in this state machine that match states of the previous generation state machine.
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.ResumableStateMachineStateAllocator.HasMissingStates">
+ <summary>
+ True if any of the states generated for any previous state machine has not been allocated in this version.
+ </summary>
+</member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCommandLineArguments">
  <summary>
  The CommandLineArguments class provides members to Set and Get Visual Basic compilation and parse options.
@@ -15392,13 +15403,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  punctuation (''') and add appropriate indentations.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DocumentationCommentCompiler.GetIndexOfFirstNonWhitespaceChar(System.String)">
- <summary>
- Given a string, find the index of the first non-whitespace char.
- </summary>
- <param name="str">The string to search</param>
- <returns>The index of the first non-whitespace char in the string</returns>
-</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DocumentationCommentCompiler.GetIndexOfFirstNonWhitespaceChar(System.String,System.Int32,System.Int32)">
  <summary>
  Find the first non-whitespace character in a given substring.
@@ -15408,15 +15412,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  <param name="end">The last index (non-inclusive)</param>
  <returns>The index of the first non-whitespace char after index 
  start in the string up to, but not including the end index</returns>
-</member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DocumentationCommentCompiler.TrimmedStringStartsWith(System.String,System.String)">
- <summary>
- Determine if the given string starts with the given prefix if whitespace
- is first trimmed from the beginning.
- </summary>
- <param name="str">The string to search</param>
- <param name="prefix">The prefix</param>
- <returns>true if "str.TrimStart().StartsWith(prefix)"</returns>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation.DocumentationCommentCompiler.IndexOfNewLine(System.String,System.Int32,System.Int32@)">
  <summary>
@@ -18498,6 +18493,14 @@ End Class
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.CompoundDiagnosticInfo">
  <summary>
  Concatenates messages for a set of DiagnosticInfo.
+ </summary>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.ErrorFacts.IsBuildOnlyDiagnostic(Microsoft.CodeAnalysis.VisualBasic.ERRID)">
+ <summary>
+ Returns true if this is a build-only diagnostic that is never reported from
+ <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDiagnostics(System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)"/> API.
+ Diagnostics generated during compilation phases such as lowering, emit, etc.
+ are example of build-only diagnostics.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.LocalizableErrorArgument">
@@ -23973,7 +23976,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an "End XXX" statement, where XXX is a single keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
  EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
  EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -24449,7 +24452,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  one of: NewConstraint, ReferenceConstraint or ValueConstraint.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
  StructureConstraint.
  </param>
@@ -24510,7 +24513,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  beginning declaration, a body of executable statements and an end statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
  One of SubBlock, FunctionBlock.
  </param>
  <param name="subOrFunctionStatement">
@@ -24650,9 +24653,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Examples include property accessors and custom event accessors.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
- One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
- RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+ AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
  </param>
  <param name="accessorStatement">
  The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -24808,7 +24811,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  that BlockStatement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MethodStatementSyntax. One of SubStatement, FunctionStatement.
  </param>
  <param name="attributeLists">
@@ -24975,7 +24978,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="attributeLists">
@@ -25099,7 +25102,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -25383,7 +25386,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Begin of a BlockNode, and the body of the accessor is the Body of that node.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
  AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
  RaiseEventAccessorStatement.
@@ -25909,8 +25912,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  or next keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
- IdentifierLabel, NumericLabel, NextLabel.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of LabelSyntax. One
+ of IdentifierLabel, NumericLabel, NextLabel.
  </param>
  <param name="labelToken">
  The label name (identifier), line number (integer literal), or next keyword
@@ -25941,7 +25944,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  kind of statement this is.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  StopOrEndStatementSyntax. One of StopStatement, EndStatement.
  </param>
  <param name="stopOrEndKeyword">
@@ -26062,10 +26065,11 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
- One of ExitDoStatement, ExitForStatement, ExitSubStatement,
- ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
- ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+ ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+ ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+ ExitWhileStatement.
  </param>
  <param name="exitKeyword">
  The "Exit" keyword.
@@ -26119,7 +26123,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by examining the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
  ContinueForStatement.
  </param>
@@ -26426,7 +26430,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an OnError Goto statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
  OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
  </param>
@@ -26711,7 +26715,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a relation clause in a Case statement, such as "Is &gt; expression".
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
  CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
  CaseGreaterThanClause.
@@ -26820,7 +26824,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
  One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
  DoLoopUntilBlock.
  </param>
@@ -26875,7 +26879,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Do statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoStatementSyntax.
  One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
  </param>
  <param name="doKeyword">
@@ -26927,8 +26931,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Loop statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
- One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+ LoopUntilStatement.
  </param>
  <param name="loopKeyword">
  The "Loop" keyword.
@@ -26971,7 +26976,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  indicate which kind of clause.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
  </param>
  <param name="whileOrUntilKeyword">
@@ -27328,7 +27333,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by checking the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AssignmentStatementSyntax. One of SimpleAssignmentStatement,
  MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
  MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -27412,7 +27417,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determines which one.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
  RemoveHandlerStatement.
  </param>
@@ -27657,7 +27662,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  value from the token.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  LiteralExpressionSyntax. One of CharacterLiteralExpression,
  TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
  DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -27816,7 +27821,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a TypeOf...Is or IsNot expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
  </param>
  <param name="typeOfKeyword">
@@ -27885,7 +27890,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
  DictionaryAccessExpression.
  </param>
@@ -27972,7 +27977,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
  XmlDescendantAccessExpression, XmlAttributeAccessExpression.
  </param>
@@ -28480,7 +28485,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  exact operation being performed is determined by the Operator property.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
  MultiplyExpression, DivideExpression, IntegerDivideExpression,
  ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -28546,7 +28551,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Describes a unary operator: Plus, Negate, Not or AddressOf.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
  NotExpression, AddressOfExpression.
  </param>
@@ -28642,7 +28647,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a single line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
  SingleLineSubLambdaExpression.
  </param>
@@ -28696,7 +28701,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a multi-line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
  MultiLineSubLambdaExpression.
  </param>
@@ -28771,8 +28776,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents the header part of a lambda expression
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
- One of SubLambdaHeader, FunctionLambdaHeader.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
  </param>
  <param name="attributeLists">
  A list of all attribute lists on this declaration. If no attributes were
@@ -29057,7 +29062,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -29097,7 +29102,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a "Skip" or "Take" query operator. The Kind property tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionClauseSyntax. One of SkipClause, TakeClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -29239,8 +29244,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  whether to order in ascending or descending order.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
- of AscendingOrdering, DescendingOrdering.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of OrderingSyntax.
+ One of AscendingOrdering, DescendingOrdering.
  </param>
  <param name="expression">
  The expression to sort by.
@@ -29539,8 +29544,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  normalization such as comment, pi and cdata text.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
- One of XmlTextLiteralToken, XmlEntityLiteralToken,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
  DocumentationCommentLineBreakToken.
  </param>
  <param name="text">
@@ -29803,8 +29808,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  directives, and disabled code.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
- WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+ of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
  ConflictMarkerTrivia, LineContinuationTrivia,
  DocumentationCommentExteriorTrivia, DisabledTextTrivia.
  </param>
@@ -30359,7 +30364,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an "End XXX" statement, where XXX is a single keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
  EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
  EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -30835,7 +30840,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  one of: NewConstraint, ReferenceConstraint or ValueConstraint.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
  StructureConstraint.
  </param>
@@ -30896,7 +30901,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  beginning declaration, a body of executable statements and an end statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
  One of SubBlock, FunctionBlock.
  </param>
  <param name="subOrFunctionStatement">
@@ -31036,9 +31041,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Examples include property accessors and custom event accessors.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
- One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
- RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+ AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
  </param>
  <param name="accessorStatement">
  The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -31194,7 +31199,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  that BlockStatement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MethodStatementSyntax. One of SubStatement, FunctionStatement.
  </param>
  <param name="attributeLists">
@@ -31361,7 +31366,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="attributeLists">
@@ -31485,7 +31490,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -31769,7 +31774,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Begin of a BlockNode, and the body of the accessor is the Body of that node.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
  AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
  RaiseEventAccessorStatement.
@@ -32295,8 +32300,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  or next keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
- IdentifierLabel, NumericLabel, NextLabel.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of LabelSyntax. One
+ of IdentifierLabel, NumericLabel, NextLabel.
  </param>
  <param name="labelToken">
  The label name (identifier), line number (integer literal), or next keyword
@@ -32327,7 +32332,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  kind of statement this is.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  StopOrEndStatementSyntax. One of StopStatement, EndStatement.
  </param>
  <param name="stopOrEndKeyword">
@@ -32448,10 +32453,11 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
- One of ExitDoStatement, ExitForStatement, ExitSubStatement,
- ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
- ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+ ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+ ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+ ExitWhileStatement.
  </param>
  <param name="exitKeyword">
  The "Exit" keyword.
@@ -32505,7 +32511,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by examining the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
  ContinueForStatement.
  </param>
@@ -32812,7 +32818,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an OnError Goto statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
  OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
  </param>
@@ -33097,7 +33103,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a relation clause in a Case statement, such as "Is &gt; expression".
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
  CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
  CaseGreaterThanClause.
@@ -33206,7 +33212,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
  One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
  DoLoopUntilBlock.
  </param>
@@ -33261,7 +33267,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Do statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoStatementSyntax.
  One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
  </param>
  <param name="doKeyword">
@@ -33313,8 +33319,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Loop statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
- One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+ LoopUntilStatement.
  </param>
  <param name="loopKeyword">
  The "Loop" keyword.
@@ -33357,7 +33364,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  indicate which kind of clause.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
  </param>
  <param name="whileOrUntilKeyword">
@@ -33714,7 +33721,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by checking the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AssignmentStatementSyntax. One of SimpleAssignmentStatement,
  MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
  MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -33798,7 +33805,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determines which one.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
  RemoveHandlerStatement.
  </param>
@@ -34043,7 +34050,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  value from the token.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  LiteralExpressionSyntax. One of CharacterLiteralExpression,
  TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
  DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -34202,7 +34209,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a TypeOf...Is or IsNot expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
  </param>
  <param name="typeOfKeyword">
@@ -34271,7 +34278,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
  DictionaryAccessExpression.
  </param>
@@ -34358,7 +34365,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
  XmlDescendantAccessExpression, XmlAttributeAccessExpression.
  </param>
@@ -34866,7 +34873,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  exact operation being performed is determined by the Operator property.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
  MultiplyExpression, DivideExpression, IntegerDivideExpression,
  ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -34932,7 +34939,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Describes a unary operator: Plus, Negate, Not or AddressOf.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
  NotExpression, AddressOfExpression.
  </param>
@@ -35028,7 +35035,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a single line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
  SingleLineSubLambdaExpression.
  </param>
@@ -35082,7 +35089,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a multi-line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
  MultiLineSubLambdaExpression.
  </param>
@@ -35157,8 +35164,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents the header part of a lambda expression
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
- One of SubLambdaHeader, FunctionLambdaHeader.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
  </param>
  <param name="attributeLists">
  A list of all attribute lists on this declaration. If no attributes were
@@ -35443,7 +35450,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -35483,7 +35490,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a "Skip" or "Take" query operator. The Kind property tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionClauseSyntax. One of SkipClause, TakeClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -35625,8 +35632,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  whether to order in ascending or descending order.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
- of AscendingOrdering, DescendingOrdering.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of OrderingSyntax.
+ One of AscendingOrdering, DescendingOrdering.
  </param>
  <param name="expression">
  The expression to sort by.
@@ -35925,8 +35932,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  normalization such as comment, pi and cdata text.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
- One of XmlTextLiteralToken, XmlEntityLiteralToken,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
  DocumentationCommentLineBreakToken.
  </param>
  <param name="text">
@@ -36189,8 +36196,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  directives, and disabled code.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
- WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+ of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
  ConflictMarkerTrivia, LineContinuationTrivia,
  DocumentationCommentExteriorTrivia, DisabledTextTrivia.
  </param>
@@ -54538,7 +54545,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an "End XXX" statement, where XXX is a single keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
  EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
  EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -54562,7 +54569,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an "End XXX" statement, where XXX is a single keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  EndBlockStatementSyntax. One of EndIfStatement, EndUsingStatement,
  EndWithStatement, EndSelectStatement, EndStructureStatement, EndEnumStatement,
  EndInterfaceStatement, EndClassStatement, EndModuleStatement,
@@ -55577,7 +55584,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  one of: NewConstraint, ReferenceConstraint or ValueConstraint.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SpecialConstraintSyntax. One of NewConstraint, ClassConstraint,
  StructureConstraint.
  </param>
@@ -55690,7 +55697,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  beginning declaration, a body of executable statements and an end statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
  One of SubBlock, FunctionBlock.
  </param>
  <param name="subOrFunctionStatement">
@@ -55709,7 +55716,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  beginning declaration, a body of executable statements and an end statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of MethodBlockSyntax.
  One of SubBlock, FunctionBlock.
  </param>
  <param name="subOrFunctionStatement">
@@ -56013,9 +56020,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Examples include property accessors and custom event accessors.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
- One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
- RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+ AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
  </param>
  <param name="accessorStatement">
  The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -56036,9 +56043,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Examples include property accessors and custom event accessors.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of AccessorBlockSyntax.
- One of GetAccessorBlock, SetAccessorBlock, AddHandlerAccessorBlock,
- RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ AccessorBlockSyntax. One of GetAccessorBlock, SetAccessorBlock,
+ AddHandlerAccessorBlock, RemoveHandlerAccessorBlock, RaiseEventAccessorBlock.
  </param>
  <param name="accessorStatement">
  The "Get", "Set", "AddHandler", "RemoveHandler", or "RaiseEvent" statement that
@@ -56354,7 +56361,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  that BlockStatement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MethodStatementSyntax. One of SubStatement, FunctionStatement.
  </param>
  <param name="attributeLists">
@@ -56401,7 +56408,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  that BlockStatement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MethodStatementSyntax. One of SubStatement, FunctionStatement.
  </param>
  <param name="subOrFunctionKeyword">
@@ -56419,7 +56426,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  that BlockStatement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MethodStatementSyntax. One of SubStatement, FunctionStatement.
  </param>
  <param name="subOrFunctionKeyword">
@@ -56701,7 +56708,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="attributeLists">
@@ -56753,7 +56760,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="attributeLists">
@@ -56796,7 +56803,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="subOrFunctionKeyword">
@@ -56814,7 +56821,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A Declare statement that declares an external DLL method.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DeclareStatementSyntax. One of DeclareSubStatement, DeclareFunctionStatement.
  </param>
  <param name="subOrFunctionKeyword">
@@ -56996,7 +57003,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -57037,7 +57044,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -57075,7 +57082,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -57091,7 +57098,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  A statement that declares a delegate type.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  DelegateStatementSyntax. One of DelegateSubStatement,
  DelegateFunctionStatement.
  </param>
@@ -57651,7 +57658,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Begin of a BlockNode, and the body of the accessor is the Body of that node.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
  AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
  RaiseEventAccessorStatement.
@@ -57683,7 +57690,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Begin of a BlockNode, and the body of the accessor is the Body of that node.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AccessorStatementSyntax. One of GetAccessorStatement, SetAccessorStatement,
  AddHandlerAccessorStatement, RemoveHandlerAccessorStatement,
  RaiseEventAccessorStatement.
@@ -58630,8 +58637,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  or next keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
- IdentifierLabel, NumericLabel, NextLabel.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of LabelSyntax. One
+ of IdentifierLabel, NumericLabel, NextLabel.
  </param>
  <param name="labelToken">
  The label name (identifier), line number (integer literal), or next keyword
@@ -58644,8 +58651,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  or next keyword.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LabelSyntax. One of
- IdentifierLabel, NumericLabel, NextLabel.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of LabelSyntax. One
+ of IdentifierLabel, NumericLabel, NextLabel.
  </param>
  <param name="labelToken">
  The label name (identifier), line number (integer literal), or next keyword
@@ -58676,7 +58683,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  kind of statement this is.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  StopOrEndStatementSyntax. One of StopStatement, EndStatement.
  </param>
  <param name="stopOrEndKeyword">
@@ -58851,10 +58858,11 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
- One of ExitDoStatement, ExitForStatement, ExitSubStatement,
- ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
- ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+ ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+ ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+ ExitWhileStatement.
  </param>
  <param name="exitKeyword">
  The "Exit" keyword.
@@ -58869,10 +58877,11 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of ExitStatementSyntax.
- One of ExitDoStatement, ExitForStatement, ExitSubStatement,
- ExitFunctionStatement, ExitOperatorStatement, ExitPropertyStatement,
- ExitTryStatement, ExitSelectStatement, ExitWhileStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ ExitStatementSyntax. One of ExitDoStatement, ExitForStatement,
+ ExitSubStatement, ExitFunctionStatement, ExitOperatorStatement,
+ ExitPropertyStatement, ExitTryStatement, ExitSelectStatement,
+ ExitWhileStatement.
  </param>
  <param name="blockKeyword">
  The keyword describing the block to exit.
@@ -58941,7 +58950,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by examining the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
  ContinueForStatement.
  </param>
@@ -58959,7 +58968,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by examining the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ContinueStatementSyntax. One of ContinueWhileStatement, ContinueDoStatement,
  ContinueForStatement.
  </param>
@@ -59499,7 +59508,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an OnError Goto statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
  OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
  </param>
@@ -59525,7 +59534,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents an OnError Goto statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  OnErrorGoToStatementSyntax. One of OnErrorGoToZeroStatement,
  OnErrorGoToMinusOneStatement, OnErrorGoToLabelStatement.
  </param>
@@ -59655,7 +59664,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  this is a "Resume", "Resume Next" or "Resume label" statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ResumeStatementSyntax. One of ResumeStatement, ResumeLabelStatement,
  ResumeNextStatement.
  </param>
@@ -59674,7 +59683,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  this is a "Resume", "Resume Next" or "Resume label" statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ResumeStatementSyntax. One of ResumeStatement, ResumeLabelStatement,
  ResumeNextStatement.
  </param>
@@ -59690,7 +59699,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  this is a "Resume", "Resume Next" or "Resume label" statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ResumeStatementSyntax. One of ResumeStatement, ResumeLabelStatement,
  ResumeNextStatement.
  </param>
@@ -59798,8 +59807,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a case statement and its subsequent block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of CaseBlockSyntax. One
- of CaseBlock, CaseElseBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of CaseBlockSyntax.
+ One of CaseBlock, CaseElseBlock.
  </param>
  <param name="caseStatement">
  The statement that begins the case block.
@@ -59813,8 +59822,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a case statement and its subsequent block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of CaseBlockSyntax. One
- of CaseBlock, CaseElseBlock.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of CaseBlockSyntax.
+ One of CaseBlock, CaseElseBlock.
  </param>
  <param name="caseStatement">
  The statement that begins the case block.
@@ -59899,8 +59908,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind=Case.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of CaseStatementSyntax.
- One of CaseStatement, CaseElseStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ CaseStatementSyntax. One of CaseStatement, CaseElseStatement.
  </param>
  <param name="caseKeyword">
  The "Case" keyword
@@ -59917,8 +59926,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind=Case.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of CaseStatementSyntax.
- One of CaseStatement, CaseElseStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ CaseStatementSyntax. One of CaseStatement, CaseElseStatement.
  </param>
  <param name="cases">
  A list of clauses associated with this Case. If Kind=CaseElse, then this list
@@ -59932,8 +59941,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind=Case.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of CaseStatementSyntax.
- One of CaseStatement, CaseElseStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ CaseStatementSyntax. One of CaseStatement, CaseElseStatement.
  </param>
  <param name="cases">
  A list of clauses associated with this Case. If Kind=CaseElse, then this list
@@ -60129,7 +60138,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a relation clause in a Case statement, such as "Is &gt; expression".
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
  CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
  CaseGreaterThanClause.
@@ -60150,7 +60159,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a relation clause in a Case statement, such as "Is &gt; expression".
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  RelationalCaseClauseSyntax. One of CaseEqualsClause, CaseNotEqualsClause,
  CaseLessThanClause, CaseLessThanOrEqualClause, CaseGreaterThanOrEqualClause,
  CaseGreaterThanClause.
@@ -60325,7 +60334,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
  One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
  DoLoopUntilBlock.
  </param>
@@ -60345,7 +60354,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoLoopBlockSyntax.
  One of SimpleDoLoopBlock, DoWhileLoopBlock, DoUntilLoopBlock, DoLoopWhileBlock,
  DoLoopUntilBlock.
  </param>
@@ -60439,7 +60448,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Do statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoStatementSyntax.
  One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
  </param>
  <param name="doKeyword">
@@ -60455,7 +60464,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Do statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoStatementSyntax.
  One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
  </param>
  <param name="whileOrUntilClause">
@@ -60468,7 +60477,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Do statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of DoStatementSyntax.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of DoStatementSyntax.
  One of SimpleDoStatement, DoWhileStatement, DoUntilStatement.
  </param>
 </member>
@@ -60555,8 +60564,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Loop statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
- One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+ LoopUntilStatement.
  </param>
  <param name="loopKeyword">
  The "Loop" keyword.
@@ -60571,8 +60581,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Loop statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
- One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+ LoopUntilStatement.
  </param>
  <param name="whileOrUntilClause">
  The "While expression" or "Until expression" clause of the Loop statement, if
@@ -60584,8 +60595,9 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  The Loop statement that begins a Do-Loop block.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LoopStatementSyntax.
- One of SimpleLoopStatement, LoopWhileStatement, LoopUntilStatement.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LoopStatementSyntax. One of SimpleLoopStatement, LoopWhileStatement,
+ LoopUntilStatement.
  </param>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.WhileClause(Microsoft.CodeAnalysis.SyntaxToken,Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax)">
@@ -60641,7 +60653,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  indicate which kind of clause.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  WhileOrUntilClauseSyntax. One of WhileClause, UntilClause.
  </param>
  <param name="whileOrUntilKeyword">
@@ -61288,7 +61300,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determined by checking the Kind.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AssignmentStatementSyntax. One of SimpleAssignmentStatement,
  MidAssignmentStatement, AddAssignmentStatement, SubtractAssignmentStatement,
  MultiplyAssignmentStatement, DivideAssignmentStatement,
@@ -61416,7 +61428,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determines which one.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
  RemoveHandlerStatement.
  </param>
@@ -61439,7 +61451,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  determines which one.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  AddRemoveHandlerStatementSyntax. One of AddHandlerStatement,
  RemoveHandlerStatement.
  </param>
@@ -61576,7 +61588,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a ReDim statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ReDimStatementSyntax. One of ReDimStatement, ReDimPreserveStatement.
  </param>
  <param name="reDimKeyword">
@@ -61595,7 +61607,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a ReDim statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ReDimStatementSyntax. One of ReDimStatement, ReDimPreserveStatement.
  </param>
  <param name="clauses">
@@ -61607,7 +61619,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a ReDim statement.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  ReDimStatementSyntax. One of ReDimStatement, ReDimPreserveStatement.
  </param>
  <param name="clauses">
@@ -61801,7 +61813,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  value from the token.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  LiteralExpressionSyntax. One of CharacterLiteralExpression,
  TrueLiteralExpression, FalseLiteralExpression, NumericLiteralExpression,
  DateLiteralExpression, StringLiteralExpression, NothingLiteralExpression.
@@ -62063,7 +62075,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a TypeOf...Is or IsNot expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
  </param>
  <param name="typeOfKeyword">
@@ -62084,7 +62096,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a TypeOf...Is or IsNot expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  TypeOfExpressionSyntax. One of TypeOfIsExpression, TypeOfIsNotExpression.
  </param>
  <param name="expression">
@@ -62197,7 +62209,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
  DictionaryAccessExpression.
  </param>
@@ -62217,7 +62229,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MemberAccessExpressionSyntax. One of SimpleMemberAccessExpression,
  DictionaryAccessExpression.
  </param>
@@ -62379,7 +62391,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
  XmlDescendantAccessExpression, XmlAttributeAccessExpression.
  </param>
@@ -62406,7 +62418,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
  XmlDescendantAccessExpression, XmlAttributeAccessExpression.
  </param>
@@ -62427,7 +62439,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Kind property determines which kind of access.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  XmlMemberAccessExpressionSyntax. One of XmlElementAccessExpression,
  XmlDescendantAccessExpression, XmlAttributeAccessExpression.
  </param>
@@ -63371,7 +63383,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  exact operation being performed is determined by the Operator property.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  BinaryExpressionSyntax. One of AddExpression, SubtractExpression,
  MultiplyExpression, DivideExpression, IntegerDivideExpression,
  ExponentiateExpression, LeftShiftExpression, RightShiftExpression,
@@ -63469,7 +63481,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Describes a unary operator: Plus, Negate, Not or AddressOf.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  UnaryExpressionSyntax. One of UnaryPlusExpression, UnaryMinusExpression,
  NotExpression, AddressOfExpression.
  </param>
@@ -63592,7 +63604,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a single line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  SingleLineLambdaExpressionSyntax. One of SingleLineFunctionLambdaExpression,
  SingleLineSubLambdaExpression.
  </param>
@@ -63672,7 +63684,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a multi-line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
  MultiLineSubLambdaExpression.
  </param>
@@ -63695,7 +63707,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a multi-line lambda expression.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  MultiLineLambdaExpressionSyntax. One of MultiLineFunctionLambdaExpression,
  MultiLineSubLambdaExpression.
  </param>
@@ -63821,8 +63833,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents the header part of a lambda expression
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
- One of SubLambdaHeader, FunctionLambdaHeader.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
  </param>
  <param name="attributeLists">
  A list of all attribute lists on this declaration. If no attributes were
@@ -63851,8 +63863,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents the header part of a lambda expression
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of LambdaHeaderSyntax.
- One of SubLambdaHeader, FunctionLambdaHeader.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ LambdaHeaderSyntax. One of SubLambdaHeader, FunctionLambdaHeader.
  </param>
  <param name="subOrFunctionKeyword">
  The "Sub" or "Function" keyword that introduces this lambda expression.
@@ -64374,7 +64386,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -64393,7 +64405,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionWhileClauseSyntax. One of SkipWhileClause, TakeWhileClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -64446,7 +64458,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  Represents a "Skip" or "Take" query operator. The Kind property tells which.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  PartitionClauseSyntax. One of SkipClause, TakeClause.
  </param>
  <param name="skipOrTakeKeyword">
@@ -64719,8 +64731,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  whether to order in ascending or descending order.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
- of AscendingOrdering, DescendingOrdering.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of OrderingSyntax.
+ One of AscendingOrdering, DescendingOrdering.
  </param>
  <param name="expression">
  The expression to sort by.
@@ -64736,8 +64748,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  whether to order in ascending or descending order.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of OrderingSyntax. One
- of AscendingOrdering, DescendingOrdering.
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of OrderingSyntax.
+ One of AscendingOrdering, DescendingOrdering.
  </param>
  <param name="expression">
  The expression to sort by.
@@ -65314,8 +65326,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  normalization such as comment, pi and cdata text.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
- One of XmlTextLiteralToken, XmlEntityLiteralToken,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
  DocumentationCommentLineBreakToken.
  </param>
  <param name="text">
@@ -65329,8 +65341,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  normalization such as comment, pi and cdata text.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of XmlTextTokenSyntax.
- One of XmlTextLiteralToken, XmlEntityLiteralToken,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
+ XmlTextTokenSyntax. One of XmlTextLiteralToken, XmlEntityLiteralToken,
  DocumentationCommentLineBreakToken.
  </param>
  <param name="text">
@@ -65747,8 +65759,8 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  directives, and disabled code.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of SyntaxTrivia. One of
- WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of SyntaxTrivia. One
+ of WhitespaceTrivia, EndOfLineTrivia, ColonTrivia, CommentTrivia,
  ConflictMarkerTrivia, LineContinuationTrivia,
  DocumentationCommentExteriorTrivia, DisabledTextTrivia.
  </param>
@@ -65837,7 +65849,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  source.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  IfDirectiveTriviaSyntax. One of IfDirectiveTrivia, ElseIfDirectiveTrivia.
  </param>
  <param name="hashToken">
@@ -65850,7 +65862,7 @@ Creates a string representing the unformatted LocalizableErrorArgument instance.
  source.
  </summary>
  <param name="kind">
- A <cref c="SyntaxKind"/> representing the specific kind of
+ A <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxKind"/> representing the specific kind of
  IfDirectiveTriviaSyntax. One of IfDirectiveTrivia, ElseIfDirectiveTrivia.
  </param>
 </member>
@@ -68096,7 +68108,7 @@ Parse the input for leading trivia.
  If parameter (or variable in the EE) is lifted, initialize its proxy.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.RewriteLambdaAsMethod(Microsoft.CodeAnalysis.VisualBasic.SynthesizedLambdaMethod,Microsoft.CodeAnalysis.VisualBasic.BoundLambda)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.RewriteLambdaAsMethod(Microsoft.CodeAnalysis.VisualBasic.SynthesizedLambdaMethod,Microsoft.CodeAnalysis.VisualBasic.BoundLambda,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.StateMachineStateDebugInfo},Microsoft.CodeAnalysis.VisualBasic.StateMachineTypeSymbol@)">
  <summary>
  Rewrites lambda body into a body of a method.
  </summary>
@@ -68754,7 +68766,7 @@ Parse the input for leading trivia.
       end try
 </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.RewriteSingleUsingToTryFinally(Microsoft.CodeAnalysis.VisualBasic.BoundUsingStatement,System.Int32,Microsoft.CodeAnalysis.VisualBasic.Symbols.LocalSymbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.ValueTuple{Microsoft.CodeAnalysis.VisualBasic.BoundRValuePlaceholder,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.VisualBasic.BoundExpression}@,Microsoft.CodeAnalysis.VisualBasic.BoundBlock)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.RewriteSingleUsingToTryFinally(Microsoft.CodeAnalysis.VisualBasic.BoundUsingStatement,System.Int32,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Symbols.LocalSymbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.ValueTuple{Microsoft.CodeAnalysis.VisualBasic.BoundRValuePlaceholder,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.VisualBasic.BoundExpression}@,Microsoft.CodeAnalysis.VisualBasic.BoundBlock)">
  <summary>
  Creates a TryFinally Statement for the given resource.
  
@@ -68928,23 +68940,29 @@ Parse the input for leading trivia.
  state and then runs MoveNext.
  </summary>
 </member>
-<member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._hasFinalizerState">
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._tryBlockSyntaxForNextFinalizerState">
  <summary>
  A try block might have no state (transitions) within it, in which case it does not need
- to have a state to represent finalization.  This flag tells us whether the current try
- block that we are within has a finalizer state.  Initially true as we have the (trivial)
- finalizer state of -1 at the top level.
+ to have a state to represent finalization.  This field tells us whether the current try
+ block that we are within has a finalizer state. If so it will hold on the syntax node associated
+ with the try block.
  </summary>
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._currentFinalizerState">
  <summary>
- If hasFinalizerState is true, this is the state for finalization from anywhere in this try block.
+ If <see cref="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._tryBlockSyntaxForNextFinalizerState"/> is not Nothing,
+ this is the state for finalization from anywhere in this try block.
  Initially set to -1, representing the no-op finalization required at the top level.
  </summary>
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._hoistedVariables">
  <summary>
  The set of local variables and parameters that were hoisted and need a proxy.
+ </summary>
+</member>
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter._stateDebugInfoBuilder">
+ <summary>
+ EnC support: the rewriter stores debug info for each await/yield in this builder.
  </summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter.ResumeLabelName">
@@ -68956,6 +68974,14 @@ Parse the input for leading trivia.
  <summary>
  Generate return statements from the state machine method body.
  </summary>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter.Dispatch(System.Boolean)">
+ <summary>
+ Generates code that switches over states and jumps to the target labels listed in <see cref="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter.Dispatches"/>.
+ </summary>
+ <param name="isOutermost">
+ If this is the outermost state dispatch switching over all states of the state machine - i.e. not state dispatch generated for a try-block.
+ </param>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter.MakeStateMachineScope(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol},Microsoft.CodeAnalysis.VisualBasic.BoundStatement)">
  <remarks>
@@ -69467,7 +69493,7 @@ Parse the input for leading trivia.
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion">
  <summary>
- Creates a <seealso cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> from this Visual Basic conversion.
+ Creates a <see cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> from this Visual Basic conversion.
  </summary>
  <returns>The <see cref="T:Microsoft.CodeAnalysis.Operations.CommonConversion"/> that represents this conversion.</returns>
  <remarks>
@@ -75067,9 +75093,9 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithDeterministic(System.Boolean)">
  <summary>
  Creates a new VisualBasicCompilationOptions instance with a different deterministic mode specified.
+ </summary>
  <param name="deterministic"> The deterministic mode. </param>
  <returns> A new instance of VisualBasicCompilationOptions, if the deterministic mode is different; otherwise the current instance.</returns>
- </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.WithDebugPlusMode(System.Boolean)">
  <summary>
@@ -75189,7 +75215,7 @@ Parse the input for leading trivia.
  <param name="obj">A object to compare with this object</param>
  <returns>A boolean value.  True if the current object is equal to the other parameter; otherwise, False.</returns>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.GetHashCode">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilationOptions.ComputeHashCode">
  <summary>
  Creates a hashcode for this instance.
  </summary>
@@ -81349,6 +81375,12 @@ Parse the input for leading trivia.
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_AnalyzerReferencesFramework_Title">
  <summary>The loaded assembly references .NET Framework, which is not supported.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_AnalyzerReferencesNewerCompiler">
+ <summary>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_AnalyzerReferencesNewerCompiler_Title">
+ <summary>The analyzer assembly references a newer version of the compiler than the currently running version.</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.FEATURE_InitOnlySettersUsage">
  <summary>assigning to or passing 'ByRef' properties with init-only setters</summary>

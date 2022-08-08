@@ -106,6 +106,16 @@
             IncorrectHash has no body.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.CommandLine.RejectedBuildResponse">
+            <summary>
+            The <see cref="T:Microsoft.CodeAnalysis.CommandLine.BuildRequest"/> was rejected by the server.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.CommandLine.CannotConnectResponse">
+            <summary>
+            Used when the client cannot connect to the server.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.CommandLine.BuildProtocolConstants">
             <summary>
             Constants about the protocol.
@@ -138,7 +148,7 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.CommandLine.ConsoleUtil.RunWithUtf8Output``1(System.Func{System.IO.TextWriter,``0})">
             <summary>
-            This will update the <see cref="P:System.Console.Out"/> value to have UTF8 encoding for the duration of the 
+            This will update the <see cref="P:System.Console.Out"/> value to have UTF-8 encoding for the duration of the 
             provided call back.  The newly created <see cref="T:System.IO.TextWriter"/> will be passed down to the callback.
             </summary>
         </member>
@@ -328,12 +338,6 @@
             <summary>
             This gets information about invoking a tool on the current runtime. This will attempt to 
             execute a tool as an EXE when on desktop and using dotnet when on CoreClr.
-            </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.RuntimeHostInfo.GetDotNetPath">
-            <summary>
-            Get the path to the dotnet executable. This will throw in the case it is not properly setup 
-            by the environment.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.RuntimeHostInfo.GetDotNetPathOrDefault">

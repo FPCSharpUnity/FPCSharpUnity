@@ -1056,6 +1056,30 @@
             may be replaced by an interesting local in a later stage.
             </remarks>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.CodeGen.StateMachineStatesDebugInfo">
+            <summary>
+            Debug information maintained for each state machine.
+            Facilitates mapping of state machine states from a compilation to the previous one (or to a metadata baseline) during EnC.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.CodeGen.StateMachineStatesDebugInfo.FirstUnusedIncreasingStateMachineState">
+            <summary>
+            The number of the first state that has not been used in any of the previous versions of the state machine,
+            or null if we are not generating EnC delta.
+            
+            For 1st generation EnC delta, this is calculated by examining the <see cref="F:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+            For subsequent generations, the number is updated to account for newly generated states in that generation.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.CodeGen.StateMachineStatesDebugInfo.FirstUnusedDecreasingStateMachineState">
+            <summary>
+            The number of the first state that has not been used in any of the previous versions of the state machine,
+            or null if we are not generating EnC delta, or the state machine has no decreasing states.
+            
+            For 1st generation EnC delta, this is calculated by examining the <see cref="F:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.StateMachineStates"/> stored in the baseline metadata.
+            For subsequent generations, the number is updated to account for newly generated states in that generation.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.CodeGen.SwitchIntegralJumpTableEmitter">
             <summary>
             Class for emitting the switch jump table for switch statements with integral governing type
@@ -1221,11 +1245,11 @@
         <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.GetFirstUnusedStateMachineState(System.Boolean)">
             <summary>
             State number to be used for next state of the state machine,
-            or <see langword="null"/> if none of the previous versions of the method was a state machine with a increasing state
+            or <see langword="null"/> if none of the previous versions of the method was a state machine with an increasing state
             </summary>
-            <param name="increasing">True if the state number increases with progress, false if it decreases.</param>
+            <param name="increasing">True if the state number increases with progress, false if it decreases (e.g. states for iterator try-finally blocks, or iterator states of async iterators).</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousStateMachineState(Microsoft.CodeAnalysis.SyntaxNode,System.Int32@)">
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousStateMachineState(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.StateMachineState@)">
             <summary>
             For a given node associated with entering a state of a state machine in the new compilation,
             returns the ordinal of the corresponding state in the previous version of the state machine.
@@ -1236,6 +1260,40 @@
             <remarks>
             <paramref name="syntax"/> is an await expression, yield return statement, or try block syntax node.
             </remarks>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.FirstResumableAsyncIteratorState">
+            <summary>
+            First state of an async iterator state machine that is used to resume the machine after yield return.
+            Initial state is not used to resume state machine that yielded. State numbers decrease as the iterator makes progress.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.InitialAsyncIteratorState">
+            <summary>
+            Initial iterator state of an async iterator.
+            Distinct from <see cref="F:Microsoft.CodeAnalysis.StateMachineState.NotStartedOrRunningState"/> so that DisposeAsync can throw in latter case.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.FirstIteratorFinalizeState">
+            <summary>
+            First state of an iterator state machine. State numbers decrease for subsequent finalize states.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.FirstResumableAsyncState">
+            <summary>
+            First state in async state machine that is used to resume the machine after await.
+            State numbers increase as the async computation makes progress.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.InitialIteratorState">
+            <summary>
+            Initial iterator state of an iterator.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.StateMachineState.FirstResumableIteratorState">
+            <summary>
+            First state in iterator state machine that is used to resume the machine after yield return.
+            Initial state is not used to resume state machine that yielded. State numbers increase as the iterator makes progress.
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ArrayBuilderExtensions.SelectAsArray``2(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{``0},System.Func{``0,``1})">
             <summary>
@@ -1404,7 +1462,7 @@
             <param name="existingMap">The map to test.</param>
             <returns>true if the map is fully populated.</returns>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Collections.CachingDictionary`2.CreateFullyPopulatedMap(System.Collections.Generic.IDictionary{`0,System.Collections.Immutable.ImmutableArray{`1}})">
+        <member name="M:Microsoft.CodeAnalysis.Collections.CachingDictionary`2.CreateFullyPopulatedMap(System.Collections.Concurrent.ConcurrentDictionary{`0,System.Collections.Immutable.ImmutableArray{`1}})">
             <summary>
             Create the fully populated map from an existing map and the key generator.
             </summary>
@@ -1577,6 +1635,199 @@
             <summary>
             Private helper class for use only by <see cref="T:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked"/>.
             </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1(``0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1(``0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1(``0[])">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1(``0[])"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0},``0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0},``0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0},``0[])">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.Create``1(System.Collections.Generic.IEqualityComparer{``0},``0[])"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.CreateBuilder``1">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.CreateBuilder``1"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.CreateBuilder``1(System.Collections.Generic.IEqualityComparer{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.CreateBuilder``1(System.Collections.Generic.IEqualityComparer{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.CreateRange``1(System.Collections.Generic.IEnumerable{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.CreateRange``1(System.Collections.Generic.IEnumerable{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.CreateRange``1(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.CreateRange``1(System.Collections.Generic.IEqualityComparer{``0},System.Collections.Generic.IEnumerable{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.ToImmutableSegmentedHashSet``1(System.Collections.Generic.IEnumerable{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.ToImmutableHashSet``1(System.Collections.Generic.IEnumerable{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.ToImmutableSegmentedHashSet``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.ToImmutableHashSet``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet.ToImmutableSegmentedHashSet``1(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}.Builder)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet.ToImmutableHashSet``1(System.Collections.Immutable.ImmutableHashSet{``0}.Builder)"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder._set">
+            <summary>
+            The immutable collection this builder is based on.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder._mutableSet">
+            <summary>
+            The current mutable collection this builder is operating on. This field is initialized to a copy of
+            <see cref="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder._set"/> the first time a change is made.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.KeyComparer">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.Builder.KeyComparer"/>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Count">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.Builder.Count"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Add(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.Add(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Clear">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.Clear"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Contains(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.Contains(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.ExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.ExceptWith(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.GetEnumerator">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.GetEnumerator"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.IntersectWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.IntersectWith(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Overlaps(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.Overlaps(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.Remove(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.Remove(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.SetEquals(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.SetEquals(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.SymmetricExceptWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.SymmetricExceptWith(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.TryGetValue(`0,`0@)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.TryGetValue(`0,`0@)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.UnionWith(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.UnionWith(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Builder.ToImmutable">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Builder.ToImmutable"/>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Enumerator">
+            <inheritdoc cref="T:System.Collections.Immutable.ImmutableHashSet`1.Enumerator"/>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Enumerator.Current">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.Enumerator.Current"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Enumerator.Dispose">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Enumerator.Dispose"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Enumerator.MoveNext">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Enumerator.MoveNext"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Enumerator.Reset">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Enumerator.Reset"/>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.PrivateInterlocked">
+            <summary>
+            Private helper class for use only by <see cref="T:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Empty">
+            <inheritdoc cref="F:System.Collections.Immutable.ImmutableHashSet`1.Empty"/>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.KeyComparer">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.KeyComparer"/>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Count">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.Count"/>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.IsEmpty">
+            <inheritdoc cref="P:System.Collections.Immutable.ImmutableHashSet`1.IsEmpty"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Add(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Add(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Clear">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Clear"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Contains(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Contains(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Except(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Except(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.GetEnumerator">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.GetEnumerator"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Intersect(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Intersect(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.IsProperSubsetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.IsProperSupersetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.IsSubsetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.IsSupersetOf(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Overlaps(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Overlaps(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Remove(`0)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Remove(`0)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.SetEquals(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.SetEquals(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.SymmetricExcept(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.SymmetricExcept(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.TryGetValue(`0,`0@)">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.TryGetValue(`0,`0@)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.Union(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.Union(System.Collections.Generic.IEnumerable{`0})"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.ToBuilder">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.ToBuilder"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet`1.WithComparer(System.Collections.Generic.IEqualityComparer{`0})">
+            <inheritdoc cref="M:System.Collections.Immutable.ImmutableHashSet`1.WithComparer(System.Collections.Generic.IEqualityComparer{`0})"/>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedList.Create``1">
             <inheritdoc cref="M:System.Collections.Immutable.ImmutableList.Create``1"/>
@@ -2227,6 +2478,76 @@
             initialized.
             </summary>
             <typeparam name="T">The type of value stored by the list.</typeparam>
+            <param name="location">The field or local variable to change.</param>
+            <param name="value">The new value to assign.</param>
+            <returns><see langword="true"/> if the field was assigned the specified value; otherwise,
+            <see langword="false"/> if it was previously initialized.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked.Update``1(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}@,System.Func{Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}})">
+            <summary>
+            Mutates a value in-place with optimistic locking transaction semantics via a specified transformation
+            function. The transformation is retried as many times as necessary to win the optimistic locking race.
+            </summary>
+            <typeparam name="T">The type of value stored by the set.</typeparam>
+            <param name="location">
+            The variable or field to be changed, which may be accessed by multiple threads.
+            </param>
+            <param name="transformer">
+            A function that mutates the value. This function should be side-effect free,
+            as it may run multiple times when races occur with other threads.</param>
+            <returns>
+            <see langword="true"/> if the location's value is changed by applying the result of the
+            <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
+            the same because the last invocation of <paramref name="transformer"/> returned the existing value.
+            </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked.Update``2(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}@,System.Func{Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0},``1,Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}},``1)">
+            <summary>
+            Mutates a value in-place with optimistic locking transaction semantics via a specified transformation
+            function. The transformation is retried as many times as necessary to win the optimistic locking race.
+            </summary>
+            <typeparam name="T">The type of value stored by the set.</typeparam>
+            <typeparam name="TArg">The type of argument passed to the <paramref name="transformer"/>.</typeparam>
+            <param name="location">
+            The variable or field to be changed, which may be accessed by multiple threads.
+            </param>
+            <param name="transformer">
+            A function that mutates the value. This function should be side-effect free, as it may run multiple times
+            when races occur with other threads.</param>
+            <param name="transformerArgument">The argument to pass to <paramref name="transformer"/>.</param>
+            <returns>
+            <see langword="true"/> if the location's value is changed by applying the result of the
+            <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
+            the same because the last invocation of <paramref name="transformer"/> returned the existing value.
+            </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked.InterlockedExchange``1(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}@,Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0})">
+            <summary>
+            Assigns a field or variable containing an immutable set to the specified value and returns the
+            previous value.
+            </summary>
+            <typeparam name="T">The type of value stored by the set.</typeparam>
+            <param name="location">The field or local variable to change.</param>
+            <param name="value">The new value to assign.</param>
+            <returns>The prior value at the specified <paramref name="location"/>.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked.InterlockedCompareExchange``1(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}@,Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0})">
+            <summary>
+            Assigns a field or variable containing an immutable set to the specified value if it is currently
+            equal to another specified value. Returns the previous value.
+            </summary>
+            <typeparam name="T">The type of value stored by the set.</typeparam>
+            <param name="location">The field or local variable to change.</param>
+            <param name="value">The new value to assign.</param>
+            <param name="comparand">The value to check equality for before assigning.</param>
+            <returns>The prior value at the specified <paramref name="location"/>.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Collections.RoslynImmutableInterlocked.InterlockedInitialize``1(Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0}@,Microsoft.CodeAnalysis.Collections.ImmutableSegmentedHashSet{``0})">
+            <summary>
+            Assigns a field or variable containing an immutable set to the specified value if it is has not yet
+            been initialized.
+            </summary>
+            <typeparam name="T">The type of value stored by the set.</typeparam>
             <param name="location">The field or local variable to change.</param>
             <param name="value">The new value to assign.</param>
             <returns><see langword="true"/> if the field was assigned the specified value; otherwise,
@@ -2904,6 +3225,117 @@
              then regular Dictionary is a better choice.
              </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArrayExtensions.AsRef``1(Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray{``0}@)">
+             <summary>
+             Gets a mutable reference to a <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/> stored in a <c>using</c> variable.
+             </summary>
+             <remarks>
+             <para>This supporting method allows <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/>, a non-copyable <see langword="struct"/>
+             implementing <see cref="T:System.IDisposable"/>, to be used with <c>using</c> statements while still allowing them to
+             be passed by reference in calls. The following two calls are equivalent:</para>
+            
+             <code>
+             using var array = TemporaryArray&lt;T&gt;.Empty;
+            
+             // Using the 'Unsafe.AsRef' method
+             Method(ref Unsafe.AsRef(in array));
+            
+             // Using this helper method
+             Method(ref array.AsRef());
+             </code>
+            
+             <para>⚠ Do not move or rename this method without updating the corresponding
+             <see href="https://github.com/dotnet/roslyn-analyzers/blob/30180a51af8c4711e51d98df7345f14d083efb63/src/Roslyn.Diagnostics.Analyzers/Core/TemporaryArrayAsRefAnalyzer.cs">RS0049</see>
+             analyzer.</para>
+             </remarks>
+             <typeparam name="T">The type of element stored in the temporary array.</typeparam>
+             <param name="array">A read-only reference to a temporary array which is part of a <c>using</c> statement.</param>
+             <returns>A mutable reference to the temporary array.</returns>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1">
+            <summary>
+            Provides temporary storage for a collection of elements. This type is optimized for handling of small
+            collections, particularly for cases where the collection will eventually be discarded or used to produce an
+            <see cref="T:System.Collections.Immutable.ImmutableArray`1"/>.
+            </summary>
+            <remarks>
+            This type stores small collections on the stack, with the ability to transition to dynamic storage if/when
+            larger number of elements are added.
+            </remarks>
+            <typeparam name="T">The type of elements stored in the collection.</typeparam>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.InlineCapacity">
+            <summary>
+            The number of elements the temporary can store inline. Storing more than this many elements requires the
+            array transition to dynamic storage.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0">
+            <summary>
+            The first inline element.
+            </summary>
+            <remarks>
+            This field is only used when <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is <see langword="null"/>. In other words, this type
+            stores elements inline <em>or</em> stores them in <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/>, but does not use both approaches
+            at the same time.
+            </remarks>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item1">
+            <summary>
+            The second inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item2">
+            <summary>
+            The third inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item3">
+            <summary>
+            The fourth inline element.
+            </summary>
+            <seealso cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._item0"/>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._count">
+            <summary>
+            The number of inline elements held in the array. This value is only used when <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is
+            <see langword="null"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder">
+            <summary>
+            A builder used for dynamic storage of collections that may exceed the limit for inline elements.
+            </summary>
+            <remarks>
+            This field is initialized to non-<see langword="null"/> the first time the <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/>
+            needs to store more than four elements. From that point, <see cref="F:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1._builder"/> is used instead of inline
+            elements, even if items are removed to make the result smaller than four elements.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.ToImmutableAndClear">
+            <summary>
+            Create an <see cref="T:System.Collections.Immutable.ImmutableArray`1"/> with the elements currently held in the temporary array, and clear
+            the array.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.MoveInlineToBuilder">
+            <summary>
+            Transitions the current <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/> from inline storage to dynamic storage storage. An
+            <see cref="T:Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder`1"/> instance is taken from the shared pool, and all elements currently in inline
+            storage are added to it. After this point, dynamic storage will be used instead of inline storage.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1.ThrowIndexOutOfRangeException">
+            <summary>
+            Throws <see cref="T:System.IndexOutOfRangeException"/>.
+            </summary>
+            <remarks>
+            This helper improves the ability of the JIT to inline callers.
+            </remarks>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.TopologicalSort">
             <summary>
             A helper class that contains a topological sort algorithm.
@@ -3271,7 +3703,7 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CommandLineArguments.Utf8Output">
             <summary>
-            If true, use UTF8 for output.
+            If true, use UTF-8 for output.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CommandLineArguments.CompilationName">
@@ -3842,12 +4274,12 @@
             <param name="input">The compilation before any source generation has occurred.</param>
             <param name="parseOptions">The <see cref="T:Microsoft.CodeAnalysis.ParseOptions"/> to use when parsing any generated sources.</param>
             <param name="generators">The generators to run</param>
-            <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options</param>
+            <param name="analyzerConfigOptionsProvider">A provider that returns analyzer config options.</param>
             <param name="additionalTexts">Any additional texts that should be passed to the generators when run.</param>
-            <param name="generatorDiagnostics">Any diagnostics that were produced during generation</param>
+            <param name="generatorDiagnostics">Any diagnostics that were produced during generation.</param>
             <returns>A compilation that represents the original compilation with any additional, generated texts added to it.</returns>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CommonCompiler.CompileAndEmit(Microsoft.CodeAnalysis.TouchedFileLogger,Microsoft.CodeAnalysis.Compilation@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ISourceGenerator},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.AdditionalText},Microsoft.CodeAnalysis.AnalyzerConfigSet,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.EmbeddedText},Microsoft.CodeAnalysis.DiagnosticBag,System.Threading.CancellationToken,System.Threading.CancellationTokenSource@,System.Boolean@,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver@)">
+        <member name="M:Microsoft.CodeAnalysis.CommonCompiler.CompileAndEmit(Microsoft.CodeAnalysis.TouchedFileLogger,Microsoft.CodeAnalysis.Compilation@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ISourceGenerator},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.AdditionalText},Microsoft.CodeAnalysis.AnalyzerConfigSet,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.AnalyzerConfigOptionsResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.EmbeddedText},Microsoft.CodeAnalysis.DiagnosticBag,System.Threading.CancellationToken,System.Threading.CancellationTokenSource@,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver@,System.Nullable{Microsoft.CodeAnalysis.GeneratorDriverTimingInfo}@)">
             <summary>
             Perform all the work associated with actual compilation
             (parsing, binding, compile, emit), resulting in diagnostics
@@ -6028,9 +6460,20 @@
         <member name="M:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.UncompressStateMachineStates(System.Collections.Immutable.ImmutableArray{System.Byte})">
             <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Emit.EditAndContinue.DeletedTypeDefinition">
+            <summary>
+            Represents a type referenced from a deleted member (as distinct from a type that has been deleted)
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.Emit.DeltaMetadataWriter._changedTypeDefs">
             <summary>
             Type definitions containing any changes (includes added types).
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.DeltaMetadataWriter._typesUsedByDeletedMembers">
+            <summary>
+            Cache of type definitions used in signatures of deleted members. Used so that if a method 'C M(C c)' is deleted
+            we use the same <see cref="T:Microsoft.CodeAnalysis.Emit.EditAndContinue.DeletedTypeDefinition"/> instance for the method return type, and the parameter type.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.DeltaMetadataWriter.GetUpdatedMethodTokens(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Reflection.Metadata.MethodDefinitionHandle})">
@@ -6258,6 +6701,13 @@
             Populated based on semantic edits with <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Replace"/>.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.SymbolChanges._deletedMembers">
+            <summary>
+            A set of symbols, from the old compilation, that have been deleted from the new compilation
+            keyed by the containing type from the new compilation.
+            Populated based on semantic edits with <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Delete"/>.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.SymbolChanges.IsAdded(Microsoft.CodeAnalysis.ISymbol)">
             <summary>
             True if the symbol is a source symbol added during EnC session. 
@@ -6269,7 +6719,7 @@
             Returns true if the symbol or some child symbol has changed and needs to be compiled.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Emit.SymbolChanges.CalculateChanges(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Emit.SemanticEdit},System.Collections.Generic.IReadOnlyDictionary{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Emit.SymbolChange}@,System.Collections.Generic.ISet{Microsoft.CodeAnalysis.ISymbol}@)">
+        <member name="M:Microsoft.CodeAnalysis.Emit.SymbolChanges.CalculateChanges(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Emit.SemanticEdit},System.Collections.Generic.IReadOnlyDictionary{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Emit.SymbolChange}@,System.Collections.Generic.ISet{Microsoft.CodeAnalysis.ISymbol}@,System.Collections.Generic.IReadOnlyDictionary{Microsoft.CodeAnalysis.ISymbol,System.Collections.Generic.ISet{Microsoft.CodeAnalysis.ISymbol}}@)">
             <summary>
             Calculate the set of changes up to top-level types. The result
             will be used as a filter when traversing the module.
@@ -6287,10 +6737,10 @@
             symbol is simply Symbol.ContainingSymbol.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Emit.SymbolMatcher.MapSynthesizedMembers(System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.Symbols.ISymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Symbols.ISymbolInternal}},System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.Symbols.ISymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Symbols.ISymbolInternal}})">
+        <member name="M:Microsoft.CodeAnalysis.Emit.SymbolMatcher.MapSynthesizedOrDeletedMembers(System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.Symbols.ISymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Symbols.ISymbolInternal}},System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.Symbols.ISymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Symbols.ISymbolInternal}},System.Boolean)">
             <summary>
-            Merges synthesized members generated during lowering of the current compilation with aggregate synthesized members 
-            from all previous source generations (gen >= 1).
+            Merges synthesized or deleted members generated during lowering, or emit, of the current compilation with aggregate
+            synthesized or deleted members from all previous source generations (gen >= 1).
             </summary>
             <remarks>
             Suppose {S -> {A, B, D}, T -> {E, F}} are all synthesized members in previous generations,
@@ -6400,7 +6850,7 @@
         <member name="P:Microsoft.CodeAnalysis.Emit.EmitOptions.FallbackSourceFileEncoding">
             <summary>
             If <see cref="P:Microsoft.CodeAnalysis.Emit.EmitOptions.DefaultSourceFileEncoding"/> is not specified, the encoding used to parse source files
-            that do not declare their encoding via Byte Order Mark and are not UTF8-encoded.
+            that do not declare their encoding via Byte Order Mark and are not UTF-8 encoded.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.EmitOptions.WithFileAlignment(System.Int32)">
@@ -6490,8 +6940,8 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol">
             <summary>
-            The symbol from the later compilation,
-            or null if the edit represents a deletion.
+            The symbol from the later compilation, or the symbol of the containing type
+            from the later compilation if the edit represents a deletion.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.SyntaxMap">
@@ -7253,6 +7703,12 @@
             Operator method used by the operation, null if the operation does not use an operator method.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IConversionOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IConversionOperation.OperatorMethod" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.IConversionOperation.OperatorMethod" /> is resolved statically, or is null.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Operations.IConversionOperation.Conversion">
             <summary>
             Gets the underlying common conversion information.
@@ -7302,6 +7758,12 @@
         <member name="P:Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod">
             <summary>
             Method to be invoked.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IInvocationOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod" />.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.IInvocationOperation.TargetMethod" /> is resolved statically, or is an instance method.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Operations.IInvocationOperation.Instance">
@@ -7425,6 +7887,12 @@
         <member name="P:Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.Member">
             <summary>
             Referenced member.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.Member" />.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.IMemberReferenceOperation.Member" /> is resolved statically, or is an instance member.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.IFieldReferenceOperation">
@@ -7589,6 +8057,12 @@
             Operator method used by the operation, null if the operation does not use an operator method.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IUnaryOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IUnaryOperation.OperatorMethod" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.IUnaryOperation.OperatorMethod" /> is resolved statically, or is null.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.IBinaryOperation">
             <summary>
             Represents an operation with two operands and a binary operator that produces a result with a non-null type.
@@ -7644,6 +8118,13 @@
         <member name="P:Microsoft.CodeAnalysis.Operations.IBinaryOperation.OperatorMethod">
             <summary>
             Operator method used by the operation, null if the operation does not use an operator method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IBinaryOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IBinaryOperation.OperatorMethod" />
+            or corresponding true/false operator, if any.
+            Null if operators are resolved statically, or are not used.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.IConditionalOperation">
@@ -8018,6 +8499,12 @@
         <member name="P:Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OperatorMethod">
             <summary>
             Operator method used by the operation, null if the operation does not use an operator method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OperatorMethod" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation.OperatorMethod" /> is resolved statically, or is null.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.IParenthesizedOperation">
@@ -8633,6 +9120,12 @@
         <member name="P:Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.OperatorMethod">
             <summary>
             Operator method used by the operation, null if the operation does not use an operator method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.OperatorMethod" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.IIncrementOrDecrementOperation.OperatorMethod" /> is resolved statically, or is null.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.IThrowOperation">
@@ -10227,24 +10720,24 @@
             Symbol for the underlying indexer or a slice method that is used to implement the implicit indexer.
             </summary>
         </member>
-        <member name="T:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation">
+        <member name="T:Microsoft.CodeAnalysis.Operations.IUtf8StringOperation">
             <summary>
-            Represents a UTF8 encoded byte representation of a string.
+            Represents a UTF-8 encoded byte representation of a string.
             <para>
               Current usage:
-              (1) C# UTF8 string literal expression.
+              (1) C# UTF-8 string literal expression.
             </para>
             </summary>
             <remarks>
             <para>This node is associated with the following operation kinds:</para>
             <list type="bullet">
-            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.UTF8String"/></description></item>
+            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.Utf8String"/></description></item>
             </list>
             <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
             change it in the future.</para>
             </remarks>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation.Value">
+        <member name="P:Microsoft.CodeAnalysis.Operations.IUtf8StringOperation.Value">
             <summary>
             The underlying string value.
             </summary>
@@ -10551,6 +11044,12 @@
             <summary>
             Returns the method used to perform the conversion for a user-defined conversion if <see cref="P:Microsoft.CodeAnalysis.Operations.CommonConversion.IsUserDefined"/> is true.
             Otherwise, returns null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.CommonConversion.ConstrainedToType">
+            <summary>
+            Type parameter which runtime type will be used to resolve virtual invocation of the <see cref="P:Microsoft.CodeAnalysis.Operations.CommonConversion.MethodSymbol" />, if any.
+            Null if <see cref="P:Microsoft.CodeAnalysis.Operations.CommonConversion.MethodSymbol" /> is resolved statically, or is null.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Operations.InstanceReferenceKind">
@@ -11092,35 +11591,35 @@
         <member name="F:Microsoft.CodeAnalysis.NullableContext.WarningsContextInherited">
             <summary>
             The nullable warning state is inherited from the project default.
-            </summary>
-            <remarks>
+            <para>
             The project default can change depending on the file type. Generated
             files have nullable off by default, regardless of the project-level
             default setting.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.NullableContext.AnnotationsContextInherited">
             <summary>
             The nullable annotation state is inherited from the project default.
-            </summary>
-            <remarks>
+            <para>
             The project default can change depending on the file type. Generated
             files have nullable off by default, regardless of the project-level
             default setting.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.NullableContext.ContextInherited">
              <summary>
              The current state of both warnings and annotations are inherited from
              the project default.
-             </summary>
-             <remarks>
+             <para>
              This flag is set by default at the start of all files.
             
              The project default can change depending on the file type. Generated
              files have nullable off by default, regardless of the project-level
              default setting.
-             </remarks>
+             </para>
+             </summary>        
         </member>
         <member name="M:Microsoft.CodeAnalysis.NullableContextExtensions.WarningsEnabled(Microsoft.CodeAnalysis.NullableContext)">
             <summary>
@@ -11186,9 +11685,9 @@
         <member name="F:Microsoft.CodeAnalysis.OptimizationLevel.Debug">
             <summary>
             Disables all optimizations and instruments the generated code to improve debugging experience.
-            </summary>
-            <remarks>
+            <para>
             The compiler prefers debuggability over performance. Do not use for code running in a production environment.
+            </para>
             <list type="bullet">
             <item><description>JIT optimizations are disabled via assembly level attribute (<see cref="T:System.Diagnostics.DebuggableAttribute"/>).</description></item>
             <item><description>Edit and Continue is enabled.</description></item>
@@ -11197,14 +11696,14 @@
             <para>
             Corresponds to command line argument /optimize-.
             </para>
-            </remarks>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.OptimizationLevel.Release">
             <summary>
             Enables all optimizations, debugging experience might be degraded.
-            </summary>
-            <remarks>
+            <para>
             The compiler prefers performance over debuggability. Use for code running in a production environment.
+            </para>
             <list type="bullet">
             <item><description>JIT optimizations are enabled via assembly level attribute (<see cref="T:System.Diagnostics.DebuggableAttribute"/>).</description></item>
             <item><description>Edit and Continue is disabled.</description></item>
@@ -11214,7 +11713,7 @@
             <para>
             Corresponds to command line argument /optimize+.
             </para>
-            </remarks>
+            </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.ParseOptions">
             <summary>
@@ -12433,7 +12932,7 @@
         </member>
         <member name="T:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind">
             <summary>
-            The kinds of custom debug info that we know how to interpret.
+            The kinds of custom debug info in Windows PDBs that we know how to interpret.
             The values correspond to possible values of the "kind" byte
             in the record header.
             </summary>
@@ -12443,55 +12942,91 @@
             C# only. Encodes the sizes of using groups that are applicable to the method.
             The actual import strings are stored separately trhu ISymUnmanagedWriter.UsingNamespace.
             </summary>
+            <remarks>
+            Represented by <code>using</code> XML node in PDB tests.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.ForwardMethodInfo">
             <summary>
             C# only. Indicates that per-method debug information (import strings) is stored on another method, 
             whose token is specified.
             </summary>
+            <remarks>
+            Represented by <code>forward</code> XML node in PDB tests.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.ForwardModuleInfo">
             <summary>
             C# only. Indicates that per-module debug information (assembly reference aliases) is stored on another method, 
             whose token is specified.
             </summary>
+            <remarks>
+            Represented by <code>forwardToModule</code> XML node in PDB tests.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.StateMachineHoistedLocalScopes">
             <summary>
             C# only. Specifies local scopes for state machine hoisted local variables.
             </summary>
+            <remarks>
+            Represented by <code>hoistedLocalScopes</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.StateMachineHoistedLocalScopes"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.StateMachineTypeName">
             <summary>
             C# and VB. The name of the state machine type. Emitted for async and iterator kick-off methods.
             </summary>
+            <remarks>
+            Represented by <code>forwardIterator</code> XML node in PDB tests.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.DynamicLocals">
             <summary>
             C# only. Dynamic flags for local variables and constants.
             </summary>
+            <remarks>
+            Represented by <code>dynamicLocals</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.DynamicLocalVariables"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.EditAndContinueLocalSlotMap">
             <summary>
             C# and VB. Encodes EnC local variable slot map.
             See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLocalSlotMap.
             </summary>
+            <remarks>
+            Represented by <code>encLocalSlotMap</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.EncLocalSlotMap"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.EditAndContinueLambdaMap">
             <summary>
             C# and VB. Encodes EnC lambda map.
             See https://github.com/dotnet/corefx/blob/main/src/System.Reflection.Metadata/specs/PortablePdb-Metadata.md#EditAndContinueLambdaAndClosureMap.
             </summary>
+            <remarks>
+            Represented by <code>encLambdaMap</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.EncLambdaAndClosureMap"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.TupleElementNames">
             <summary>
             C# and VB. Tuple element names for local variables and constants.
             </summary>
+            <remarks>
+            Represented by <code>tupleElementNames</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.TupleElementNames"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoKind.EditAndContinueStateMachineStateMap">
             <summary>
             C# and VB. Syntax offsets of nodes associated with state machine states in an async/iterator method and their corresponding state numbers.
             </summary>
+            <remarks>
+            Represented by <code>encStateMachineStateMap</code> XML node in PDB tests.
+            Equivalent to <see cref="F:Microsoft.CodeAnalysis.Debugging.PortableCustomDebugInfoKinds.EncStateMachineStateMap"/> in Portable PDB.
+            </remarks>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader">
             <summary>
@@ -12584,16 +13119,6 @@
             Tuple element names for locals.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.ReadRawRecordBody(System.Byte[],System.Int32@,System.Int32,System.Collections.Immutable.ImmutableArray{System.Byte}@)">
-            <summary>
-            Returns the raw bytes of a record.
-            </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.SkipRecord(System.Byte[],System.Int32@,System.Int32)">
-            <summary>
-            Skips past a record.
-            </summary>
-        </member>
         <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.GetCSharpGroupedImportStrings``1(System.Int32,``0,System.Func{System.Int32,``0,System.Byte[]},System.Func{System.Int32,``0,System.Collections.Immutable.ImmutableArray{System.String}},System.Collections.Immutable.ImmutableArray{System.String}@)">
             <summary>
             Get the import strings for a given method, following forward pointers as necessary.
@@ -12638,7 +13163,7 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.Debugging.CustomDebugInfoReader.ReadUtf8String(System.Collections.Immutable.ImmutableArray{System.Byte},System.Int32@)">
             <summary>
-            Read UTF8 string with null terminator.
+            Read UTF-8 string with null terminator.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Debugging.ImportTargetKind.Namespace">
@@ -14041,6 +14566,11 @@
             Exception that was thrown while loading the analyzer. May be null.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ReferencedCompilerVersion">
+            <summary>
+            If <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.ErrorCode"/> is <see cref="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerLoadFailureEventArgs.FailureErrorCode.ReferencesNewerCompiler"/>, returns the compiler version referenced by the analyzer assembly. Otherwise, returns null.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager">
             <summary>
             Manages properties of analyzers (such as registered actions, supported diagnostics) for analyzer host's lifetime
@@ -14646,13 +15176,13 @@
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,System.Action{System.Exception,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostic})">
             <summary>
             Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+            </summary>
             <param name="analyzer">Analyzer to be checked for suppression.</param>
             <param name="options">Compilation options.</param>
             <param name="onAnalyzerException">
             Optional delegate which is invoked when an analyzer throws an exception.
             Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-            </param>
-            </summary>
+            </param>        
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.ClearAnalyzerState(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer})">
             <summary>
@@ -16930,6 +17460,11 @@
             is immutable) resolution.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.DiagnosticWithInfo.LazyInfo">
+            <summary>
+            Usage is unexpected unless <see cref="P:Microsoft.CodeAnalysis.DiagnosticWithInfo.HasLazyInfo"/> is true.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.ExternalFileLocation">
             <summary>
             A program location in source code.
@@ -17629,7 +18164,7 @@
             Initializes an instance of <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/> from the provided stream. This version differs
             from <see cref="M:Microsoft.CodeAnalysis.Text.SourceText.From(System.IO.Stream,System.Text.Encoding,Microsoft.CodeAnalysis.Text.SourceHashAlgorithm,System.Boolean)"/> in two ways:
             1. It attempts to minimize allocations by trying to read the stream into a byte array.
-            2. If <paramref name="defaultEncoding"/> is null, it will first try UTF8 and, if that fails, it will
+            2. If <paramref name="defaultEncoding"/> is null, it will first try UTF-8 and, if that fails, it will
                try CodePage 1252. If CodePage 1252 is not available on the system, then it will try Latin1.
             </summary>
             <param name="stream">The stream containing encoded text.</param>
@@ -18090,13 +18625,13 @@
         <member name="M:Microsoft.CodeAnalysis.Text.SourceText.WithChanges(Microsoft.CodeAnalysis.Text.TextChange[])">
             <summary>
             Constructs a new SourceText from this text with the specified changes.
-            <exception cref="T:System.ArgumentException">If any changes are not in bounds of this <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/>.</exception>
-            <exception cref="T:System.ArgumentException">If any changes overlap other changes.</exception>
-            </summary>
+            </summary>        
             <remarks>
             Changes do not have to be in sorted order.  However, <see cref="M:Microsoft.CodeAnalysis.Text.SourceText.WithChanges(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Text.TextChange})"/> will
             perform better if they are.
             </remarks>
+            <exception cref="T:System.ArgumentException">If any changes are not in bounds of this <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/>.</exception>
+            <exception cref="T:System.ArgumentException">If any changes overlap other changes.</exception>        
         </member>
         <member name="M:Microsoft.CodeAnalysis.Text.SourceText.Replace(Microsoft.CodeAnalysis.Text.TextSpan,System.String)">
             <summary>
@@ -19787,8 +20322,8 @@
         <member name="F:Microsoft.CodeAnalysis.OperationKind.ImplicitIndexerReference">
             <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IImplicitIndexerReferenceOperation"/>.</summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.OperationKind.UTF8String">
-            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IUTF8StringOperation"/>.</summary>
+        <member name="F:Microsoft.CodeAnalysis.OperationKind.Utf8String">
+            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IUtf8StringOperation"/>.</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.InternalUtilities.ConcurrentLruCache`2">
             <summary>
@@ -19844,6 +20379,12 @@
             </summary>
             <param name="condition">The conditional expression to evaluate.</param>
             <param name="message">An optional message to be recorded in the dump in case of failure. Can be <c>null</c>.</param>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.ErrorReporting.OperationCanceledIgnoringCallerTokenException">
+            <summary>
+            Thrown when async code must cancel the current execution but does not have access to the <see cref="T:System.Threading.CancellationTokenSource"/> of the <see cref="T:System.Threading.CancellationToken"/> passed to the code.
+            Should be used in very rare cases where the <see cref="T:System.Threading.CancellationTokenSource"/> is out of our control (e.g. owned but not exposed by JSON RPC in certain call-back scenarios).
+            </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.ErrorReporting.FatalError.Handler">
             <summary>
@@ -20434,7 +20975,7 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.MetadataHelpers.IsValidMetadataIdentifier(System.String)">
             <summary>
-            Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF8 string).
+            Determines whether given string can be used as a non-empty metadata identifier (a NUL-terminated UTF-8 string).
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.MetadataHelpers.IsValidUnicodeString(System.String)">
@@ -20451,7 +20992,7 @@
             22.30.2: "The format of Name is {file name}.{file extension} with no path or drive letter; on POSIX-compliant systems Name contains no colon, no forward-slash, no backslash."
                      As Microsoft specific constraint.
             
-            A reasonable restriction seems to be a valid UTF8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
+            A reasonable restriction seems to be a valid UTF-8 non-empty string that doesn't contain '\0', '\', '/', ':' characters.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.MetadataHelpers.SplitNameEqualsFullyQualifiedName(System.String,System.String,System.String)">
@@ -21571,7 +22112,7 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.AssemblyMetadata.Kind">
             <summary>
-            Returns the metadata kind. <seealso cref="T:Microsoft.CodeAnalysis.MetadataImageKind"/>
+            Returns the metadata kind. <see cref="T:Microsoft.CodeAnalysis.MetadataImageKind"/>
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.AssemblyMetadata.GetReference(Microsoft.CodeAnalysis.DocumentationProvider,System.Collections.Immutable.ImmutableArray{System.String},System.Boolean,System.String,System.String)">
@@ -21972,18 +22513,9 @@
             </summary>
             <remarks>This object may allocate significant resources or lock files depending upon how it is constructed.</remarks>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.ModuleMetadata._owner">
+        <member name="F:Microsoft.CodeAnalysis.ModuleMetadata._onDispose">
             <summary>
-            Optional data that should be kept alive as long as this <see cref="T:Microsoft.CodeAnalysis.ModuleMetadata"/> is alive.  This can be
-            useful, for example, if there is backing memory that the metadata depends on that should be kept rooted so it
-            doesn't get garbage collected.
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.ModuleMetadata._disposeOwner">
-            <summary>
-            Whether or not <see cref="F:Microsoft.CodeAnalysis.ModuleMetadata._owner"/> should be <see cref="M:System.IDisposable.Dispose"/>'d when this object is
-            Disposed.  Is controlled by the <c>leaveOpen</c> flag in <see cref="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream,System.Boolean)"/>, or
-            the <see cref="F:System.Reflection.PortableExecutable.PEStreamOptions.LeaveOpen"/> flag in <see cref="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromStream(System.IO.Stream,System.Reflection.PortableExecutable.PEStreamOptions)"/>.
+            Optional action to invoke when this metadata is disposed.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr,System.Int32)">
@@ -21995,6 +22527,18 @@
             <param name="size">The size of the metadata block.</param>
             <exception cref="T:System.ArgumentNullException"><paramref name="metadata"/> is null.</exception>
             <exception cref="T:System.ArgumentOutOfRangeException"><paramref name="size"/> is not positive.</exception>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromMetadata(System.IntPtr,System.Int32,System.Action)">
+            <summary>
+            Create metadata module from a raw memory pointer to metadata directory of a PE image or .cormeta section of an object file.
+            Only manifest modules are currently supported.
+            </summary>
+            <param name="metadata">Pointer to the start of metadata block.</param>
+            <param name="size">The size of the metadata block.</param>
+            <param name="onDispose">Action to run when the metadata module is disposed.  This will only be called then
+            this actual metadata instance is disposed.  Any instances created from this using <see
+            cref="M:Microsoft.CodeAnalysis.Metadata.Copy"/> will not call this when they are disposed.</param>
+            <exception cref="T:System.ArgumentNullException"><paramref name="onDispose"/> is null.</exception>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ModuleMetadata.CreateFromImage(System.IntPtr,System.Int32)">
             <summary>
@@ -22495,12 +23039,12 @@
         <member name="F:Microsoft.CodeAnalysis.OutputKind.WindowsRuntimeApplication">
             <summary>
             An .exe that can run in an app container.
-            </summary>
-            <remarks>
+            <para>
             Equivalent to a WindowsApplication, but with an extra bit set in the Portable Executable file
             so that the application can only be run in an app container.
             Also known as a "Windows Store app".
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.RealParser">
             <summary>
@@ -23452,7 +23996,7 @@
             <summary>
             Load the ruleset from the specified file. This ruleset will contain
             all the rules resolved from the includes specified in the ruleset file
-            as well. See also: <seealso cref="M:Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(System.String)" />.
+            as well. See also: <see cref="M:Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(System.String)" />.
             </summary>
             <returns>
             A ruleset that contains resolved rules or null if there were errors.
@@ -23461,7 +24005,7 @@
         <member name="M:Microsoft.CodeAnalysis.RuleSet.GetEffectiveIncludesFromFile(System.String)">
             <summary>
             Get the paths to all files contributing rules to the ruleset from the specified file.
-            See also: <seealso cref="M:Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(System.String)" />.
+            See also: <see cref="M:Microsoft.CodeAnalysis.RuleSet.LoadEffectiveRuleSetFromFile(System.String)" />.
             </summary>
             <returns>
             The full paths to included files, or an empty array if there were errors.
@@ -23910,6 +24454,12 @@
             Creates a new generator state that contains information, constant trees and an execution pipeline
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.SourceGeneration.GlobalAliases">
+            <summary>
+            Simple wrapper class around an immutable array so we can have the value-semantics needed for the incremental
+            generator to know when a change actually happened and it should run later transform stages.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.IIncrementalGenerator">
             <summary>
             The base interface required to implement an incremental generator
@@ -24085,6 +24635,11 @@
             provide. 
             </remarks>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.ISyntaxHelper.AddAliases(Microsoft.CodeAnalysis.GreenNode,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.ValueTuple{System.String,System.String}},System.Boolean)">
+            <summary>
+            <paramref name="node"/> must be a compilation unit or namespace block.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.ISyntaxReceiver">
             <summary>
             Receives notifications of each <see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/> in the compilation before generation runs
@@ -24214,8 +24769,8 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._states">
             <summary>
-            Represents the corresponding state of each item in <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._items"/>,
-            or contains a single state when <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._item"/> is populated or when every state of <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._items"/> has the same value.
+            Represents the corresponding state of each item in <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._items"/>, or contains a single state when
+            <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._items"/> is populated or when every state of <see cref="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._items"/> has the same value.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.SharedInputNodes">
@@ -24240,6 +24795,73 @@
         <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.CreateSyntaxReceiverProvider(Microsoft.CodeAnalysis.SyntaxContextReceiverCreator)">
             <summary>
             Creates a syntax receiver input node. Only used for back compat in <see cref="T:Microsoft.CodeAnalysis.SourceGeneratorAdaptor"/>
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithMetadataName``1(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext,System.Threading.CancellationToken,``0})">
+            <summary>
+            Creates an <see cref="T:Microsoft.CodeAnalysis.IncrementalValuesProvider`1"/> that can provide a transform over all <see
+            cref="T:Microsoft.CodeAnalysis.SyntaxNode"/>s if that node has an attribute on it that binds to a <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/> with the
+            same fully-qualified metadata as the provided <paramref name="fullyQualifiedMetadataName"/>. <paramref
+            name="fullyQualifiedMetadataName"/> should be the fully-qualified, metadata name of the attribute, including the
+            <c>Attribute</c> suffix.  For example <c>"System.CLSCompliantAttribute</c> for <see
+            cref="T:System.CLSCompliantAttribute"/>.
+            </summary>
+            <param name="predicate">A function that determines if the given <see cref="T:Microsoft.CodeAnalysis.SyntaxNode"/> attribute target (<see
+            cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode"/>) should be transformed.  Nodes that do not pass this
+            predicate will not have their attributes looked at at all.</param>
+            <param name="transform">A function that performs the transform. This will only be passed nodes that return <see
+            langword="true"/> for <paramref name="predicate"/> and which have a matching <see cref="T:Microsoft.CodeAnalysis.AttributeData"/> whose
+            <see cref="P:Microsoft.CodeAnalysis.AttributeData.AttributeClass"/> has the same fully qualified, metadata name as <paramref
+            name="fullyQualifiedMetadataName"/>.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithSimpleName(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean})">
+            <summary>
+            Returns all syntax nodes of that match <paramref name="predicate"/> if that node has an attribute on it that
+            could possibly bind to the provided <paramref name="simpleName"/>. <paramref name="simpleName"/> should be the
+            simple, non-qualified, name of the attribute, including the <c>Attribute</c> suffix, and not containing any
+            generics, containing types, or namespaces.  For example <c>CLSCompliantAttribute</c> for <see
+            cref="T:System.CLSCompliantAttribute"/>.
+            <para/> This provider understands <see langword="using"/> (<c>Import</c> in Visual Basic) aliases and will find
+            matches even when the attribute references an alias name.  For example, given:
+            <code>
+            using XAttribute = System.CLSCompliantAttribute;
+            [X]
+            class C { }
+            </code>
+            Then
+            <c>context.SyntaxProvider.CreateSyntaxProviderForAttribute(nameof(CLSCompliantAttribute), (node, c) => node is ClassDeclarationSyntax)</c>
+            will find the <c>C</c> class.
+            </summary>
+            <remarks>
+            Note: a 'Values'-provider of arrays are returned.  Each array provides all the matching nodes from a single <see
+            cref="T:Microsoft.CodeAnalysis.SyntaxTree"/>.
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode">
+            <summary>
+            The syntax node the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would
+            the class declaration node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol">
+            <summary>
+            The symbol that the attribute is attached to.  For example, with <c>[CLSCompliant] class C { }</c> this would be
+            the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/> for <c>"C"</c>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.SemanticModel">
+            <summary>
+            Semantic model for the file that <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetNode"/> is contained within.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.Attributes">
+            <summary>
+            <see cref="T:Microsoft.CodeAnalysis.AttributeData"/>s for any matching attributes on <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol"/>.  Always non-empty.  All
+            these attributes will have an <see cref="P:Microsoft.CodeAnalysis.AttributeData.AttributeClass"/> whose fully qualified name metadata
+            name matches the name requested in <see cref="M:Microsoft.CodeAnalysis.SyntaxValueProvider.ForAttributeWithMetadataName``1(System.String,System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext,System.Threading.CancellationToken,``0})"/>.
+            <para>
+            To get the entire list of attributes, use <see cref="M:Microsoft.CodeAnalysis.ISymbol.GetAttributes"/> on <see cref="P:Microsoft.CodeAnalysis.GeneratorAttributeSyntaxContext.TargetSymbol"/>.
+            </para>
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.GeneratorDriverRunResult">
@@ -24960,6 +25582,21 @@
             Display `System.[U]IntPtr` instead of `n[u]int`.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes">
+            <summary>
+            Separate out nested types from containing types using <c>+</c> instead of <c>.</c> (dot).
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.IncludeScoped">
+            <summary>
+            Includes the <c>scoped</c> keyword.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes">
+            <summary>
+            Display `MyType@File.cs` instead of `MyType`.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayDelegateStyle">
             <summary>
             Specifies how to display delegates (just the name or the name with the signature).
@@ -24973,18 +25610,18 @@
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayDelegateStyle.NameAndParameters">
             <summary>
             Shows the name and the parameters of the delegate (e.g. "SomeDelegate(int x)").  
-            </summary>
-            <remarks>
+            <para>
             The format of the parameters will be determined by the other flags passed.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayDelegateStyle.NameAndSignature">
             <summary>
-            Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").  
-            </summary>
-            <remarks>
+            Shows the name and the signature of the delegate (e.g. "void SomeDelegate(int x)").
+            <para>
             The format of the signature will be determined by the other flags passed.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayExtensionMethodStyle">
             <summary>
@@ -25259,198 +25896,203 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
             </summary>
             <param name="options">
             An object representing how miscellaneous symbols will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters for how miscellaneous symbols will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveMiscellaneousOptions(Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat without the specified <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
+            Creates a copy of the SymbolDisplayFormat without the specified <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.
             </summary>
             <param name="options">
             An object specifying which parameters should not be applied to how miscellaneous symbols will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, without the specified <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, without the specified <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithGenericsOptions(Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.
             </summary>
             <param name="options">
             An object specifying how generic symbols will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddGenericsOptions(Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters for how generic symbols will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveGenericsOptions(Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/> stripped away from the original object.
+            Creates a copy of the SymbolDisplayFormat but with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/> stripped away from the original object.
             </summary>
             <param name="options">
             An object specifying which parameters should not be applied to how generic symbols will be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/> stripped away from the original object.
+            A duplicate of the SymbolDisplayFormat, with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions"/> stripped away from the original object.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithMemberOptions(Microsoft.CodeAnalysis.SymbolDisplayMemberOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
             </summary>
             <param name="options">
             An object specifying how members will be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddMemberOptions(Microsoft.CodeAnalysis.SymbolDisplayMemberOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters for how members will be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
+            A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveMemberOptions(Microsoft.CodeAnalysis.SymbolDisplayMemberOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/> stripped away from the original object.
+            Creates a copy of the SymbolDisplayFormat but with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/> stripped away from the original object.
             </summary>
             <param name="options">
             An object specifying which parameters should not be applied to how members will be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/> stripped away from the original object.
+            A duplicate of the SymbolDisplayFormat, with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/> stripped away from the original object.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithKindOptions(Microsoft.CodeAnalysis.SymbolDisplayKindOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
             </summary>
             <param name="options">
             An object specifying parameters with which symbols belonging to kind keywords should be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
+            A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddKindOptions(Microsoft.CodeAnalysis.SymbolDisplayKindOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters with which symbols belonging to kind keywords should be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
+            A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/>.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveKindOptions(Microsoft.CodeAnalysis.SymbolDisplayKindOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/> stripped away from the original object.
+            Creates a copy of the SymbolDisplayFormat but with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/> stripped away from the original object.
             </summary>
             <param name="options">
             The settings that determine other characteristics of how symbols are displayed.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/> stripped away from the original object.
+            A duplicate of the SymbolDisplayFormat, with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayKindOptions"/> stripped away from the original object.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithParameterOptions(Microsoft.CodeAnalysis.SymbolDisplayParameterOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
             </summary>
             <param name="options">
             An object specifying how parameters should be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddParameterOptions(Microsoft.CodeAnalysis.SymbolDisplayParameterOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters on how parameters should be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
+            A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/>.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveParameterOptions(Microsoft.CodeAnalysis.SymbolDisplayParameterOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/> stripped away from the original object.
+            Creates a copy of the SymbolDisplayFormat but with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/> stripped away from the original object.
             </summary>
             <param name="options">
             An object specifying parameters that should not be applied when formatting parameters.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/> stripped away from the original object.
+            A duplicate of the SymbolDisplayFormat, with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/> stripped away from the original object.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithGlobalNamespaceStyle(Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle"/>.
             </summary>
             <param name="style">
             An object specifying parameters on how namespace symbols should be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayGlobalNamespaceStyle"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
             </summary>
             <param name="options">
             An object specifying parameters on how symbols belonging to locals should be formatted.
             </param>
-            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.</returns>
+            <returns>A duplicate of the SymbolDisplayFormat, with a replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
             </summary>
             <param name="options">
             An object specifying additional parameters on how symbols belonging to locals should be formatted.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with an additional set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
+            A duplicate of the SymbolDisplayFormat, with an additional set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/>.
             </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.RemoveLocalOptions(Microsoft.CodeAnalysis.SymbolDisplayLocalOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/> stripped away from the original object.
+            Creates a copy of the SymbolDisplayFormat but with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/> stripped away from the original object.
             </summary>
             <param name="options">
             An object specifying parameters that should not be applied when formatting symbols belonging to locals.
             </param>
             <returns>
-            A duplicate of the SymbolDisplayFormat, with a set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/> stripped away from the original object.
+            A duplicate of the SymbolDisplayFormat, with a set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayLocalOptions"/> stripped away from the original object.
             </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.AddCompilerInternalOptions(Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions)">
+            <summary>
+            Creates a copy of the SymbolDisplayFormat but with added set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions"/>.
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.SymbolDisplayFormat.WithCompilerInternalOptions(Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions)">
             <summary>
-            Creates a copy of the SymbolDisplayFormat but with replaced set of <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions"/>.
+            Creates a copy of the SymbolDisplayFormat but with replaced set of <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions"/>.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayGenericsOptions">
@@ -25577,44 +26219,40 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeModifiers">
             <summary>
-            Includes the modifiers of the member.
-            For example, "static readonly" in C# or "Shared ReadOnly" in Visual Basic.
-            </summary>
-            <remarks>
+            Includes the modifiers of the member. For example, "static readonly" in C# or "Shared ReadOnly" in Visual Basic.
+            <para>
             Accessibility modifiers are controlled separately by <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeAccessibility"/>.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeAccessibility">
             <summary>
-            Includes the accessibility modifiers of the member.
-            For example, "public" in C# or "Public" in Visual Basic.
+            Includes the accessibility modifiers of the member. For example, "public" in C# or "Public" in Visual Basic.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeExplicitInterface">
             <summary>
-            Includes the name of corresponding interface on members that explicitly implement
-            interface members.
-            For example, "IGoo.Bar { get; }".
-            </summary>
-            <remarks>
+            Includes the name of corresponding interface on members that explicitly implement interface members. For example, "IGoo.Bar { get; }".        
+            <para>
             This option has no effect in Visual Basic.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeParameters">
             <summary>
-            Includes the parameters of methods and properties/indexers.
-            </summary>
-            <remarks>
+            Includes the parameters of methods and properties/indexers.        
+            <para>
             See <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions"/> for finer-grained settings.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeContainingType">
             <summary>
-            Includes the name of the type containing the member.
-            </summary>
-            <remarks>
+            Includes the name of the type containing the member.        
+            <para>
             The format of the containing type is determined by <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayTypeQualificationStyle"/>.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeConstantValue">
             <summary>
@@ -25667,11 +26305,11 @@
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.RemoveAttributeSuffix">
             <summary>
             Displays attributes names without the "Attribute" suffix, if possible.
-            </summary>
-            <remarks>
+            <para>
             Has no effect outside <see cref="M:Microsoft.CodeAnalysis.ISymbol.ToMinimalDisplayString(Microsoft.CodeAnalysis.SemanticModel,System.Int32,Microsoft.CodeAnalysis.SymbolDisplayFormat)"/> and only applies
             if the context location is one where an attribute ca be referenced without the suffix.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.ExpandNullable">
             <summary>
@@ -25707,20 +26345,20 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.None">
             <summary>
-            Omits parameters from symbol descriptions.
-            </summary>
-            <remarks>
+            Omits parameters from symbol descriptions.    
+            <para>
             If this option is combined with <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions.IncludeParameters"/>, then only
             the parentheses will be shown (e.g. M()).
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeExtensionThis">
             <summary>
             Includes the <c>this</c> keyword before the first parameter of an extension method in C#. 
-            </summary>
-            <remarks>
+            <para>
             This option has no effect in Visual Basic.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeParamsRefOut">
             <summary>
@@ -25740,8 +26378,9 @@
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeDefaultValue">
             <summary>
             Includes parameter default values in symbol descriptions.
+            <para>Ignored if <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeName"/> is not set.
+            </para>
             </summary>
-            <remarks>Ignored if <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeName"/> is not set.</remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeOptionalBrackets">
             <summary>
@@ -25825,12 +26464,16 @@
             <summary>A line-break (i.e. whitespace).</summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.NumericLiteral">
-            <summary>A numeric literal.</summary>
-            <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
+            <summary>A numeric literal.
+            <para>Typically for the default values of parameters and the constant values of fields.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.StringLiteral">
-            <summary>A string literal.</summary>
-            <remarks>Typically for the default values of parameters and the constant values of fields.</remarks>
+            <summary>A string literal.
+            <para>Typically for the default values of parameters and the constant values of fields.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.LocalName">
             <summary>The name of a local.</summary>
@@ -25866,8 +26509,10 @@
             <summary>A keyword-like part for anonymous types (not actually a keyword).</summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.Text">
-            <summary>An unclassified part.</summary>
-            <remarks>Never returned - only set in user-constructed parts.</remarks>
+            <summary>An unclassified part.
+            <para>Never returned - only set in user-constructed parts.
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.TypeParameterName">
             <summary>The name of a type parameter.</summary>
@@ -25879,10 +26524,11 @@
             <summary>The name of an enum member.</summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.ExtensionMethodName">
-            <summary>The name of a reduced extension method.</summary>
-            <remarks>
+            <summary>The name of a reduced extension method.
+            <para>
             When an extension method is in it's non-reduced form it will be will be marked as MethodName.
-            </remarks>
+            </para>
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPartKind.ConstantName">
             <summary>The name of a field or local constant.</summary>
@@ -25901,7 +26547,7 @@
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPropertyStyle.NameOnly">
             <summary>
             Shows only the names of properties.
-            <seealso cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>
+            <see cref="T:Microsoft.CodeAnalysis.SymbolDisplayMemberOptions"/>
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayPropertyStyle.ShowReadWriteDescriptor">
@@ -27020,6 +27666,16 @@
             the pointed-to type will be the declared element type of the fixed-size buffer.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.IFieldSymbol.RefKind">
+            <summary>
+            Returns the RefKind of the field.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.IFieldSymbol.RefCustomModifiers">
+            <summary>
+            Custom modifiers associated with the ref modifier, or an empty array if there are none.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.IFieldSymbol.Type">
             <summary>
             Gets the type of this field.
@@ -27530,6 +28186,11 @@
             <summary>
             Specifies that the class or interface is imported from another module.  See
             <see cref="F:System.Reflection.TypeAttributes.Import"/> and <see cref="T:System.Runtime.InteropServices.ComImportAttribute"/>
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.INamedTypeSymbol.IsFileLocal">
+            <summary>
+            Indicates the type is declared in source and is only visible in the file it is declared in.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.INamedTypeSymbol.MemberNames">
@@ -28764,18 +29425,13 @@
             <summary>
             The expression has not been analyzed, or the syntax is
             not an expression (such as a statement).
+            <para>There are a few different reasons the expression could have not been analyzed:
+            </para>
+            <list type="number">
+            <item><description>The symbol producing the expression comes from a method that has not been annotated, such as invoking a C# 7.3 or earlier method, or a method in this compilation that is in a disabled context.</description></item>
+            <item><description>Nullable is completely disabled in this compilation.</description></item>
+            </list>
             </summary>
-            <remarks>
-            There are a few different reasons the expression could
-            have not been analyzed:
-                1) The symbol producing the expression comes from
-                   a method that has not been annotated, such as
-                   invoking a C# 7.3 or earlier method, or a
-                   method in this compilation that is in a disabled
-                   context.
-                2) Nullable is completely disabled in this
-                   compilation.
-            </remarks>
         </member>
         <member name="F:Microsoft.CodeAnalysis.NullableAnnotation.NotAnnotated">
             <summary>
@@ -29331,7 +29987,7 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.CheckedExplicitConversionName">
             <summary>
-            The name assigned to a chacked explicit (narrowing) conversion.
+            The name assigned to a checked explicit (narrowing) conversion.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.WellKnownMemberNames.AdditionOperatorName">
@@ -32575,6 +33231,13 @@
             The text encoding of the source document.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.SyntaxTree._sourceGeneratorInfo">
+            <summary>
+            Useful information about this tree that is stored for source-generator scenarios.  Allows the incremental
+            generation framework to compute and cache data once against a tree so it does not have to go back to source
+            for untouched trees when other trees in the compilation are modified.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.SyntaxTree.GetTextAsync(System.Threading.CancellationToken)">
             <summary>
             Gets the text of the source document asynchronously.
@@ -34553,6 +35216,12 @@
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod">
             <summary>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.GeneratorNameColumnHeader">
+            <summary>Generator</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.GeneratorTotalExecutionTime">
+            <summary>Total generator execution time: {0} seconds.</summary>
+        </member>
         <member name="M:Microsoft.DiaSymReader.IMetadataImport.ResolveTypeRef(System.Int32,System.Guid@,System.Object@,System.Int32@)">
             <summary>
             Resolves type reference.
@@ -35502,6 +36171,16 @@
         <member name="M:Microsoft.Cci.IFieldReference.GetType(Microsoft.CodeAnalysis.Emit.EmitContext)">
             <summary>
             The type of value that is stored in this field.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Cci.IFieldReference.RefCustomModifiers">
+            <summary>
+            The list of custom modifiers, if any, associated with the ref modifier. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.Cci.IFieldReference.IsByReference">
+            <summary>
+            True if the field contains a managed pointer.
             </summary>
         </member>
         <member name="M:Microsoft.Cci.IFieldReference.GetResolvedField(Microsoft.CodeAnalysis.Emit.EmitContext)">
@@ -36474,7 +37153,7 @@
         </member>
         <member name="M:Microsoft.Cci.MetadataWriter.WriteUtf8String(System.Reflection.Metadata.BlobBuilder,System.String)">
             <summary>
-            Write string as UTF8 with null terminator.
+            Write string as UTF-8 with null terminator.
             </summary>
         </member>
         <member name="M:Microsoft.Cci.MetadataWriter.AddRemainingDebugDocuments(System.Collections.Generic.IReadOnlyDictionary{System.String,Microsoft.Cci.DebugSourceDocument})">
@@ -36888,6 +37567,9 @@
             <summary>
             If true, the persisted type name is mangled by appending "`n" where n is the number of type parameters, if the number of type parameters is greater than 0.
             </summary>
+        </member>
+        <member name="P:Microsoft.Cci.INamedTypeReference.AssociatedFileIdentifier">
+            <summary>Indicates that the type is scoped to the file it is declared in. Used as a prefix for the metadata name.</summary>
         </member>
         <member name="T:Microsoft.Cci.INamedTypeDefinition">
             <summary>
@@ -38693,7 +39375,7 @@
         </member>
         <member name="F:Roslyn.Utilities.ObjectWriter.EncodingKind.StringUtf8">
             <summary>
-            A string encoded as UTF8 (using BinaryWriter.Write(string))
+            A string encoded as UTF-8 (using BinaryWriter.Write(string))
             </summary>
         </member>
         <member name="F:Roslyn.Utilities.ObjectWriter.EncodingKind.StringUtf16">
@@ -39062,6 +39744,21 @@
             iterations themselves. Performance-sensitive code should avoid the use of heavy parallelization APIs except
             for known entry points to the parallel portion of code.</para>
             </remarks>
+        </member>
+        <member name="T:CompilationExtension.ProcessCompilationBase">
+            <summary>
+            To hook into the compilation process: <br/>
+            1. Extend this class. <br/>
+            2. Add <see cref="T:Microsoft.CodeAnalysis.GeneratorAttribute"/> attribute to that class. <br/>
+            3. Compile the dll.<br/>
+            4. Reference that dll as an `analyzer` in the project that needs this compiler extension
+            (https://docs.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/source-generators-overview).
+            </summary>
+        </member>
+        <member name="M:CompilationExtension.ProcessCompilationBase.process(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ISourceGenerator},System.String,System.Boolean)">
+            <summary>
+            Process compiler extension.
+            </summary>
         </member>
         <member name="T:System.Runtime.CompilerServices.InternalImplementationOnlyAttribute">
             <summary>
