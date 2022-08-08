@@ -27,6 +27,7 @@
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
               <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
+              <li>${returnType} - resolved return type of the invoked method.</li>
             </ul>
         </member>
         <member name="T:GenerationAttributes.StatementMethodMacro">
@@ -50,6 +51,7 @@
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
               <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
+              <li>${returnType} - resolved return type of the invoked method.</li>
             </ul>
         </member>
         <member name="T:GenerationAttributes.VarMethodMacro">
@@ -86,6 +88,7 @@
                <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
                <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
                <li>${argumentName} - refers to argument named 'argumentName'</li>
+               <li>${returnType} - resolved return type of the invoked method.</li>
              </ul>
         </member>
         <member name="T:GenerationAttributes.CompilationErrorMethodMacroAttribute">
