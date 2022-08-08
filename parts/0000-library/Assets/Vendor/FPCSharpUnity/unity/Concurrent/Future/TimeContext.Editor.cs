@@ -9,7 +9,7 @@ using FPCSharpUnity.core.log;
 using UnityEditor;
 
 namespace FPCSharpUnity.unity.Concurrent {
-  [Singleton, PublicAPI] public sealed partial class EditorTimeContext : ITimeContext {
+  [Singleton, PublicAPI] public sealed partial class EditorTimeContext : ITimeContextUnity {
     [LazyProperty] static ILog log => Log.d.withScope(nameof(EditorTimeContext));
     
     public TimeSpan passedSinceStartup => TimeSpan.FromSeconds(EditorApplication.timeSinceStartup);

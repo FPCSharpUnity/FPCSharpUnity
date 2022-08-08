@@ -34,7 +34,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
     }
 
-    public static ITimeContext asContext(this TimeScale ts) =>
+    public static ITimeContextUnity asContext(this TimeScale ts) =>
       ts switch {
         TimeScale.Realtime => TimeContext.realTime,
         TimeScale.Unity => TimeContext.playMode,

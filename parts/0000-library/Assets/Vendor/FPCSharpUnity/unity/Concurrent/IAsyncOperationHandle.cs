@@ -110,7 +110,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <param name="retryInterval"></param>
     /// <param name="timeContext"></param>
     public static IAsyncOperationHandle<A> withRetries<A>(
-      Func<IAsyncOperationHandle<A>> launch, Option<uint> tryCount, Duration retryInterval, ITimeContext timeContext
+      Func<IAsyncOperationHandle<A>> launch, Option<uint> tryCount, Duration retryInterval, ITimeContextUnity timeContext
     ) => new RetryingAsyncOperationHandle<A>(launch, tryCount, retryInterval, timeContext);
   }
   
@@ -355,7 +355,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     readonly Func<IAsyncOperationHandle<A>> launchRaw;
     readonly Option<uint> tryCount;
     readonly Duration retryInterval;
-    readonly ITimeContext timeContext;
+    readonly ITimeContextUnity timeContext;
     readonly Future<IAsyncOperationHandle<A>> finalHandleFuture;
     readonly Promise<IAsyncOperationHandle<A>> finalHandlePromise;
 
@@ -365,7 +365,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     IDisposable currentRetryWait = F.emptyDisposable;
 
     public RetryingAsyncOperationHandle(
-      Func<IAsyncOperationHandle<A>> launch, Option<uint> tryCount, Duration retryInterval, ITimeContext timeContext
+      Func<IAsyncOperationHandle<A>> launch, Option<uint> tryCount, Duration retryInterval, ITimeContextUnity timeContext
     ) {
       launchRaw = launch;
       this.tryCount = tryCount;

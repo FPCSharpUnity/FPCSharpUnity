@@ -10,10 +10,10 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
   [PublicAPI] public static class TimeContextExts {
-    public static ITimeContext orDefault(this ITimeContext tc) => tc ?? TimeContext.DEFAULT;
+    public static ITimeContextUnity orDefault(this ITimeContextUnity tc) => tc ?? TimeContext.DEFAULT;
   }
 
-  public class RealTimeButPauseWhenAdIsShowing : ITimeContext {
+  public class RealTimeButPauseWhenAdIsShowing : ITimeContextUnity {
     public static readonly RealTimeButPauseWhenAdIsShowing instance = new();
 
     readonly IRxRef<bool> externalPause;
@@ -69,19 +69,19 @@ namespace FPCSharpUnity.unity.Concurrent {
       fixedTime = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.fixedTime)),
       realTime = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.realtimeSinceStartup));
     
-    public static readonly ITimeContext
+    public static readonly ITimeContextUnity
       DEFAULT = playMode,
       realTimeButPauseWhenAdIsShowing = RealTimeButPauseWhenAdIsShowing.instance;
     
 #if UNITY_EDITOR
-    public static ITimeContext editor => EditorTimeContext.instance;
+    public static ITimeContextUnity editor => EditorTimeContext.instance;
 #endif
   }
 
   /// <summary>
   /// Time context that depends on a <see cref="MonoBehaviour"/> to measure time.
   /// </summary>
-  public class MonoBehaviourTimeContext : ITimeContext {
+  public class MonoBehaviourTimeContext : ITimeContextUnity {
     readonly Func<Duration> _passedSinceStartup;
     readonly MonoBehaviour maybeBehaviour;
 

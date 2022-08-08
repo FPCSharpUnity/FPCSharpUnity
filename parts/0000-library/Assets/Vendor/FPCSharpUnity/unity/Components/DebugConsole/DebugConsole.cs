@@ -209,7 +209,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
     public static IRxObservable<DebugSequenceInvocationMethod> createDebugSequenceObservable(
       ITracker tracker,
-      ITimeContext timeContext = null,
+      ITimeContextUnity timeContext = null,
       DebugSequenceMouseData mouseData = null,
       Option<DebugSequenceDirectionData> directionDataOpt = default, 
       Option<KeyCodeWithModifiers> keyboardShortcutOpt = default,

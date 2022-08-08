@@ -16,10 +16,10 @@ namespace FPCSharpUnity.unity.Extensions {
     public static IRxObservable<UIDownUpForwarder.OnUpData> uiUp(this GameObject go) => go.EnsureComponent<UIDownUpForwarder>().onUp;
 
     /// <summary>
-    /// Returns the <see cref="TimeSpan"/> (which is calculated from <see cref="ITimeContext"/>) between the down
+    /// Returns the <see cref="TimeSpan"/> (which is calculated from <see cref="ITimeContextUnity"/>) between the down
     /// event and up event.
     /// </summary>
-    public static IRxObservable<UIDownUpResult> uiDownUp(this GameObject go, ITimeContext timeContext) {
+    public static IRxObservable<UIDownUpResult> uiDownUp(this GameObject go, ITimeContextUnity timeContext) {
       TimeSpan downMapper(PointerEventData pointerEventData) => timeContext.passedSinceStartup;
       (TimeSpan at, UIDownUpForwarder.OnUpData data) upMapper(UIDownUpForwarder.OnUpData pointerEventData) =>
         (timeContext.passedSinceStartup, pointerEventData);

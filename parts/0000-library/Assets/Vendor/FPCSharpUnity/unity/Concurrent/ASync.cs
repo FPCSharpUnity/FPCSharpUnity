@@ -82,7 +82,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     ) => WithDelay(duration, action, timeScale.asContext(), behaviour);
 
     public static ICoroutine WithDelay(
-      Duration duration, Action action, ITimeContext timeContext,
+      Duration duration, Action action, ITimeContextUnity timeContext,
       MonoBehaviour behaviour = null
     ) {
       behaviour = behaviour ? behaviour : ASync.behaviour;
@@ -271,7 +271,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     }
 
     public static IEnumerator WithDelayEnumerator(
-      Duration duration, Action action, ITimeContext timeContext
+      Duration duration, Action action, ITimeContextUnity timeContext
     ) {
       if (timeContext == TimeContext.playMode) {
         // WaitForSeconds is optimized Unity in native code
