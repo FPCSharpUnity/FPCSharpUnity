@@ -14,6 +14,9 @@ namespace FPCSharpUnity.unity.Concurrent {
     
     public TimeSpan passedSinceStartup => TimeSpan.FromSeconds(EditorApplication.timeSinceStartup);
     
+    IDisposable ITimeContext.after(TimeSpan duration, Action act, string name) => 
+      after(duration, act, name);
+
     public ICoroutine after(TimeSpan duration, Action act, string name = null) => 
       new EditorCoroutine(duration, act, name ?? "unnamed");
 

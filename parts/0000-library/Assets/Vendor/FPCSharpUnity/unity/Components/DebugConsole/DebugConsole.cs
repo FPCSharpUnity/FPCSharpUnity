@@ -100,7 +100,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       r.register("Run GC", GC.Collect);
       r.register("Self-test", () => "self-test");
       r.register(
-        "Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContext.unscaledTime)
+        "Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContextU.unscaledTime)
       );
       
       void clearVisibleLog() {
@@ -210,18 +210,18 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     public static IRxObservable<DebugSequenceInvocationMethod> createDebugSequenceObservable(
       ITracker tracker,
       ITimeContextUnity timeContext = null,
-      DebugSequenceMouseData mouseData = null,
+      Option<DebugSequenceMouseData> mouseDataOpt = default,
       Option<DebugSequenceDirectionData> directionDataOpt = default, 
       Option<KeyCodeWithModifiers> keyboardShortcutOpt = default,
       [CallerMemberName] string callerMemberName = "",
       [CallerFilePath] string callerFilePath = "",
       [CallerLineNumber] int callerLineNumber = 0
     ) {
-      mouseData ??= DEFAULT_MOUSE_DATA;
-      timeContext ??= TimeContext.DEFAULT;
+      timeContext ??= TimeContextU.DEFAULT;
 
-      var mouseObs =
-        new RegionClickObservable(mouseData.width, mouseData.height)
+      var mouseObs = mouseDataOpt.fold(
+        Observable<DebugSequenceInvocationMethod>.empty, 
+        mouseData => new RegionClickObservable(mouseData.width, mouseData.height)
           .sequenceWithinTimeframe(
             tracker, mouseData.sequence, 3,
             // ReSharper disable ExplicitCallerInfoArgument
@@ -230,7 +230,8 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
             callerLineNumber: callerLineNumber
             // ReSharper restore ExplicitCallerInfoArgument
           )
-          .map(_ => DebugSequenceInvocationMethod.Mouse);
+          .map(_ => DebugSequenceInvocationMethod.Mouse)
+      );
 
       var directionObs = directionDataOpt.fold(
         Observable<DebugSequenceInvocationMethod>.empty,
