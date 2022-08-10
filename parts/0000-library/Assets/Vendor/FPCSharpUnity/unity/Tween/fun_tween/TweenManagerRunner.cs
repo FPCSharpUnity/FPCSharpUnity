@@ -17,6 +17,14 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
   /// </summary>
   [AddComponentMenu("")]
   public partial class TweenManagerRunner : MonoBehaviour, IMB_Update, IMB_FixedUpdate, IMB_LateUpdate {
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void reset() {
+      // Sometimes it gets created in the editor when exiting play mode.
+      // Reset the state, so it will not be broken next time we press play.
+      _instance = null;
+    }
+    
     static TweenManagerRunner _instance;
     [PublicAPI] public static TweenManagerRunner instance {
       get {
