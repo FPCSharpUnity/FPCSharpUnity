@@ -1,0 +1,61 @@
+<Project InitialTargets="LogStuff" >
+
+    <!-- 
+        Usage: <Inlude> this file at the end of your .csproj file, after all <Analyzer> tags.
+        You also need to define CompilerDir and ExtensionsDir varibles before including this file.
+    -->
+
+    <Target Name="LogStuff">
+        <Message Text="Analyzers: @(Analyzer)" />
+        <Message Text="CustomAdditionalCompileInputs: @(CustomAdditionalCompileInputs)" />
+    </Target>
+
+<!--  Start Compiler integration  -->
+    <PropertyGroup>
+        <!-- Specify where the C# compiler is. -->
+        <CscToolPath>$(CompilerDir)</CscToolPath>
+        <!-- 
+            Specify how to invoke the C# compiler.
+            csc_shared.bat file runs the same csc.dll file and adds -shared compiler option.
+            -shared option runs compiler server.
+         -->
+        <CscToolExe Condition="$(OS) == Windows_NT">csc_shared.bat</CscToolExe>
+        <CscToolExe Condition="$(OS) == Unix">csc_shared.sh</CscToolExe>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!--  Do not link generated files automatically  -->
+        <Compile Remove="generated-by-compiler\**" />
+
+        <!--  Reference compiler attributes  -->
+        <Reference Include="GenerationAttributes">
+            <HintPath>$(ExtensionsDir)\GenerationAttributes.dll</HintPath>
+        </Reference>
+        <Reference Include="Macros">
+            <HintPath>$(ExtensionsDir)\Macros.dll</HintPath>
+        </Reference>
+
+        <!--  Reference CompilationExtensionCodeGenerator and all its dependencies  -->
+        <Analyzer Include="$(ExtensionsDir)\CompilationExtensionCodeGenerator.dll" />
+        <Analyzer Include="$(ExtensionsDir)\CodeGenerator.dll" />
+        <Analyzer Include="$(ExtensionsDir)\Macros.dll" />
+        <Analyzer Include="$(ExtensionsDir)\GenerationAttributes.dll" />
+        <Analyzer Include="$(ExtensionsDir)\GenerationAttributes.Java.dll" />
+        <Analyzer Include="$(ExtensionsDir)\Scriban.dll" />
+        <Analyzer Include="$(ExtensionsDir)\Soltys.ChangeCase.dll" />
+
+        <!--  
+            Add all analyzer dlls as dependencies that couse recompilation.
+            Make sure this is evaluated after all <Analyzer> tags.
+        -->
+        <CustomAdditionalCompileInputs Include="@(Analyzer)" />
+    </ItemGroup>
+
+    <!--  Correctly link generated .partials.cs and .transformed.cs files  -->
+    <Import 
+        Project="$(MSBuildProjectDirectory)\generated-by-compiler\$(AssemblyName).targets" 
+        Condition="Exists('$(MSBuildProjectDirectory)\generated-by-compiler\$(AssemblyName).targets')" 
+    />
+<!--  End Compiler integration  -->
+
+</Project>
