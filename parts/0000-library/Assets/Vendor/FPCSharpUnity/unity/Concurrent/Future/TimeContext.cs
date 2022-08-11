@@ -10,10 +10,10 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
   [PublicAPI] public static class TimeContextExts {
-    public static ITimeContext orDefault(this ITimeContext tc) => tc ?? TimeContext.DEFAULT;
+    public static ITimeContextUnity orDefault(this ITimeContextUnity tc) => tc ?? TimeContextU.DEFAULT;
   }
 
-  public class RealTimeButPauseWhenAdIsShowing : ITimeContext {
+  public class RealTimeButPauseWhenAdIsShowing : ITimeContextUnity {
     public static readonly RealTimeButPauseWhenAdIsShowing instance = new();
 
     readonly IRxRef<bool> externalPause;
@@ -58,30 +58,34 @@ namespace FPCSharpUnity.unity.Concurrent {
     public void setPaused(bool paused) => externalPause.value = paused;
 
     public TimeSpan passedSinceStartup => Duration.fromSeconds(passed);
+    
+    IDisposable ITimeContext.after(TimeSpan duration, Action act, string name) => 
+      after(duration, act, name);
+
     public ICoroutine after(TimeSpan duration, Action act, string name = null) =>
       ASync.WithDelay(duration, act, timeContext: this);
   }
 
-  public static class TimeContext {
+  public static class TimeContextU {
     public static readonly MonoBehaviourTimeContext
       playMode = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.time)),
       unscaledTime = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.unscaledTime)),
       fixedTime = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.fixedTime)),
       realTime = new MonoBehaviourTimeContext(() => Duration.fromSeconds(Time.realtimeSinceStartup));
     
-    public static readonly ITimeContext
+    public static readonly ITimeContextUnity
       DEFAULT = playMode,
       realTimeButPauseWhenAdIsShowing = RealTimeButPauseWhenAdIsShowing.instance;
     
 #if UNITY_EDITOR
-    public static ITimeContext editor => EditorTimeContext.instance;
+    public static ITimeContextUnity editor => EditorTimeContext.instance;
 #endif
   }
 
   /// <summary>
   /// Time context that depends on a <see cref="MonoBehaviour"/> to measure time.
   /// </summary>
-  public class MonoBehaviourTimeContext : ITimeContext {
+  public class MonoBehaviourTimeContext : ITimeContextUnity {
     readonly Func<Duration> _passedSinceStartup;
     readonly MonoBehaviour maybeBehaviour;
 
@@ -94,6 +98,9 @@ namespace FPCSharpUnity.unity.Concurrent {
       new MonoBehaviourTimeContext(_passedSinceStartup, behaviour);
 
     public TimeSpan passedSinceStartup => _passedSinceStartup();
+    
+    IDisposable ITimeContext.after(TimeSpan duration, Action act, string name) => 
+      after(duration, act, name);
 
     public ICoroutine after(TimeSpan duration, Action act, string name) =>
       ASync.WithDelay(duration, act, behaviour: maybeBehaviour, timeContext: this);

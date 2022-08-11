@@ -34,12 +34,12 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
     }
 
-    public static ITimeContext asContext(this TimeScale ts) =>
+    public static ITimeContextUnity asContext(this TimeScale ts) =>
       ts switch {
-        TimeScale.Realtime => TimeContext.realTime,
-        TimeScale.Unity => TimeContext.playMode,
-        TimeScale.FixedTime => TimeContext.fixedTime,
-        TimeScale.UnscaledTime => TimeContext.unscaledTime,
+        TimeScale.Realtime => TimeContextU.realTime,
+        TimeScale.Unity => TimeContextU.playMode,
+        TimeScale.FixedTime => TimeContextU.fixedTime,
+        TimeScale.UnscaledTime => TimeContextU.unscaledTime,
         _ => throw new ArgumentOutOfRangeException(nameof(ts), ts, null)
       };
   }
