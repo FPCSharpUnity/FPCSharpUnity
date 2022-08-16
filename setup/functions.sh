@@ -17,7 +17,7 @@ notif() {
   if [[ "$CI" != "" ]]; then
     echo "Running on CI, not asking for permission."
   else
-    echo "Press any key to continue or ctrl+c to abort."
+    echo "Press ENTER to continue or CTRL+C to abort."
     read
   fi
 }
