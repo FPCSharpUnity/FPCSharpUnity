@@ -15,14 +15,14 @@ namespace FPCSharpUnity.unity.Concurrent {
     setValue(end);
   */
   public struct CoroutineInterval {
-    readonly ITimeContext timeContext;
+    readonly ITimeContextUnity timeContext;
     readonly Duration startTime, endTime;
     readonly bool alwaysFinish;
 
     public CoroutineInterval(Duration duration, TimeScale timeScale = TimeScale.Unity, bool alwaysFinish = true)
       : this(duration, timeScale.asContext(), alwaysFinish) {}
 
-    public CoroutineInterval(Duration duration, ITimeContext timeContext, bool alwaysFinish = true) {
+    public CoroutineInterval(Duration duration, ITimeContextUnity timeContext, bool alwaysFinish = true) {
       this.timeContext = timeContext;
       startTime = timeContext.passedSinceStartup;
       endTime = startTime + duration;

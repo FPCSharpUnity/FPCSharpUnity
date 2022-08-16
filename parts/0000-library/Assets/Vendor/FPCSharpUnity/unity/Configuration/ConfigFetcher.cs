@@ -96,7 +96,7 @@ namespace FPCSharpUnity.unity.Configuration {
 
     public static Tpl<UrlWithContext, Future<Either<ConfigFetchError, WWWWithHeaders>>> withTimeout(
       this Tpl<UrlWithContext, Future<Either<ConfigFetchError, WWWWithHeaders>>> tpl,
-      Duration timeout, ITimeContext timeContext
+      Duration timeout, ITimeContextUnity timeContext
     ) =>
       tpl.map2((urls, future) =>
         future
