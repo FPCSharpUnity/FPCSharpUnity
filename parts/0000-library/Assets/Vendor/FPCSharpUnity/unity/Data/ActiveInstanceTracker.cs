@@ -11,13 +11,13 @@ namespace FPCSharpUnity.unity.Data {
   /// When you need to know about all the instances of a particular type in the scene the
   /// best way is for them to notify you about their appearance via
   /// <see cref="IMB_OnEnable"/> and <see cref="IMB_OnDisable"/> callbacks.
-  /// 
+  /// <para/>
   /// However usually upon those callbacks you want to run some code. And if the "manager"
   /// that you want to invoke is not there yet, you have a problem.
-  /// 
+  /// <para/>
   /// By using this class, you can always run code for the active instances by using <see cref="track"/>
   /// when you create the manager.
-  /// 
+  /// <para/>
   /// This way it does not matter whether the manager or the instances are first initialized.
   /// </summary>
   public class ActiveInstanceTracker<A> {
