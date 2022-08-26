@@ -93,6 +93,8 @@ namespace FPCSharpUnity.unity.Data {
       public int GetHashCode(Duration obj) => obj.GetHashCode();
       public CompareResult compare(Duration a1, Duration a2) => comparable.Compare(a1, a2).asCmpRes();
       public int Compare(Duration x, Duration y) => compare(x, y).asInt();
+
+      Option<Duration> MaybeSubtractable<Duration>.subtract(Duration a1, Duration a2) => Some.a(subtract(a1, a2));
     }
 
     [NonSerialized]

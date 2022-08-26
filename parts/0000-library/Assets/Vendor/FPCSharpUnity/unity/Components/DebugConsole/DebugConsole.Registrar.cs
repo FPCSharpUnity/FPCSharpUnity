@@ -123,12 +123,14 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
 
     public void registerNumeric<A>(
-      string name, Ref<A> a, PlusMinus<A> num, A step,
+      string name, Ref<A> a, PlusMaybeMinus<A> num, A step,
       ImmutableList<A> quickSetValues = null, Func<bool> canShow = null
     ) {
       register($"{name}?", () => a.value, canShow: canShow);
       register($"{name} += {step}", () => a.value = num.add(a.value, step), canShow: canShow);
-      register($"{name} -= {step}", () => a.value = num.subtract(a.value, step), canShow: canShow);
+      register($"{name} -= {step}", () => {
+        if (num.subtract(a.value, step).valueOut(out var newValue)) a.value = newValue;
+      }, canShow: canShow);
       if (quickSetValues != null) {
         foreach (var value in quickSetValues)
           register($"{name} = {value}", () => a.value = value, canShow: canShow);
@@ -142,7 +144,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       registerNumeric(name, a, num, num.fromInt(1), quickSetValues, canShow: canShow);
 
     public void registerNumericOpt<A>(
-      string name, Ref<Option<A>> aOpt, A showOnNone, Numeric<A> num,
+      string name, Ref<Option<A>> aOpt, A showOnNone, PlusMaybeMinus<A> plusMinus, A step,
       ImmutableList<A> quickSetValues = null, Func<bool> canShow = null
     ) {
       register($"Clear {name}", () => aOpt.value = None._, canShow: canShow);
@@ -151,9 +153,14 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         name, Ref.a(
           () => aOpt.value.getOrElse(showOnNone),
           v => aOpt.value = v.some()
-        ), num, quickSetValues, canShow: canShow
+        ), plusMinus, step, quickSetValues, canShow: canShow
       );
     }
+
+    public void registerNumericOpt<A>(
+      string name, Ref<Option<A>> aOpt, A showOnNone, Numeric<A> num,
+      ImmutableList<A> quickSetValues = null, Func<bool> canShow = null
+    ) => registerNumericOpt(name, aOpt, showOnNone, num, num.fromInt(1), quickSetValues, canShow);
 
     public void registerCountdown(
       string name, uint count, Action run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null

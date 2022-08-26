@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FPCSharpUnity.core.functional;
 using GenerationAttributes;
 using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
@@ -23,6 +24,8 @@ namespace FPCSharpUnity.unity.Data {
       public int GetHashCode(Price obj) => obj.GetHashCode();
       public CompareResult compare(Price a1, Price a2) => Compare(a1, a2).asCmpRes();
       public int Compare(Price x, Price y) => x.cents.CompareTo(y.cents);
+
+      Option<Price> MaybeSubtractable<Price>.subtract(Price a1, Price a2) => Some.a(subtract(a1, a2));
     }
   }
 }
