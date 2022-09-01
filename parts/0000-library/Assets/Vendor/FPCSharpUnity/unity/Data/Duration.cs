@@ -99,7 +99,7 @@ namespace FPCSharpUnity.unity.Data {
 
     [NonSerialized]
     public static readonly IComparer<Duration> comparable =
-      Comparable.long_.comap((Duration d) => d.millis);
+      Comparable.long_.map((Duration d) => d.millis);
 
     [NonSerialized]
     public static readonly ISerializedRW<Duration> serializedRW =
