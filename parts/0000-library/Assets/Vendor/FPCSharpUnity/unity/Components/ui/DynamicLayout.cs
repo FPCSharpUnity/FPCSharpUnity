@@ -426,6 +426,37 @@ namespace FPCSharpUnity.unity.Components.ui {
         return result;
       }
       
+      /// <summary>
+      /// Finds currently visible item by type.
+      /// </summary>
+      /// <param name="predicate">Filter to check if item is the one we need.</param>
+      /// <typeparam name="DataType">Item's data type.</typeparam>
+      /// <typeparam name="ViewType">Item's view type.</typeparam>
+      /// <returns></returns>
+      public Option<ViewType> findVisibleItem<DataType, ViewType>(Func<DataType, bool> predicate) 
+        where DataType : IElementData 
+        where ViewType : IElementView
+      {
+        var result = Option<ViewType>.None;
+        updateForEachElement(
+          predicate, 
+          (dataGeneric, isVisible, cellRect, predicate_) => {
+            if (
+              result.isNone 
+              && isVisible
+              && dataGeneric.downcast(default(DataType)).valueOut(out var data) 
+              && predicate_(data)
+              && _items.TryGetValue(dataGeneric, out var maybeNonSpacerView)
+              && maybeNonSpacerView.valueOut(out var view)
+            ) {
+              result = view.downcast(default(ViewType));
+            }
+          }, 
+          out _
+        );
+        return result;
+      }
+      
       public delegate void UpdateForEachElementAction<in Data>(
         IElementData elementData, bool placementVisible, Rect cellRect, Data data
       );
