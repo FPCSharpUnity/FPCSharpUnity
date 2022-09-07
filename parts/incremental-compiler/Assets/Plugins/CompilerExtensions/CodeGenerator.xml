@@ -4,7 +4,7 @@
         <name>CodeGenerator</name>
     </assembly>
     <members>
-        <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Collections.Generic.List{Microsoft.CodeAnalysis.Diagnostic},System.Collections.Concurrent.ConcurrentBag{IncrementalCompiler.CodeGeneration.IGenerationResult},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
+        <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Collections.Generic.List{Microsoft.CodeAnalysis.Diagnostic},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
              <summary>
             
              </summary>
@@ -58,7 +58,7 @@
         </member>
         <member name="T:IncrementalCompiler.GeneratorCtx">
             <summary>
-            This class is instantiated per file.
+            This class is instantiated per C# file.
             </summary>
         </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addNewTypeMember(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax)">

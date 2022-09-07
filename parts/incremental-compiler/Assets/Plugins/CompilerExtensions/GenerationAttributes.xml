@@ -71,7 +71,7 @@
         <member name="F:GenerationAttributes.RecordFieldType.Reference">
             <summary> Marked field type is a reference type. </summary>
         </member>
-        <member name="T:GenerationAttributes.AttributeMacro">
+        <member name="T:GenerationAttributes.AttributeMacroAttribute">
              <summary>
              Add this AttributeMacro attribute on your own custom attribute.
              Then your custom attribute when used on a type definition (class, struct or enum) will generate new type members.
@@ -248,7 +248,13 @@
              </ul>
              </summary>
         </member>
-        <member name="F:GenerationAttributes.AttributeMacro.StrictVariables">
+        <member name="T:GenerationAttributes.MacroAttribute">
+            <summary>
+            Similar to <see cref="T:GenerationAttributes.AttributeMacroAttribute"/>, but this can be used directly on the target, without creating an
+            attribute. Use this if you want to write a macro that is needed only once.
+            </summary>
+        </member>
+        <member name="P:GenerationAttributes.IMacroAttribute.StrictVariables">
             <summary>
             If set to true, any variables that were not found during variable resolution will throw a ScriptRuntimeException
             </summary>
@@ -272,7 +278,7 @@
             </summary>
         </member>
         <member name="T:GenerationAttributes.Consts">
-            <inheritdoc cref="T:GenerationAttributes.AttributeMacro"/>
+            <inheritdoc cref="T:GenerationAttributes.AttributeMacroAttribute"/>
         </member>
         <member name="F:GenerationAttributes.Consts.UNUSED_NAME">
             <summary>
