@@ -120,5 +120,10 @@
         <member name="M:IncrementalCompiler.MacroProcessorImplicits.AfterCheckAttributes(System.Action{System.String})">
             <returns>Added implicit parameters to passthrough methods.</returns>
         </member>
+        <member name="M:CodeGenerator.TypeInMacrosExts.toSymbol(GenerationAttributes.TypeInMacros)">
+            <summary>
+            This cast should always succeed. See <see cref="T:GenerationAttributes.TypeInMacros"/>.
+            </summary>
+        </member>
     </members>
 </doc>
