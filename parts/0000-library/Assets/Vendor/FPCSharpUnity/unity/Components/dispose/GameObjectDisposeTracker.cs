@@ -10,25 +10,71 @@ using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.reactive;
+using FPCSharpUnity.unity.Concurrent;
+using FPCSharpUnity.unity.Dispose;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.dispose {
-  public class GameObjectDisposeTracker : MonoBehaviour, IMB_OnDestroy, IDisposableTracker {
+  /// <summary>
+  /// <see cref="IDisposableTracker"/> that gets disposed when the <see cref="GameObject"/> is destroyed. It works
+  /// correctly even if the <see cref="GameObject"/> was never enabled.
+  /// </summary>
+  public class GameObjectDisposeTracker : MonoBehaviour, IMB_OnDestroy, IDisposableTracker, IMB_Awake {
     [LazyProperty] static ILog log => Log.d.withScope(nameof(GameObjectDisposeTracker));
+
+    /// <summary>
+    /// List of <see cref="GameObjectDisposeTracker"/> which were created, but <see cref="Awake"/> was not called on
+    /// them yet.
+    /// </summary>
+    static readonly List<GameObjectDisposeTracker> trackersWaitingForAwake = new();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void init() {
+      ASync.onUpdate.subscribe(NeverDisposeDisposableTracker.instance, _ => {
+        // OnDestroy only gets called on a Component only if Awake was called first. This code ensures that Dispose gets
+        // called when the GameObject is destroyed, even if Awake was never called.
+        for (var i = 0; i < trackersWaitingForAwake.Count; i++) {
+          var current = trackersWaitingForAwake[i];
+          if (!current) {
+            // Tracker Component was destroyed before Awake was called on it. So we need to call dispose here manually.
+            trackersWaitingForAwake.removeAtReplacingWithLast(i);
+            current.Dispose();
+          }
+          else if (current.awakeCalled) {
+            // Awake was called. That means OnDestroy will work on this tracker Component. Don't need to check it on
+            // update anymore.
+            trackersWaitingForAwake.removeAtReplacingWithLast(i);
+          }
+        }
+      });
+    }
+
+    /// <summary>
+    /// Tracks if <see cref="Awake"/> was called on this component.
+    /// </summary>
+    bool awakeCalled;
 
     readonly LazyVal<DisposableTracker> tracker;
     public int trackedCount => tracker.strict.trackedCount;
     public IEnumerable<TrackedDisposable> trackedDisposables => tracker.strict.trackedDisposables;
 
     public GameObjectDisposeTracker() {
-      tracker = F.lazy(() => new DisposableTracker(
-        log,
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerFilePath: Log.d.isDebug() ? gameObject.transform.debugPath() : gameObject.name,
-        callerMemberName: nameof(GameObjectDisposeTracker),
-        callerLineNumber: -1
-        // ReSharper restore ExplicitCallerInfoArgument
-      ));
+      tracker = F.lazy(() => {
+        if (!awakeCalled) trackersWaitingForAwake.Add(this);
+        return new DisposableTracker(
+          log,
+          // ReSharper disable ExplicitCallerInfoArgument
+          callerFilePath: Log.d.isDebug() ? gameObject.transform.debugPath() : gameObject.name,
+          callerMemberName: nameof(GameObjectDisposeTracker),
+          callerLineNumber: -1
+          // ReSharper restore ExplicitCallerInfoArgument
+        );
+      });
+    }
+    
+    public void Awake() {
+      awakeCalled = true;
     }
 
     public void OnDestroy() => Dispose();
@@ -54,29 +100,8 @@ namespace FPCSharpUnity.unity.Components.dispose {
   }
 
   public static class GameObjectDisposeTrackerOps {
-    [Obsolete(
-      "Unity does not invoke OnDestroy() if Awake() on the object was not previously invoked.\n" +
-      "This can lead to a disposable tracker never being disposed of.\n" +
-      "\n" +
-      "Instead of using this please create a tracker manually and use/dispose of it yourself.\n" +
-      "\n" +
-      "https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnDestroy.html"
-    )]
+    /// <inheritdoc cref="GameObjectDisposeTracker"/>
     public static IDisposableTracker asDisposableTracker(this GameObject o) =>
-      // If we're not in the play mode we don't want to instantiate any components.
-      Application.isPlaying ? o.EnsureComponent<GameObjectDisposeTracker>() : NoOpDisposableTracker.instance;
-    
-    /// <summary>
-    /// As <see cref="asDisposableTracker"/> but you are only supposed to invoke this from <see cref="IMB_Awake"/>.
-    /// </summary>
-    public static IDisposableTracker asDisposableTrackerFromAwake(this GameObject o) =>
-      // If we're not in the play mode we don't want to instantiate any components.
-      Application.isPlaying ? o.EnsureComponent<GameObjectDisposeTracker>() : NoOpDisposableTracker.instance;
-    
-    /// <summary>
-    /// As <see cref="asDisposableTracker"/> but you are only supposed to invoke this from <see cref="IMB_Start"/>.
-    /// </summary>
-    public static IDisposableTracker asDisposableTrackerFromStart(this GameObject o) =>
       // If we're not in the play mode we don't want to instantiate any components.
       Application.isPlaying ? o.EnsureComponent<GameObjectDisposeTracker>() : NoOpDisposableTracker.instance;
   }
