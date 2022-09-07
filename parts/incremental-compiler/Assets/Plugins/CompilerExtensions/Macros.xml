@@ -161,5 +161,18 @@
             <code>sampleMethod.localFunc.nestedLocalFunc</code>
             </example>
         </member>
+        <member name="T:GenerationAttributes.TypeInMacros">
+            <summary>
+            When we want to use fields of type <see cref="T:System.Type"/> in macro attribute definitions, we need to use
+            <see cref="T:System.Object"/> type instead.
+            <br/>
+            It is like that, because compiler creates an instance of the attribute object (so it can run the constructor
+            code). But the compiler sees <see cref="T:System.Type"/> parameters as `ITypeSymbol` and can't cast that to
+            <see cref="T:System.Type"/>.
+            <para/>
+            <see cref="T:System.Object"/> type is the common type for both: <see cref="T:System.Type"/> and `ITypeSymbol`. And, unfortunately,
+            we can not reference `ITypeSymbol` from this assembly, as that is a type that comes from the compiler assembly.
+            </summary>
+        </member>
     </members>
 </doc>
