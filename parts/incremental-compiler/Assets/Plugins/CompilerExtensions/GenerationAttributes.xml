@@ -38,7 +38,7 @@
         <member name="F:GenerationAttributes.ConstructorFlags.All">
             <summary> Generates basic constructor, `copy` extension, `with` extensions and `apply` constrictor </summary>
         </member>
-        <member name="P:GenerationAttributes.RecordAttribute.ExcludeNames">
+        <member name="F:GenerationAttributes.RecordGenerationSettings.excludeNames">
             <summary>
             Array of names (field names and property names) to exclude from the generated Record code.
             <br/>
@@ -48,6 +48,23 @@
             Excluded names will not be used anywhere: constructor, ToString, GetHashCode, comparer, etc...
             <para/>
             Alternatively, you can use <see cref="T:GenerationAttributes.RecordExcludeAttribute"/> instead of this array.
+            </summary>
+        </member>
+        <member name="P:GenerationAttributes.RecordAttribute.ExcludeNames">
+            <inheritdoc cref="F:GenerationAttributes.RecordGenerationSettings.excludeNames"/>
+        </member>
+        <member name="T:GenerationAttributes.GenConstructorAttribute">
+            <summary>
+            Generates constructor using the same rules that <see cref="T:GenerationAttributes.RecordAttribute"/> uses.
+            <para/>
+            You can use <see cref="T:GenerationAttributes.RecordExcludeAttribute"/> to exclude the some fields or properties.
+            </summary>
+        </member>
+        <member name="T:GenerationAttributes.GenToStringAttribute">
+            <summary>
+            Generates ToString method using the same rules that <see cref="T:GenerationAttributes.RecordAttribute"/> uses.
+            <para/>
+            You can use <see cref="T:GenerationAttributes.RecordExcludeAttribute"/> to exclude the some fields or properties.
             </summary>
         </member>
         <member name="T:GenerationAttributes.RecordExcludeAttribute">
