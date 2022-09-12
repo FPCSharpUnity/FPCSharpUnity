@@ -807,6 +807,16 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
                   unityTags, customObjectValidatorOpt, fieldHierarchy, uniqueValuesCache
                 );
               }
+              
+              if (field.type.type.IsEnum && !field.type.type.hasAttribute<FlagsAttribute>()) {
+                if (!field.type.type.IsEnumDefined(fieldValue)) {
+                  addError(() => createError.custom(
+                    fieldHierarchy.asString(),
+                    new ErrorMsg($"Invalid enum value of '{fieldValue}' for enum field of type '{field.type.type}'."),
+                    useErrorMessageContext: false
+                  ));
+                }
+              }
 
               break;
             }
