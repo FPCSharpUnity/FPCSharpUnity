@@ -61,7 +61,15 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
   }
   
-  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTest() {
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTest1() {
+    editorTestPopulateListWithFullWidthEntries(1);
+    _editorTestLayout = true;
+    foreach (var entry in _editorTestEntries) {
+      SceneVisibilityManager.instance.Hide(entry.item.gameObject, includeDescendants: true);
+    }
+  }
+  
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTestAll() {
     for (var i = 0; i < 20; i++) {
       editorTestPopulateListWithFullWidthEntries();
     }
@@ -71,10 +79,11 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
   }
   
-  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorTestPopulateListWithFullWidthEntries() {
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorTestPopulateListWithFullWidthEntries(int number = 999) {
     _editorTestEntries = _editorTestEntries.Concat(
       _container.children()
         .Where(tr => (tr.gameObject.hideFlags & HideFlags.DontSave) != HideFlags.DontSave)
+        .Take(number)
         .Select(tr => new EditorTestEntry(_item: (RectTransform)tr, _sizeInSecondaryAxis: Percentage.oneHundred,
           _customSizeInScrollableAxis: new UnityOption<float>(None._)
         ))  
@@ -101,12 +110,12 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   [ShowInInspector, HideInPlayMode, FoldoutGroup(EDITOR_TEST), PropertyRange(0, 1)] float editorTestScroll {
     get {
       if (!_scrollRect) return -1;
-      return 1f - (_scrollRect.horizontal
+      return (_scrollRect.horizontal
         ? _scrollRect.horizontalNormalizedPosition
-        : _scrollRect.verticalNormalizedPosition);
+        : 1f - _scrollRect.verticalNormalizedPosition);
     }
     set {
-      if (_scrollRect.horizontal) _scrollRect.horizontalNormalizedPosition = 1f - value;
+      if (_scrollRect.horizontal) _scrollRect.horizontalNormalizedPosition = value;
       else _scrollRect.verticalNormalizedPosition = 1f - value;
     }
   }
