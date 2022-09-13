@@ -41,6 +41,9 @@
         <member name="M:IncrementalCompiler.RegisterGeneratorsBase.registerGenerators(IncrementalCompiler.IRegisterActions)">
             <summary> Register custom generators. </summary>
         </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addCompilationError(System.String)">
+            <summary> Creates a compilation error message at the location of currently analyzed attribute. </summary>
+        </member>
         <member name="M:IncrementalCompiler.Extensions.getAllMembers(Microsoft.CodeAnalysis.ITypeSymbol)">
             <summary>
             Gets all members of a type, includes members in base types.
@@ -61,21 +64,35 @@
             This class is instantiated per C# file.
             </summary>
         </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addCompilationError(System.String,Microsoft.CodeAnalysis.Location)">
+            <summary>
+            Creates a compilation error message. Compilation will not succeed after you call this.
+            </summary>
+        </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addNewTypeMember(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax)">
             <summary>
             Adds a new member to the root of a generated file. Usually a class, interface or a struct. Can also be a
             namespace that nests other types.
+            <para/>
+            You should probably <see cref="M:IncrementalCompiler.GeneratorCtx.addMemberToPartialClass(System.String,System.String)"/>, it is a more convenient method.
             </summary>
         </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addNewTypeMembers(Microsoft.CodeAnalysis.CSharp.Syntax.MemberDeclarationSyntax[])">
             <summary>
             Adds new members to the root of a generated file. Usually a class, interface or a struct. Can also be a
             namespace that nests other types.
+            <para/>
+            You should probably <see cref="M:IncrementalCompiler.GeneratorCtx.addMemberToPartialClass(System.String,System.String)"/>, it is a more convenient method.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addNewFile(IncrementalCompiler.CodeGeneration.IGenerationResult)">
+            <summary>
+            Create a new file. Can be used when you want to generate non-C# file (<see cref="T:IncrementalCompiler.CodeGeneration.GeneratedFile"/>).
             </summary>
         </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addMemberToPartialClass(System.String,System.String)">
             <summary>
-            Adds new class members to a partial class definition.
+            Adds new class member/members to a partial class definition.
             </summary>
             <param name="generatorLabel">
             Label used in the comments of generated code.

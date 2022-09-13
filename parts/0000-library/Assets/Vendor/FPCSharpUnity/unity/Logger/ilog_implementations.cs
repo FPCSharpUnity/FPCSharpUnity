@@ -4,6 +4,7 @@ using FPCSharpUnity.unity.Concurrent;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
 
 namespace FPCSharpUnity.unity.Logger {

@@ -9,6 +9,7 @@ using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.macros;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.debug {
