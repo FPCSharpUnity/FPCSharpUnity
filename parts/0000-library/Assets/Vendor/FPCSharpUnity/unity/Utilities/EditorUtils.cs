@@ -18,6 +18,8 @@ namespace FPCSharpUnity.unity.Utilities {
     /// <summary>
     /// As <see cref="recordEditorChanges(Object,string)"/> but only records the changes if you are not currently in
     /// the play mode.
+    /// <para/>
+    /// This should be called BEFORE applying changes to the object.
     /// </summary>
     [Conditional("UNITY_EDITOR")]
     public static void recordEditorChangesEditorMode(this Object o, string name) {
@@ -29,6 +31,8 @@ namespace FPCSharpUnity.unity.Utilities {
     /// <summary>
     /// Adds the changes that you're going to do to the Unity editor undo stack with the <see cref="name"/>. Works both
     /// in edit and play modes.
+    /// <para/>
+    /// This should be called BEFORE applying changes to the object.
     /// </summary>
     [Conditional("UNITY_EDITOR")]
     public static void recordEditorChanges(this Object o, string name) {
@@ -39,7 +43,9 @@ namespace FPCSharpUnity.unity.Utilities {
     }
 
     /// <summary>
-    /// As <see cref="recordEditorChangesEditorMode(UnityEngine.Object,string)"/> but for multiple objects. 
+    /// As <see cref="recordEditorChangesEditorMode(UnityEngine.Object,string)"/> but for multiple objects.
+    /// <para/>
+    /// This should be called BEFORE applying changes to the objects.
     /// </summary>
     [Conditional("UNITY_EDITOR")]
     public static void recordEditorChangesEditorMode(this Object[] objects, string name) {
@@ -49,7 +55,9 @@ namespace FPCSharpUnity.unity.Utilities {
     }
 
     /// <summary>
-    /// As <see cref="recordEditorChanges(UnityEngine.Object,string)"/> but for multiple objects. 
+    /// As <see cref="recordEditorChanges(UnityEngine.Object,string)"/> but for multiple objects.
+    /// <para/>
+    /// This should be called BEFORE applying changes to the objects.
     /// </summary>
     [Conditional("UNITY_EDITOR")]
     public static void recordEditorChanges(this Object[] objects, string name) {
