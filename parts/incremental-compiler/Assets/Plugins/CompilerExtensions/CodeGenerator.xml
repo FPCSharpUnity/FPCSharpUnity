@@ -44,6 +44,21 @@
         <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addCompilationError(System.String)">
             <summary> Creates a compilation error message at the location of currently analyzed attribute. </summary>
         </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addUsing(System.String)">
+            <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,System.String)"/>
+        </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addUsing(Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax)">
+            <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax)"/>
+        </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addMemberToPartialClass(System.String)">
+            <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToPartialClass(System.String,System.String)"/>
+        </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addMemberToExtensionClass(System.String)">
+            <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/>
+        </member>
+        <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addMemberTo(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)">
+            <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberTo(System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)"/>
+        </member>
         <member name="M:IncrementalCompiler.Extensions.getAllMembers(Microsoft.CodeAnalysis.ITypeSymbol)">
             <summary>
             Gets all members of a type, includes members in base types.
@@ -57,6 +72,11 @@
         <member name="M:IncrementalCompiler.Extensions.CleanUsings(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax})">
             <summary>
             Cleans comments and regions from `using` directives list.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.toCode(Microsoft.CodeAnalysis.Accessibility)">
+            <summary>
+            Converts <see cref="T:Microsoft.CodeAnalysis.Accessibility"/> to a visibility modifier that can be used in the code (like `public`).
             </summary>
         </member>
         <member name="T:IncrementalCompiler.GeneratorCtx">
@@ -102,6 +122,19 @@
             <br/>
             It is recommended to use attribute call name as the label.
             </param>
+            <param name="memberSyntax">Code that contains one or more class members.</param>
+        </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.addMemberTo(System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)">
+            <summary>
+            Adds new class member/members to a partial class definition or a namespace.
+            </summary>
+            <param name="generatorLabel">
+            Label used in the comments of generated code.
+            <br/>
+            All code generated with the same label will get a comment above it that helps you track which code generator is
+            responsible for which code.
+            </param>
+            <param name="namespaceOrType">Where new members should be added.</param>
             <param name="memberSyntax">Code that contains one or more class members.</param>
         </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,System.String)">
