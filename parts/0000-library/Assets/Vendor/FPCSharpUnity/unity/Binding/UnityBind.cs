@@ -10,6 +10,7 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
@@ -116,6 +117,16 @@ namespace FPCSharpUnity.unity.binding {
       bindEnumerable(pool, rx, tracker, setup, afterUpdate: afterUpdate);
       return pool;
     }
+
+    public static GameObjectPool<Template> bindEnumerable<Template, Data>(
+      string gameObjectPoolName, Template template, IRxObservable<NonEmpty<IEnumerable<Data>>> rx, ITracker tracker,
+      ItemSetupDelegate<Template, Data> setup,
+      Action<List<BindEnumerableEntry<Template>>> afterUpdate = null
+    ) where Template : Component =>
+      bindEnumerable(
+        gameObjectPoolName: gameObjectPoolName, template: template, rx: rx.map(static _ => _.neVal), tracker: tracker,
+        setup: setup, afterUpdate: afterUpdate
+      );
 
     [Record] public readonly partial struct BindEnumerableEntry<Template> {
       public readonly Template instance;
