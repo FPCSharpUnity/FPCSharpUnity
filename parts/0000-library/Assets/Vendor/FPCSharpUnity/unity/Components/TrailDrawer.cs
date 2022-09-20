@@ -32,7 +32,7 @@ namespace FPCSharpUnity.unity.Components {
         relativePosition: nodes[idx].position - getTransformPosition(),
         distanceToPrevNode: nodes[idx].distanceToPrevNode
       );
-      lineMeshGenerator = F.lazy(() => new LineMeshGenerator(
+      lineMeshGenerator = Lazy.a(() => new LineMeshGenerator(
         trailWidth, gameObject.GetComponent<MeshFilter>(), color, widthMultiplierCurve)
       );
     }

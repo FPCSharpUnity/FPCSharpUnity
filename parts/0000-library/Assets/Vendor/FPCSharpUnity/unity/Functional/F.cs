@@ -121,17 +121,6 @@ namespace FPCSharpUnity.unity.Functional {
 
     public static Unit unit => Unit._;
 
-    public static LazyVal<A> lazy<A>(Func<A> func, Action<A> afterInitialization = null) =>
-      new LazyValImpl<A>(func, afterInitialization);
-
-    public static LazyVal<A> loggedLazy<A>(
-      string name, Func<A> func, ILog log = null, LogLevel level = LogLevel.DEBUG
-    ) => lazy(() => {
-      var _log = log ?? Log.d;
-      if (_log.willLog(level)) _log.log(level, $"Initializing lazy value: {name}");
-      return func();
-    });
-
     public static Func<Unit> actToFn(Action action) =>
       () => { action(); return unit; };
 

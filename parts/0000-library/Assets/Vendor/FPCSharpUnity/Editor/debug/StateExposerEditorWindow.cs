@@ -20,12 +20,12 @@ namespace FPCSharpUnity.unity.debug {
     public static void OpenWindow() => GetWindow<StateExposerEditorWindow>("State Exposer").Show();
     
     static readonly LazyVal<GUIStyle> 
-      multilineTextStyle = F.lazy(() => new GUIStyle {
+      multilineTextStyle = Lazy.a(() => new GUIStyle {
         wordWrap = true, alignment = TextAnchor.UpperLeft, richText = false
       }),
-      scopeKeyTextStyle = F.lazy(() => new GUIStyle { fontSize = 14, fontStyle = FontStyle.Bold }),
-      objectInstanceTextStyle = F.lazy(() => new GUIStyle { fontStyle = FontStyle.Bold }),
-      longLabelTextStyle = F.lazy(() => new GUIStyle { fontStyle = FontStyle.Bold });
+      scopeKeyTextStyle = Lazy.a(() => new GUIStyle { fontSize = 14, fontStyle = FontStyle.Bold }),
+      objectInstanceTextStyle = Lazy.a(() => new GUIStyle { fontStyle = FontStyle.Bold }),
+      longLabelTextStyle = Lazy.a(() => new GUIStyle { fontStyle = FontStyle.Bold });
 
     readonly HashSet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> 
       expandObjects = new(), expandInnerScopes = new();

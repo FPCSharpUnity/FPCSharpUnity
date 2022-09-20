@@ -70,7 +70,7 @@ namespace FPCSharpUnity.unity.Logger {
       }
     }
 
-    public static readonly LazyVal<IRxObservable<LogEvent>> fromUnityLogMessages = F.lazy(() =>
+    public static readonly LazyVal<IRxObservable<LogEvent>> fromUnityLogMessages = Lazy.a(() =>
       Observable.fromEvent2<LogEvent, Application.LogCallback>(
         onEvent => {
           Application.logMessageReceivedThreaded += callback;

@@ -23,14 +23,14 @@ namespace FPCSharpUnity.unity.Filesystem {
     /// </summary>
     [PublicAPI]
     public static LazyVal<Option<FilesystemDataCache>> persistent = 
-      F.lazy(() => forPath(Application.persistentDataPath));
+      Lazy.a(() => forPath(Application.persistentDataPath));
     
     /// <summary>
     /// Same thing with temporary cache path.
     /// </summary>
     [PublicAPI]
     public static LazyVal<Option<FilesystemDataCache>> temporary = 
-      F.lazy(() => forPath(Application.temporaryCachePath));
+      Lazy.a(() => forPath(Application.temporaryCachePath));
 
     public readonly PathStr root;
 

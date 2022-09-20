@@ -58,7 +58,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
 
     static readonly Deque<LogEntry> logEntries = new();
-    static readonly LazyVal<DConsole> _instance = F.lazy(() => {
+    static readonly LazyVal<DConsole> _instance = Lazy.a(() => {
         var dConsole = new DConsole();
         initDConsole(dConsole);
         return dConsole;

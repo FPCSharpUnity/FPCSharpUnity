@@ -80,7 +80,7 @@ namespace FPCSharpUnity.unity.Data {
 
     public static LazyVal<B> lazyMap<A, B>(
       this TagPrefab<A> prefab, Transform parent, Func<A, B> mapper
-    ) where A : Object => F.lazy(() => instantiate(prefab, parent, mapper));
+    ) where A : Object => Lazy.a(() => instantiate(prefab, parent, mapper));
   }
   
   [Serializable, PublicAPI] public class GameObjectPrefab : TagPrefab<GameObject> { }

@@ -39,7 +39,7 @@ namespace FPCSharpUnity.unity.Android {
       AndroidActivity.packageManager.hasSystemFeature(feature);
 
     static readonly LazyVal<bool> _hasTouchscreen =
-      F.lazy(() => hasSystemFeature("android.hardware.touchscreen"));
+      Lazy.a(() => hasSystemFeature("android.hardware.touchscreen"));
 
     /* Is touchscreen supported? */
     public static bool hasTouchscreen => _hasTouchscreen.strict;

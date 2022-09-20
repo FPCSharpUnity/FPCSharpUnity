@@ -180,7 +180,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     public void prevPage() => movePagesByAnimated(-1);
 
     protected Carousel() {
-      __currentElement = F.lazy(() => {
+      __currentElement = Lazy.a(() => {
         var res = RxRef.a(elements.get(page.value));
         _page.subscribe(gameObject, p => res.value = elements.get(p));
         return res;

@@ -83,7 +83,7 @@ namespace FPCSharpUnity.unity.Functional {
     [Test]
     public void upcast() => describe(() => {
       var obj = new Child();
-      var lazy = let(() => F.lazy(() => obj));
+      var lazy = let(() => Lazy.a(() => obj));
       var upcasted = @let(() => lazy.value.upcast<Child, Base>());
 
       when["#" + nameof(lazy.value.isCompleted)] = () => {
