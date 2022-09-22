@@ -32,7 +32,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public partial class DConsole {
     public enum Direction { Left, Up, Right, Down }
 
-    [Record] public partial struct Command {
+    [Record(ConstructorFlags.Withers)] public partial struct Command {
       public readonly string cmdGroup, name;
       public readonly Option<KeyCodeWithModifiers> shortcut; 
       public readonly Action<API> run;

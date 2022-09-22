@@ -40,7 +40,7 @@ namespace FPCSharpUnity.unity.Components.ui {
   }
 
   public partial class Carousel<A> : UIBehaviour, IMB_Update, IMB_OnDrawGizmosSelected, IMB_OnValidate where A : ICarouselItem {
-    [Record]
+    [Record(ConstructorFlags.Withers)]
     public readonly partial struct ResizableRectData {
       [PublicAPI] public readonly Transform firstVisibleItem, lastVisibleItem;
       [PublicAPI] public readonly RectTransform target;

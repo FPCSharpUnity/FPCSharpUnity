@@ -32,9 +32,6 @@
         <member name="F:GenerationAttributes.ConstructorFlags.Withers">
             <summary> Generates basic constructor and `with` extensions </summary>
         </member>
-        <member name="F:GenerationAttributes.ConstructorFlags.Default">
-            <summary> Generates basic constructor, `copy` extension and `with` extensions </summary>
-        </member>
         <member name="F:GenerationAttributes.ConstructorFlags.All">
             <summary> Generates basic constructor, `copy` extension, `with` extensions and `apply` constrictor </summary>
         </member>
