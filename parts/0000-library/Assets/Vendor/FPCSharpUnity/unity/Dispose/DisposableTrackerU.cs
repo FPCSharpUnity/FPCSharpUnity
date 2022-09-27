@@ -13,6 +13,8 @@ namespace FPCSharpUnity.unity.Dispose {
     /// <see cref="NoOpDisposableTracker"/> to dispose properly in editor.
     /// </summary>
     [LazyProperty] static IDisposableTracker _disposeOnExitPlayMode => new DisposableTracker(log);
+    
+    /// <inheritdoc cref="_disposeOnExitPlayMode"/>
     public static IInspectableTracker disposeOnExitPlayMode => _disposeOnExitPlayMode;
     
 #if UNITY_EDITOR

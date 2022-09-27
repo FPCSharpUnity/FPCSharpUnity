@@ -13,7 +13,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       var registry = new SingletonActionRegistry<int>();
 
       when["future is going to complete in the future"] = () => {
-        var f1 = let(() => F.lazy(() => 10));
+        var f1 = let(() => Lazy.a(() => 10));
 
         it["should not call the action until future is completed"] = () => {
           var called = false;
@@ -30,7 +30,7 @@ namespace FPCSharpUnity.unity.Concurrent {
         };
 
         it["should not interfere between registered futures of same type"] = () => {
-          var f2 = F.lazy(() => 20);
+          var f2 = Lazy.a(() => 20);
           var result1 = 0;
           var result2 = 0;
           registry[f1.value] = x => result1 = 0;

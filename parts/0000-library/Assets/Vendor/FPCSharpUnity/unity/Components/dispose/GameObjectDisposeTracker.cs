@@ -60,7 +60,7 @@ namespace FPCSharpUnity.unity.Components.dispose {
     public IEnumerable<TrackedDisposable> trackedDisposables => tracker.strict.trackedDisposables;
 
     public GameObjectDisposeTracker() {
-      tracker = F.lazy(() => {
+      tracker = Lazy.a(() => {
         if (!awakeCalled) trackersWaitingForAwake.Add(this);
         return new DisposableTracker(
           log,
