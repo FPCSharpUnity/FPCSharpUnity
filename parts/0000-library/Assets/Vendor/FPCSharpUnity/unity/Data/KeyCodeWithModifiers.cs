@@ -45,6 +45,9 @@ namespace FPCSharpUnity.unity.Data {
     public bool getKeyDown => Input.GetKeyDown(_keyCode) && modifiersValid;
     public bool getKeyUp => Input.GetKeyUp(_keyCode) && modifiersValid;
 
+    public static KeyCodeWithModifiers a(KeyCode keyCode, bool shift = false, bool alt = false, bool ctrl = false) =>
+      new(keyCode, _shift: shift, _alt: alt, _ctrl: ctrl);
+
     public string asString() {
       var sb = new StringBuilder();
       if (_ctrl) sb.Append('c');
