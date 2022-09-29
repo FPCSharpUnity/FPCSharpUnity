@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Components.Forwarders;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
@@ -16,6 +17,7 @@ using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Logger;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -427,6 +429,23 @@ namespace FPCSharpUnity.unity.Components.ui {
           out _
         );
         return result;
+      }
+      
+      /// <summary>
+      /// Find item cell rects. This is useful when we want to get the position of items even if they are not visible.
+      /// </summary>
+      public ImmutableArrayC<A> collectItems<A>(Func<IElementData, Rect, Option<A>> predicate) {
+        var result = new ImmutableArrayCBuilder<A>();
+        updateForEachElement(
+          predicate, 
+          (data, isVisible, cellRect, predicate_) => {
+            if (predicate_(data, cellRect).valueOut(out var match)) {
+              result.add(match);
+            }
+          }, 
+          out _
+        );
+        return result.build();
       }
       
       /// <summary>
