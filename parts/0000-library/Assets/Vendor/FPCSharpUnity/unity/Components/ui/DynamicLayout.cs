@@ -383,7 +383,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
           Log.d.error(
             $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
-            + $"{rectTrans.pivot} => {0.5f}", rectTrans
+            + $"Needed: ({0.5f}, {0.5f}), Actual: {rectTrans.pivot}", rectTrans
           );
         }
 #endif
