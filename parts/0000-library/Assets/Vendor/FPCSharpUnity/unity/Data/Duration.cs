@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.config;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.json;
 using FPCSharpUnity.core.serialization;
 using UnityEngine;
 
@@ -111,6 +112,8 @@ namespace FPCSharpUnity.unity.Data {
 
     [NonSerialized] public static readonly Config.Parser<object, Option<Duration>> configOptParser =
       Config.opt(configParser);
+
+    public JsonNumber toJson() => new(_millis);
   }
 
   public static class DurationExts {
