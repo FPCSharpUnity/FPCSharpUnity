@@ -107,10 +107,10 @@ namespace FPCSharpUnity.unity.Data {
       SerializedRW.integer.mapNoFail(l => new Duration(l), d => d.millis);
 
     [NonSerialized]
-    public static readonly Config.Parser<object, Duration> configParser =
+    public static readonly Config.Parser<JsonValue, Duration> configParser =
       Config.intParser.map(ms => new Duration(ms));
 
-    [NonSerialized] public static readonly Config.Parser<object, Option<Duration>> configOptParser =
+    [NonSerialized] public static readonly Config.Parser<JsonValue, Option<Duration>> configOptParser =
       Config.opt(configParser);
 
     public JsonNumber toJson() => new(_millis);

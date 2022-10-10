@@ -5,6 +5,7 @@ using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.config;
 using FPCSharpUnity.core.data;
+using FPCSharpUnity.core.json;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -128,7 +129,7 @@ namespace FPCSharpUnity.unity.Data {
     
     public static URange operator +(URange r, uint i) => new URange(from: r._from + i, to: r._to + i);
 
-    public static readonly Config.Parser<object, URange> parser =
+    public static readonly Config.Parser<JsonValue, URange> parser =
       Config.uintParser.tpl(Config.uintParser, (from, to) => new URange(from, to));
   }
 
