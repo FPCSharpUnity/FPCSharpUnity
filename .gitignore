@@ -14,8 +14,6 @@ obj
 # Intellij IDEA
 .idea
 
-# We exclude compiled dlls, but keep meta files, because we need specific settings in those meta files.
-/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.codegen.dll
-/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.codegen.pdb
-/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.dll
-/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/FPCSharpUnity.core.macros.pdb
+# We exclude everything from compiler extensions folde, because project-specific extensions must go to the same folder.
+# The same folder has files belonging to the compiler that are already to repo and not affected by this ignore.
+/parts/incremental-compiler/Assets/Plugins/CompilerExtensions/*
