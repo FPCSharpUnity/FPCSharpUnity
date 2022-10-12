@@ -1,6 +1,7 @@
 ﻿using System;
 using GenerationAttributes;
 using FPCSharpUnity.core.config;
+using FPCSharpUnity.core.json;
 using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace FPCSharpUnity.unity.Data {
   public partial struct Percentage {
     [SerializeField, Range(0, 1), PublicAccessor] float _value;
 
-    public static readonly Config.Parser<object, Percentage> parser = Config.floatParser.map(f => new Percentage(f));
+    public static readonly Config.Parser<JsonValue, Percentage> parser = Config.floatParser.map(f => new Percentage(f));
 
     public string asString() => Str.s(Mathf.RoundToInt(_value)) + "%";
 
