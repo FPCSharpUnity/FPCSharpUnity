@@ -147,6 +147,11 @@
             <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
             <param name="value">E.g. `System.Linq`</param>
         </member>
+        <member name="M:IncrementalCompiler.GeneratorCtx.useNullableEnable">
+            <summary>
+            Adds `#nullable enable` header to a generated file.
+            </summary>
+        </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addUsing(System.String,Microsoft.CodeAnalysis.CSharp.Syntax.UsingDirectiveSyntax)">
             <summary>
             Adds a `using` directive to the top of the generated file.
