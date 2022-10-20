@@ -23,6 +23,8 @@ public class SerializableDictionaryMutable<K, V> : SerializableDictionaryBase<K,
     }
   }
 
+  public SerializableDictionaryMutable(Pair[] keyValuePairs) : base(keyValuePairs) { }
+
   public IReadOnlyDictionary<K, V> a => dictMutable;
 
   public void OnBeforeSerialize() { }

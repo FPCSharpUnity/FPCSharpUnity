@@ -9,8 +9,11 @@ namespace FPCSharpUnity.unity.unity_serialization;
 public class SerializableDictionary<K, V> : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver {
   Option<ImmutableDictionary<K, V>> cachedValue;
 
+  public SerializableDictionary(Pair[] keyValuePairs) : base(keyValuePairs) { }
+
   public ImmutableDictionary<K, V> a {
     get {
+      if (!Application.isPlaying) return _keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value);
       if (cachedValue.isNone) updateCachedValue();
       return cachedValue.get;
     }

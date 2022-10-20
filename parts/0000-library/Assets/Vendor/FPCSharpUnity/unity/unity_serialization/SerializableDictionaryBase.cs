@@ -40,6 +40,10 @@ public abstract partial class SerializableDictionaryBase<A, B> : OnObjectValidat
     }
   }
 
+  protected SerializableDictionaryBase(Pair[] keyValuePairs) {
+    _keyValuePairs = keyValuePairs;
+  }
+
   protected abstract void valueChanged();
 
   public bool onObjectValidateIsThreadSafe => false;
@@ -50,7 +54,7 @@ public abstract partial class SerializableDictionaryBase<A, B> : OnObjectValidat
     }
   }
 
-  [Serializable, Record] protected partial class Pair {
+  [Serializable, Record] public partial class Pair {
 #pragma warning disable 649
     // ReSharper disable NotNullMemberIsNotInitialized
     [SerializeField, NotNull, PublicAccessor, TableColumnWidth(50)] A _key;
