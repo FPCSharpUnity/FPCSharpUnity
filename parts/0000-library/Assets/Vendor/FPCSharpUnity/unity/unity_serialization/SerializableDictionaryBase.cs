@@ -8,7 +8,6 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using Vendor.FPCSharpUnity.unity.Utilities;
 using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.unity_serialization;
@@ -30,10 +29,13 @@ public abstract partial class SerializableDictionaryBase<A, B> : OnObjectValidat
 
   void selector() {
     if (typeof(A).IsEnum) {
-      GenericOdinSelector.showPopup(
+#if UNITY_EDITOR
+      // Only available in Sirenix.OdinInspector.Editor
+      Vendor.FPCSharpUnity.unity.Utilities.GenericOdinSelector.showPopup(
         ((A[])Enum.GetValues(typeof(A))).Where(e => !_keyValuePairs.Any(kvp => kvp.key.Equals(e))),
         onSelect: e => _keyValuePairs = _keyValuePairs.addOne(new Pair(e, default))
       );
+#endif
     } 
     else {
       _keyValuePairs = _keyValuePairs.addOne(new Pair(default, default));
