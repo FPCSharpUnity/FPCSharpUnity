@@ -146,7 +146,19 @@ namespace FPCSharpUnity.unity.Concurrent {
       return new UnityCoroutine(behaviour, enumerator);
     }
 
-    /* Do thing every X seconds until f returns false. */
+    /// <summary>
+    /// Same as <see cref="EveryXSeconds(float,System.Func{bool})"/>,
+    /// but the first invocation will be delayed for <paramref name="seconds"/> seconds
+    /// </summary>
+    public static ICoroutine EveryXSecondsWithDelay(float seconds, Func<bool> f) {
+      var enumerator = EveryWaitEnumeratorWithInitialDelay(new WaitForSecondsRealtimeReusable(seconds), f);
+      return new UnityCoroutine(behaviour, enumerator);
+    }
+
+    /// <summary>
+    /// Do thing every X seconds until f returns false.
+    /// Note: <paramref name="f"/> will be triggered immediately.
+    /// </summary>
     public static ICoroutine EveryXSeconds(float seconds, Func<bool> f) => EveryXSeconds(seconds, behaviour, f);
 
     /* Do thing every X seconds until f returns false. */
@@ -304,6 +316,12 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static IEnumerator EveryWaitEnumerator(IEnumerator wait, Func<bool> f) {
       // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
       while (f()) yield return wait;
+    }
+    
+    public static IEnumerator EveryWaitEnumeratorWithInitialDelay(IEnumerator wait, Func<bool> f) {
+      do {
+        yield return wait;
+      } while (f());
     }
 
     public static IRxObservable<bool> onAppPause => behaviour.onPause;
