@@ -185,6 +185,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     [RecordExclude, ShowInInspector, ReadOnly] public float sizeInScrollableAxis { get; set; } = 0f;
     public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
 
+    public bool tryToReassignData(DynamicLayout.IElementWithViewData newData) => false;
+    
     public void clearPreview() {
       if (visiblePreview) DestroyImmediate(visiblePreview.gameObject);
     }

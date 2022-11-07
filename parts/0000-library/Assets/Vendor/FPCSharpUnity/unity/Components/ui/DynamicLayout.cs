@@ -108,6 +108,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// called, just before the rect position is set.
       /// </summary>
       void onUpdateLayout(Rect containerSize, Padding padding);
+
+      bool tryToReassignData(IElementWithViewData newData);
     }
 
     /// <summary>
@@ -289,10 +291,48 @@ namespace FPCSharpUnity.unity.Components.ui {
         layoutData.Clear();
         clearLayout();
       }
+
+      public void replaceAllElements<TId>(IList<IElementData> elements, Func<IElementData, Option<TId>> getId)
+        where TId : IEquatable<TId>
+      {
+        var elementDatas = new Dictionary<TId, IElementData>();
+        foreach (var element in elements) {
+          if (getId(element).valueOut(out var id)) {
+            elementDatas.Add(id, element);
+          }
+        }
+
+        var newAssignments = new List<(IElementView view, IElementData newData)>();
+        foreach (var kv in _items) {
+          {if (kv.Value.valueOut(out var value)) {
+            if (
+              getId(kv.Key).valueOut(out var id)
+              && elementDatas.TryGetValue(id, out var elementData)
+              && elementData.asElementWithView.valueOut(out var elementWithView)
+              && value.tryToReassignData(elementWithView)
+            ) {
+              newAssignments.Add((value, elementData));
+            }
+            else {
+              value.Dispose();
+            }
+          }}
+        }
+
+        _items.Clear();
+        foreach (var newAssignment in newAssignments) {
+          _items.Add(newAssignment.newData, Some.a(newAssignment.view));
+        }
+
+        layoutData.Clear();
+        layoutData.AddRange(elements);
+
+        updateLayout();
+      }
       
       void clearLayout() {
         foreach (var kv in _items) {
-          foreach (var item in kv.Value) item.Dispose();
+          if (kv.Value.valueOut(out var value)) value.Dispose();
         }
         _items.Clear();
       }
@@ -575,7 +615,9 @@ namespace FPCSharpUnity.unity.Components.ui {
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
       
       public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
-      
+
+      public bool tryToReassignData(IElementWithViewData newData) => false;
+
       public NonPooledRectTransformElementWithViewData(
         RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
       ) {
@@ -613,13 +655,13 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <typeparam name="Obj"></typeparam>
     public abstract class ElementWithViewData<Obj> : IElementWithViewData where Obj : Component {
       readonly GameObjectPool<Obj> pool;
-      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
+      [CanBeNull] public readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
       public float sizeInScrollableAxis { get; set; }
       public Percentage sizeInSecondaryAxis { get; }
       
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
-      
-      protected abstract IDisposable setup(Obj view);
+
+      public abstract IDisposable setup(Obj view);
 
       public ElementWithViewData(
         GameObjectPool<Obj> pool, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis, 
@@ -633,9 +675,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public IElementView createItem(Transform parent) {
         var view = pool.borrow();
-        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout,
-          sizeInSecondaryAxis: sizeInSecondaryAxis
-        );
+        return new PooledElementView<Obj>(view, this, pool);
       }
     }
     
@@ -646,27 +686,39 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <typeparam name="Obj"></typeparam>
     public class PooledElementView<Obj> : IElementView where Obj : Component {
       readonly Obj visual;
-      readonly IDisposable disposable;
+      ElementWithViewData<Obj> data;
+      IDisposable disposable;
       readonly GameObjectPool<Obj> pool;
-      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayoutFunc;
       public RectTransform rectTransform { get; }
-      public Percentage sizeInSecondaryAxis { get; }
+      public Percentage sizeInSecondaryAxis => data.sizeInSecondaryAxis;
 
       public virtual void onUpdateLayout(Rect containerSize, Padding padding) {
-        maybeOnUpdateLayoutFunc?.Invoke(visual, containerSize, rectTransform, padding);
+        data.maybeOnUpdateLayout?.Invoke(visual, containerSize, rectTransform, padding);
       }
-      
+
+      public bool tryToReassignData(IElementWithViewData newData) {
+        disposable.Dispose();
+
+        var maybeData = newData.downcast(in data);
+        {if (maybeData.valueOut(out var newCastedData)) { 
+          data = newCastedData;
+          disposable = data.setup(visual);
+          return true;
+        } else {
+          return false;
+        }}
+      }
+
       public PooledElementView(
-        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout,
-        Percentage sizeInSecondaryAxis
+        Obj visual, ElementWithViewData<Obj> data, GameObjectPool<Obj> pool
       ) {
-        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
         this.visual = visual;
-        this.disposable = disposable;
+        this.data = data;
+        disposable = data.setup(visual);
         this.pool = pool;
         rectTransform = (RectTransform) visual.transform;
-        maybeOnUpdateLayoutFunc = maybeOnUpdateLayout;
       }
+      
       public void Dispose() {
         if (visual) pool.release(visual);
         disposable.Dispose();
