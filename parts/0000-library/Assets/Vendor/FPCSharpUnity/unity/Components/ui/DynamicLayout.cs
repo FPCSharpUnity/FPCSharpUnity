@@ -698,6 +698,9 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
     }
 
+    /// <summary>
+    /// Helper method to easily create <see cref="SimpleDynamicLayoutElement{Obj,Data}"/> elements.
+    /// </summary>
     public static SimpleDynamicLayoutElement<Obj, Data> createSimplePooledElement<Obj, Data>(
       Obj template, GameObjectPool<Obj> pool, Data itemData, bool isHorizontal,
       Action<Obj, Data, ITracker> setupAction, Percentage? sizeInSecondaryAxisOverride = null,
@@ -709,6 +712,10 @@ namespace FPCSharpUnity.unity.Components.ui {
       Data itemData { get; }
     }
     
+    /// <summary>
+    /// This class saves us from creating a separate class for each <see cref="DynamicLayout"/> element we want to show
+    /// in a list. It provides everything through 'setup' method. Use this for pooled elements. Less boilerplate!
+    /// </summary>
     public class SimpleDynamicLayoutElement<Obj, Data> : ElementWithViewData<Obj>, ISimpleDynamicLayoutElement<Data>
       where Obj : Component 
     {
@@ -723,9 +730,9 @@ namespace FPCSharpUnity.unity.Components.ui {
       ) : base(
         pool, 
         sizeInScrollableAxis: 
-        isHorizontal
-          ? ((RectTransform)template.transform).rect.width
-          : ((RectTransform)template.transform).rect.height, 
+          isHorizontal
+            ? ((RectTransform)template.transform).rect.width
+            : ((RectTransform)template.transform).rect.height, 
         sizeInSecondaryAxis : sizeInSecondaryAxisOverride ?? Percentage.oneHundred
       ) {
         this.itemData = itemData;
@@ -740,6 +747,9 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
     }
     
+    /// <summary>
+    /// Helper method to easily create <see cref="SimpleDynamicLayoutElementNonPooled{Obj,Data}"/> elements.
+    /// </summary>
     public static SimpleDynamicLayoutElementNonPooled<Obj, Data> createSimpleNonPooledElement<Obj, Data>(
       Obj item, Data itemData, bool isHorizontal, 
       Action<Obj, Data, ITracker> setupAction, 
@@ -749,6 +759,10 @@ namespace FPCSharpUnity.unity.Components.ui {
     ) where Obj : Component =>
       new(item, itemData, isHorizontal, setupAction, sizeInSecondaryAxisOverride, setActiveOverride, log);
     
+    /// <summary>
+    /// This class saves us from creating a separate class for each <see cref="DynamicLayout"/> element we want to show
+    /// in a list. It provides everything through 'setup' method. Use this for non pooled elements. Less boilerplate!
+    /// </summary>
     public class SimpleDynamicLayoutElementNonPooled<Obj, Data> : IElementWithViewData, IElementView 
       where Obj : Component 
     {
@@ -776,7 +790,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         this.item = item;
         this.itemData = itemData;
         this.setupAction = setupAction;
-        var rt = rectTransform = (RectTransform)item.transform;
+        var rectTransform = this.rectTransform = (RectTransform)item.transform;
         sizeInSecondaryAxis = sizeInSecondaryAxisOverride ?? Percentage.oneHundred;
         sizeInScrollableAxis = isHorizontal
           ? ((RectTransform)item.transform).rect.width
