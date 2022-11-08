@@ -108,7 +108,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// called, just before the rect position is set.
       /// </summary>
       void onUpdateLayout(Rect containerSize, Padding padding);
-
+      /// <summary>Called when you want update data for this <see cref="IElementView"/>.</summary>
+      /// <returns>true if we can reassign new data and reassign was successful.</returns>
       bool tryToReassignData(IElementWithViewData newData);
     }
 
@@ -292,6 +293,11 @@ namespace FPCSharpUnity.unity.Components.ui {
         clearLayout();
       }
 
+      /// <summary>
+      /// We take new data list and check if there are items with same id, to not recreate the same view.
+      /// If it is, we just try to reassign data for this <see cref="IElementView"/>.
+      /// If not, we Dispose this <see cref="IElementView"/>.
+      /// </summary>
       public void replaceAllElements<TId>(IList<IElementData> elements, Func<IElementData, Option<TId>> getId)
         where TId : IEquatable<TId>
       {
