@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Components.Forwarders;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
@@ -16,6 +17,7 @@ using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Logger;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -243,6 +245,9 @@ namespace FPCSharpUnity.unity.Components.ui {
           .map(_ => mask.rect)
           .toRxVal(mask.rect);
 
+        if (isHorizontal && _container.pivot != Vector2.up) {
+          Debug.LogError($"Horizontal layout's content should have (0, 1) as pivot, not {_container.pivot}!");
+        }
 
         maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (rectSize, size) => {
           onRectSizeChange(container: _container,
@@ -378,7 +383,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
           Log.d.error(
             $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
-            + $"{rectTrans.pivot} => {0.5f}", rectTrans
+            + $"Needed: ({0.5f}, {0.5f}), Actual: {rectTrans.pivot}", rectTrans
           );
         }
 #endif
@@ -412,18 +417,35 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// <summary>
       /// Find item cell rect. This is useful when we want to get the position of an item even if it is not visible.
       /// </summary>
-      public Option<Rect> findItemRect(Func<IElementData, bool> predicate) {
-        var result = Option<Rect>.None;
+      public Option<A> findItem<A>(Func<IElementData, Rect, Option<A>> predicate) {
+        var result = Option<A>.None;
         updateForEachElement(
           predicate, 
           (data, isVisible, cellRect, predicate_) => {
-            if (result.isNone && predicate_(data)) {
-              result = Some.a(cellRect);
+            if (result.isNone && predicate_(data, cellRect).valueOut(out var match)) {
+              result = Some.a(match);
             }
           }, 
           out _
         );
         return result;
+      }
+      
+      /// <summary>
+      /// Find item cell rects. This is useful when we want to get the position of items even if they are not visible.
+      /// </summary>
+      public ImmutableArrayC<A> collectItems<A>(Func<IElementData, Rect, Option<A>> predicate) {
+        var result = new ImmutableArrayCBuilder<A>();
+        updateForEachElement(
+          predicate, 
+          (data, isVisible, cellRect, predicate_) => {
+            if (predicate_(data, cellRect).valueOut(out var match)) {
+              result.add(match);
+            }
+          }, 
+          out _
+        );
+        return result.build();
       }
       
       /// <summary>
@@ -568,6 +590,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// directly in scene, when <see cref="rectTransform"/> becomes visible in viewport.
     /// </summary>
     public class NonPooledRectTransformElementWithViewData : IElementWithViewData, IElementView {
+      readonly Action<bool> setActive;
       public RectTransform rectTransform { get; }
       public float sizeInScrollableAxis { get; }
       public Percentage sizeInSecondaryAxis { get; }
@@ -577,22 +600,24 @@ namespace FPCSharpUnity.unity.Components.ui {
       public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
       
       public NonPooledRectTransformElementWithViewData(
-        RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
+        RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis,
+        [CanBeNull] Action<bool> setActiveOverride = null
       ) {
         this.rectTransform = rectTransform;
         this.sizeInSecondaryAxis = sizeInSecondaryAxis;
         this.sizeInScrollableAxis = sizeInScrollableAxis;
+        setActive = setActiveOverride ?? (b => rectTransform.setActiveGO(b));
         // Pooled elements starts with disposed state, so we need to do the same for non pooled elements too:
         Dispose();
       }
 
-      public IElementView createItem(Transform parent) {
-        rectTransform.setActiveGO(true);
+      public virtual IElementView createItem(Transform parent) {
+        setActive(true);
         return this;
       }
       
-      public void Dispose() {
-        rectTransform.setActiveGO(false);
+      public virtual void Dispose() {
+        setActive(false);
       }
     }
 
@@ -670,6 +695,121 @@ namespace FPCSharpUnity.unity.Components.ui {
       public void Dispose() {
         if (visual) pool.release(visual);
         disposable.Dispose();
+      }
+    }
+
+    /// <summary>
+    /// Helper method to easily create <see cref="SimpleDynamicLayoutElement{Obj,Data}"/> elements.
+    /// </summary>
+    public static SimpleDynamicLayoutElement<Obj, Data> createSimplePooledElement<Obj, Data>(
+      Obj template, GameObjectPool<Obj> pool, Data itemData, bool isHorizontal,
+      Action<Obj, Data, ITracker> setupAction, Percentage? sizeInSecondaryAxisOverride = null,
+      [Implicit] ILog log = null
+    ) where Obj : Component =>
+      new(template, pool, itemData, isHorizontal, setupAction, sizeInSecondaryAxisOverride, log);
+    
+    public interface ISimpleDynamicLayoutElement<out Data> {
+      Data itemData { get; }
+    }
+    
+    /// <summary>
+    /// This class saves us from creating a separate class for each <see cref="DynamicLayout"/> element we want to show
+    /// in a list. It provides everything through 'setup' method. Use this for pooled elements. Less boilerplate!
+    /// </summary>
+    public class SimpleDynamicLayoutElement<Obj, Data> : ElementWithViewData<Obj>, ISimpleDynamicLayoutElement<Data>
+      where Obj : Component 
+    {
+      public Data itemData { get; }
+      readonly Action<Obj, Data, ITracker> setupAction;
+      [Implicit] readonly ILog log;
+
+      public SimpleDynamicLayoutElement(
+        Obj template, GameObjectPool<Obj> pool, Data itemData, bool isHorizontal, 
+        Action<Obj, Data, ITracker> setupAction, Percentage? sizeInSecondaryAxisOverride = null,
+        [Implicit] ILog log = null
+      ) : base(
+        pool, 
+        sizeInScrollableAxis: 
+          isHorizontal
+            ? ((RectTransform)template.transform).rect.width
+            : ((RectTransform)template.transform).rect.height, 
+        sizeInSecondaryAxis : sizeInSecondaryAxisOverride ?? Percentage.oneHundred
+      ) {
+        this.itemData = itemData;
+        this.setupAction = setupAction;
+        this.log = log;
+      }
+
+      protected override IDisposable setup(Obj view) {
+        var tracker = new DisposableTracker(log);
+        setupAction(view, itemData, tracker);
+        return tracker;
+      }
+    }
+    
+    /// <summary>
+    /// Helper method to easily create <see cref="SimpleDynamicLayoutElementNonPooled{Obj,Data}"/> elements.
+    /// </summary>
+    public static SimpleDynamicLayoutElementNonPooled<Obj, Data> createSimpleNonPooledElement<Obj, Data>(
+      Obj item, Data itemData, bool isHorizontal, 
+      Action<Obj, Data, ITracker> setupAction, 
+      Percentage? sizeInSecondaryAxisOverride = null,
+      [CanBeNull] Action<Obj, bool> setActiveOverride = null,
+      [Implicit] ILog log = null
+    ) where Obj : Component =>
+      new(item, itemData, isHorizontal, setupAction, sizeInSecondaryAxisOverride, setActiveOverride, log);
+    
+    /// <summary>
+    /// This class saves us from creating a separate class for each <see cref="DynamicLayout"/> element we want to show
+    /// in a list. It provides everything through 'setup' method. Use this for non pooled elements. Less boilerplate!
+    /// </summary>
+    public class SimpleDynamicLayoutElementNonPooled<Obj, Data> : IElementWithViewData, IElementView 
+      where Obj : Component 
+    {
+      readonly Obj item;
+      readonly Data itemData;
+      readonly Action<Obj, Data, ITracker> setupAction;
+      readonly Action<bool> setActive;
+      readonly IDisposableTracker tracker;
+      
+      public RectTransform rectTransform { get; }
+      public float sizeInScrollableAxis { get; }
+      public Percentage sizeInSecondaryAxis { get; }
+
+      public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
+      
+      public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
+      
+      public SimpleDynamicLayoutElementNonPooled(
+        Obj item, Data itemData, bool isHorizontal, 
+        Action<Obj, Data, ITracker> setupAction, 
+        Percentage? sizeInSecondaryAxisOverride = null,
+        [CanBeNull] Action<Obj, bool> setActiveOverride = null,
+        [Implicit] ILog log = null
+      ) {
+        this.item = item;
+        this.itemData = itemData;
+        this.setupAction = setupAction;
+        var rectTransform = this.rectTransform = (RectTransform)item.transform;
+        sizeInSecondaryAxis = sizeInSecondaryAxisOverride ?? Percentage.oneHundred;
+        sizeInScrollableAxis = isHorizontal
+          ? ((RectTransform)item.transform).rect.width
+          : ((RectTransform)item.transform).rect.height;
+        setActive = setActiveOverride != null ? b => setActiveOverride(item, b) : b => rectTransform.setActiveGO(b);
+        tracker = new DisposableTracker(log);
+        // Pooled elements starts with disposed state, so we need to do the same for non pooled elements too:
+        Dispose();
+      }
+
+      public IElementView createItem(Transform parent) {
+        setActive(true);
+        setupAction(item, itemData, tracker);
+        return this;
+      }
+      
+      public void Dispose() {
+        tracker.Dispose();
+        setActive(false);
       }
     }
   }
