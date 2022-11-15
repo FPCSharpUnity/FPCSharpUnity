@@ -22,7 +22,7 @@ namespace FPCSharpUnity.unity.unity_serialization {
   
   /// You need to extend this class and mark it as <see cref="SerializableAttribute"/>
   /// to serialize it, because Unity does not serialize generic classes.
-  [Serializable] public class UnityOption<A> : UnityOption, ISkipObjectValidationFields, Ref<Option<A>> {
+  [Serializable] public class UnityOption<A> : UnityOption, ISkipObjectValidationFields, Ref<Option<A>>, COption<A> {
     #region Unity Serialized Fields
 
 #pragma warning disable 649

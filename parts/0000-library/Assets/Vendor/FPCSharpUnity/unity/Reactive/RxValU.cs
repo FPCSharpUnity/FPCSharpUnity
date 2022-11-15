@@ -44,10 +44,10 @@ namespace FPCSharpUnity.unity.Reactive {
 
     /// <summary>
     /// Provides a <see cref="RxVal"/> which is only reactive when in Unity Editor.
-    ///
+    /// <para/>
     /// Useful when you want to make something easily inspectable from Unity Editor, so that when you change the values
     /// in Unity inspector you would see things refreshed in the game.
-    ///
+    /// <para/>
     /// While this is useful in the Editor, we don't want such overhead in runtime and thus simply return a wrapped
     /// value.  
     /// </summary>
