@@ -39,6 +39,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       public RectTransform rectTransform => backing.value.baseTransform;
       public Percentage sizeInSecondaryAxis { get; }
       public virtual void onUpdateLayout(Rect containerSize, DynamicLayout.Padding padding) {}
+      public bool tryToReassignData(DynamicLayout.IElementWithViewData newData) => false;
     }
   }
 }

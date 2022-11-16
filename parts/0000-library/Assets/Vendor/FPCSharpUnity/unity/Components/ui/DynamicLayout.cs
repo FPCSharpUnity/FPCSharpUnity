@@ -64,10 +64,82 @@ namespace FPCSharpUnity.unity.Components.ui {
 
     #endregion
 
-    public class Init<TData, TView> : ILayout, IElements<TData>, IVisibleElements<TData, TView>
-      where TData : IElementData<TView> 
-      where TView : IElementView 
-    {
+    /// <summary>
+    /// Whether to modify all elements` sizes in secondary axis.
+    /// </summary>
+    [GenEnumXMLDocConstStrings] public enum ExpandElementsRectSizeInSecondaryAxis {
+      /// <summary>
+      /// Don't modify all dynamic layout elements sizes in secondary axis to match
+      /// <see cref="DynamicLayout._container"/> size.
+      /// </summary>
+      DontExpand = 0,
+      /// <summary>
+      /// Modify all dynamic layout elements sizes in secondary axis to match <see cref="DynamicLayout._container"/>
+      /// size.
+      /// </summary>
+      Expand = 1
+    }
+
+    [Serializable] public partial class Padding {
+      #region Unity Serialized Fields
+#pragma warning disable 649
+      // ReSharper disable NotNullMemberIsNotInitialized
+      [SerializeField, PublicAccessor] float _left, _right, _top, _bottom;
+      // ReSharper restore NotNullMemberIsNotInitialized
+#pragma warning restore 649
+      #endregion
+
+      public float horizontal => _left + _right;
+      public float vertical => _top + _bottom;
+    }
+
+    /// <summary>
+    /// Visual part of layout item.
+    /// </summary>
+    public interface IElementView : IDisposable {
+      RectTransform rectTransform { get; }
+      /// <summary>Item width portion in vertical layout width OR height in horizontal layout.</summary>
+      Percentage sizeInSecondaryAxis { get; }
+      /// <summary>
+      /// Is called when <see cref="DynamicLayout.Init.updateVisibleElement"/> is
+      /// called, just before the rect position is set.
+      /// </summary>
+      void onUpdateLayout(Rect containerSize, Padding padding);
+    }
+
+    /// <summary>
+    /// Logical part of layout item.
+    /// Used to determine layout height and item positions
+    /// </summary>
+    public interface IElementData {
+      /// <summary>Height of an element in a vertical layout OR width in horizontal layout</summary>
+      float sizeInScrollableAxis { get; }
+      /// <summary>Item width portion of vertical layout width OR height in horizontal layout.</summary>
+      Percentage sizeInSecondaryAxis { get; }
+      Option<IElementWithViewData> asElementWithView { get; }
+    }
+    
+    public interface IElementWithViewData : IElementData {
+      /// <summary>
+      /// Function to create a layout item.
+      /// It is expected that you take <see cref="IElementView"/> from a pool when <see cref="createItem"/> is called
+      /// and release an item to the pool on <see cref="IDisposable.Dispose"/>
+      /// </summary>
+      IElementView createItem(Transform parent);
+    }
+
+    /// <summary>
+    /// Empty spacer element
+    /// </summary>
+    [Record] public partial class EmptyElement : IElementData {
+      public float sizeInScrollableAxis { get; }
+      public Percentage sizeInSecondaryAxis { get; }
+      public Option<IElementWithViewData> asElementWithView => None._;
+    }
+    
+    public class Init {
+      const float EPS = 1e-9f;
+
       /// <summary> A place where all layout elements gets put into. </summary>
       readonly RectTransform _container;
       
@@ -216,10 +288,53 @@ namespace FPCSharpUnity.unity.Components.ui {
         layoutData.Clear();
         clearLayout();
       }
+
+      /// <summary>
+      /// We take new data list and check if there are items with same id, to not recreate the same view.
+      /// If it is, we just try to reassign data for this <see cref="IElementView"/>.
+      /// If not, we Dispose this <see cref="IElementView"/>.
+      /// </summary>
+      public void replaceAllElements<TId>(IList<IElementData> elements, Func<IElementData, Option<TId>> getId)
+        where TId : IEquatable<TId>
+      {
+        var elementDatas = new Dictionary<TId, IElementData>();
+        foreach (var element in elements) {
+          if (getId(element).valueOut(out var id)) {
+            elementDatas.Add(id, element);
+          }
+        }
+
+        var newAssignments = new List<(IElementView view, IElementData newData)>();
+        foreach (var kv in _items) {
+          {if (kv.Value.valueOut(out var value)) {
+            if (
+              getId(kv.Key).valueOut(out var id)
+              && elementDatas.TryGetValue(id, out var elementData)
+              && elementData.asElementWithView.valueOut(out var elementWithView)
+              && value.tryToReassignData(elementWithView)
+            ) {
+              newAssignments.Add((value, elementData));
+            }
+            else {
+              value.Dispose();
+            }
+          }}
+        }
+
+        _items.Clear();
+        foreach (var newAssignment in newAssignments) {
+          _items.Add(newAssignment.newData, Some.a(newAssignment.view));
+        }
+
+        layoutData.Clear();
+        layoutData.AddRange(elements);
+
+        updateLayout();
+      }
       
       void clearLayout() {
         foreach (var kv in _items) {
-          foreach (var item in kv.Value) item.Dispose();
+          if (kv.Value.valueOut(out var value)) value.Dispose();
         }
         _items.Clear();
       }
@@ -352,16 +467,207 @@ namespace FPCSharpUnity.unity.Components.ui {
           forEachElementAction: updateElement
         );
 
-      /// <inheritdoc cref="Init.forEachElementStoppable{TElementData,Data}"/>
-      Option<ForEachElementResult> forEachElementStoppable<Data>(
-        Data dataA, ForEachElementActionStoppable<TData, Data> updateElement
-      ) =>
-        Init.forEachElementStoppable(
-          spacing: spacingInScrollableAxis, iElementDatas: layoutData,
-          renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
-          containersRectTransform: _container, visibleRect: calculateVisibleRect, dataA: dataA,
-          forEachElementAction: updateElement
+      public static void updateForEachElementStatic<Data>(
+        float spacing, List<IElementData> iElementDatas, bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
+        RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
+        UpdateForEachElementAction<Data> updateElement, out float containerSizeInScrollableAxis
+      ) {
+        var containerRect = containersRectTransform.rect;
+        var containerHeight = containerRect.height;
+        var containerWidth = containerRect.width;
+
+        // Depending on orientation it's top or left
+        float paddingPercentageStart;
+        // Depending on orientation it's bottom or right
+        float paddingPercentageEnd;
+        if (isHorizontal) {
+          paddingPercentageStart = padding.top / containerHeight;
+          paddingPercentageEnd = padding.bottom / containerHeight;
+        }
+        else {
+          paddingPercentageStart = padding.left / containerWidth;
+          paddingPercentageEnd = padding.right / containerWidth;
+        }
+
+        var secondaryAxisRemapMultiplier = 1f - paddingPercentageStart - paddingPercentageEnd;
+        
+        var totalOffsetUntilThisRow = isHorizontal ? padding.left : padding.top;
+        var currentRowSizeInScrollableAxis = 0f;
+        var currentSizeInSecondaryAxisPerc = paddingPercentageStart;
+
+        var direction = renderLatestItemsFirst ? -1 : 1;
+        for (
+          var idx = renderLatestItemsFirst ? iElementDatas.Count - 1 : 0;
+          renderLatestItemsFirst ? idx >= 0 : idx < iElementDatas.Count;
+          idx += direction
+        ) {
+          var data = iElementDatas[idx];
+          var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
+          var itemLeftPerc = 0f;
+          if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
+            itemLeftPerc = paddingPercentageStart;
+            currentSizeInSecondaryAxisPerc = paddingPercentageStart + itemSizeInSecondaryAxisPerc;
+            totalOffsetUntilThisRow += currentRowSizeInScrollableAxis + spacing;
+            currentRowSizeInScrollableAxis = data.sizeInScrollableAxis;
+          }
+          else {
+            itemLeftPerc = currentSizeInSecondaryAxisPerc;
+            currentSizeInSecondaryAxisPerc += itemSizeInSecondaryAxisPerc;
+            currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, data.sizeInScrollableAxis);
+          }
+
+          Rect cellRect;
+          if (isHorizontal) {
+            var yPos = itemLeftPerc * containerHeight;
+            var itemHeight = containerHeight * itemSizeInSecondaryAxisPerc;
+            
+            // NOTE: y axis goes up, but we want to place the items from top to bottom
+            // Y = 0                  ------------------------------
+            //                        |                            |
+            // Y = -yPos              | ---------                  |
+            //                        | |       |                  |
+            //                        | | item  |     Container    |
+            //                        | |       |                  |
+            // Y = -yPos - itemHeight | ---------                  |
+            //                        |                            |
+            // Y = -containerHeight   |-----------------------------
+            
+            // cellRect pivot point (x,y) is at bottom left of the item
+            cellRect = new Rect(
+              x: totalOffsetUntilThisRow,
+              y: -yPos - itemHeight,
+              width: data.sizeInScrollableAxis,
+              height: itemHeight
+            );
+          }
+          else {
+            var x = itemLeftPerc * containerWidth;
+            cellRect = new Rect(
+              x: x,
+              y: -totalOffsetUntilThisRow - data.sizeInScrollableAxis,
+              width: containerWidth * itemSizeInSecondaryAxisPerc,
+              height: data.sizeInScrollableAxis
+            );            
+          }
+             
+          var placementVisible = visibleRect.Overlaps(cellRect, true);
+
+          updateElement(data, placementVisible, cellRect, dataA);
+        }
+
+        totalOffsetUntilThisRow += isHorizontal ? padding.right : padding.bottom;
+        containerSizeInScrollableAxis = totalOffsetUntilThisRow + currentRowSizeInScrollableAxis;
+      }
+    }
+
+    /// <summary>
+    /// Useful when you need a not pooled <see cref="DynamicLayout"/> element, the one that just can be turned on/off
+    /// directly in scene, when <see cref="rectTransform"/> becomes visible in viewport.
+    /// </summary>
+    public class NonPooledRectTransformElementWithViewData : IElementWithViewData, IElementView {
+      public RectTransform rectTransform { get; }
+      public float sizeInScrollableAxis { get; }
+      public Percentage sizeInSecondaryAxis { get; }
+
+      public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
+      
+      public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
+      
+      public NonPooledRectTransformElementWithViewData(
+        RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
+      ) {
+        this.rectTransform = rectTransform;
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
+        this.sizeInScrollableAxis = sizeInScrollableAxis;
+        // Pooled elements starts with disposed state, so we need to do the same for non pooled elements too:
+        Dispose();
+      }
+
+      public IElementView createItem(Transform parent) {
+        rectTransform.setActiveGO(true);
+        return this;
+      }
+      
+      public void Dispose() {
+        rectTransform.setActiveGO(false);
+      }
+    }
+
+    /// <summary>
+    /// It's a callback when <see cref="Init.updateLayout"/> is called. This happens before setting item's position in
+    /// <see cref="DynamicLayout._container"/>.
+    /// </summary>
+    /// <typeparam name="Obj">A view type.</typeparam>
+    public delegate void OnUpdateLayout<in Obj>(
+      Obj view, Rect viewportSize, RectTransform viewRt, Padding padding
+    ) where Obj : Component;
+    
+    /// <summary>
+    /// Represents layout data for <see cref="DynamicLayout"/>. When this layout element becomes visible in viewport,
+    /// it uses <see cref="GameObjectPool"/> to create it's visual part. You need to override this class for your
+    /// specific <see cref="Obj"/> view.
+    /// </summary>
+    /// <typeparam name="Obj"></typeparam>
+    public abstract class ElementWithViewData<Obj> : IElementWithViewData where Obj : Component {
+      readonly GameObjectPool<Obj> pool;
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
+      public float sizeInScrollableAxis { get; set; }
+      public Percentage sizeInSecondaryAxis { get; }
+      
+      public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
+      
+      protected abstract IDisposable setup(Obj view);
+
+      public ElementWithViewData(
+        GameObjectPool<Obj> pool, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis, 
+        [CanBeNull] OnUpdateLayout<Obj> maybeOnUpdateLayout = null
+      ) {
+        this.pool = pool;
+        this.maybeOnUpdateLayout = maybeOnUpdateLayout;
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
+        this.sizeInScrollableAxis = sizeInScrollableAxis;
+      }
+
+      public IElementView createItem(Transform parent) {
+        var view = pool.borrow();
+        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout,
+          sizeInSecondaryAxis: sizeInSecondaryAxis
         );
+      }
+    }
+    
+    /// <summary>
+    /// Visual part of <see cref="ElementWithViewData{Obj}"/>. When item becomes hidden (outside of viewport) it gets
+    /// returned to <see cref="GameObjectPool"/>.
+    /// </summary>
+    /// <typeparam name="Obj"></typeparam>
+    public class PooledElementView<Obj> : IElementView where Obj : Component {
+      readonly Obj visual;
+      readonly IDisposable disposable;
+      readonly GameObjectPool<Obj> pool;
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayoutFunc;
+      public RectTransform rectTransform { get; }
+      public Percentage sizeInSecondaryAxis { get; }
+
+      public virtual void onUpdateLayout(Rect containerSize, Padding padding) {
+        maybeOnUpdateLayoutFunc?.Invoke(visual, containerSize, rectTransform, padding);
+      }
+      
+      public PooledElementView(
+        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout,
+        Percentage sizeInSecondaryAxis
+      ) {
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
+        this.visual = visual;
+        this.disposable = disposable;
+        this.pool = pool;
+        rectTransform = (RectTransform) visual.transform;
+        maybeOnUpdateLayoutFunc = maybeOnUpdateLayout;
+      }
+      public void Dispose() {
+        if (visual) pool.release(visual);
+        disposable.Dispose();
+      }
     }
   }
 }

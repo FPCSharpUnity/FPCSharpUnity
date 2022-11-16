@@ -197,6 +197,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     
     [LazyProperty] public COption<IViewFactory<IElementView>> asViewFactory => CSome.a(this);
 
+    public bool tryToReassignData(DynamicLayout.IElementWithViewData newData) => false;
+    
     public void clearPreview() {
       if (visiblePreview) DestroyImmediate(visiblePreview.gameObject);
     }
