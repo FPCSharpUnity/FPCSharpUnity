@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using FPCSharpUnity.unity.Collection;
@@ -13,12 +12,10 @@ using FPCSharpUnity.unity.Dispose;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Pools;
 using FPCSharpUnity.unity.Reactive;using FPCSharpUnity.core.reactive;
-
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
@@ -43,10 +40,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       public string label => shortcut.valueOut(out var sc) ? $"[{s(sc)}] {name}" : name;
     }
 
-    [Record]
-    partial struct Instance {
+    [Record] partial struct Instance {
       public readonly DebugConsoleBinding view;
-      public readonly DynamicLayout.Init dynamicVerticalLayout;
+      public readonly DynamicLayout.Init<
+        DynamicVerticalLayoutLogElementData, 
+        VerticalLayoutLogEntry.Init
+      > dynamicVerticalLayout;
       public readonly Application.LogCallback logCallback;
       public readonly GameObjectPool<VerticalLayoutLogEntry> pool;
       public readonly IDisposableTracker tracker;
@@ -349,13 +348,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       ));
 
       var cache = new List<string>();
-      var layout = new DynamicLayout.Init(
+      var layout = DynamicLayout.Init.a(
         view.dynamicLayout,
         // ReSharper disable once InconsistentlySynchronizedField
-        logEntries
-          .SelectMany(e => createEntries(e, logEntryPool, cache, view.lineWidth))
-          .Select(_ => _.upcast(default(DynamicLayout.IElementData))),
+        logEntries.SelectMany(e => createEntries(e, logEntryPool, cache, view.lineWidth)),
         tracker,
+        viewExampleForTypeInference: default(VerticalLayoutLogEntry.Init),
         renderLatestItemsFirst: true
       );
 
@@ -441,16 +439,19 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     
     // DO NOT generate comparer and hashcode - we need reference equality for dynamic vertical layout!
     [Record(GenerateComparer = false, GenerateGetHashCode = false)]
-    partial class DynamicVerticalLayoutLogElementData : DynamicLayout.IElementWithViewData {
+    partial class DynamicVerticalLayoutLogElementData : 
+      DynamicLayout.IElementData<VerticalLayoutLogEntry.Init>, 
+      DynamicLayout.IViewFactory<VerticalLayoutLogEntry.Init> 
+    {
       readonly GameObjectPool<VerticalLayoutLogEntry> pool;
       readonly VerticalLayoutLogEntry.Data data;
       
       public float sizeInScrollableAxis => 20;
       public Percentage sizeInSecondaryAxis => new Percentage(1f);
-      public Option<DynamicLayout.IElementWithViewData> asElementWithView => 
-        this.some<DynamicLayout.IElementWithViewData>();
+      
+      [LazyProperty] public COption<DynamicLayout.IViewFactory<VerticalLayoutLogEntry.Init>> asViewFactory => CSome.a(this);
 
-      public DynamicLayout.IElementView createItem(Transform parent) {
+      public VerticalLayoutLogEntry.Init createItem(Transform parent) {
         var logEntry = pool.BorrowDisposable();
         logEntry.value.transform.SetParent(parent, false);
         return new VerticalLayoutLogEntry.Init(logEntry, data, sizeInSecondaryAxis: sizeInSecondaryAxis);      
