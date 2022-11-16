@@ -1,22 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Components.Forwarders;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.Pools;
 using FPCSharpUnity.unity.Reactive;
 using FPCSharpUnity.core.reactive;
-using FPCSharpUnity.unity.Utilities;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
-using FPCSharpUnity.core.log;
-using FPCSharpUnity.core.macros;
-using FPCSharpUnity.unity.Logger;
+using FPCSharpUnity.core.typeclasses;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -27,7 +24,7 @@ namespace FPCSharpUnity.unity.Components.ui {
   /// <summary>
   /// Scrollable vertical/horizontal layout, which makes sure that only visible elements are created.
   /// Element is considered visible if it intersects with <see cref="_maskRect"/> bounds.
-  ///
+  /// <para/>
   /// Sample vertical layout:
   /// 
   /// <code><![CDATA[
@@ -108,9 +105,6 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// called, just before the rect position is set.
       /// </summary>
       void onUpdateLayout(Rect containerSize, Padding padding);
-      /// <summary>Called when you want update data for this <see cref="IElementView"/>.</summary>
-      /// <returns>true if we can reassign new data and reassign was successful.</returns>
-      bool tryToReassignData(IElementWithViewData newData);
     }
 
     /// <summary>
@@ -148,41 +142,51 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       /// <summary> A place where all layout elements gets put into. </summary>
       readonly RectTransform _container;
+      
       /// <summary>
       /// A viewport where all layout elements are rendered in if they are inside this rect. Its name has a 'mask' in
       /// it, because in most of the cases, this <see cref="RectTransform"/> has <see cref="RectMask2D"/> component
       /// attached to it as well.
       /// </summary>
       readonly RectTransform _maskRect;
+      
       /// <summary> All layout elements that are present in this layout. </summary>
-      readonly List<IElementData> layoutData;
-      /// <summary> A reactive value of how much space all layout elements takes up in scrollable axis. </summary>
+      readonly List<TData> layoutData;
+      
+      /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
+      
       /// <summary>
       /// If true - elements in UI are ordered in reversed order from <see cref="layoutData"/>.
       /// If false - elements in UI are ordered in same order as <see cref="layoutData"/>.<br/>
       /// </summary>
       readonly bool renderLatestItemsFirst;
+      
       /// <summary>
       /// Whether <see cref="DynamicLayout._scrollRect"/> is horizontal or vertical. Can't be both.
       /// </summary>
       readonly bool isHorizontal;
+      
       /// <summary>
       /// How many UI units to move all layout elements away from the <see cref="_container"/> sides.
       /// </summary>
       readonly Padding padding;
+      
       /// <summary> A spacing between layout elements. </summary>
       readonly float spacingInScrollableAxis;
+      
       /// <inheritdoc cref="ExpandElementsRectSizeInSecondaryAxis"/>
       readonly ExpandElementsRectSizeInSecondaryAxis expandElements;
+      
       /// <summary> A reactive value of <see cref="_maskRect"/> size. </summary>
       public readonly IRxVal<Rect> maskSize;
 
-      // If Option is None, that means there is no backing view, it is only a spacer.
-      readonly IDictionary<IElementData, Option<IElementView>> _items = 
-        new Dictionary<IElementData, Option<IElementView>>();
+      /// <summary>
+      /// If <see cref="Option{A}"/> is `None`, that means there is no backing view, it is only a spacer.
+      /// </summary>
+      readonly Dictionary<TData, Option<TView>> _items = new();
 
-      public Option<Option<IElementView>> get(IElementData key) => _items.get(key);
+      public Option<Option<TView>> get(TData key) => _items.get(key);
       
       // When we add elements to layout and enable it on the same frame,
       // layout does not work correctly due to rect sizes == 0.
@@ -191,7 +195,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public Init(
         DynamicLayout backing,
-        IEnumerable<IElementData> layoutData,
+        IEnumerable<TData> layoutData,
         ITracker dt,
         bool renderLatestItemsFirst = false
       ) : this(
@@ -210,7 +214,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </summary>
       public Init(
         RectTransform _container, RectTransform _maskRect,
-        IEnumerable<IElementData> layoutData,
+        IEnumerable<TData> layoutData,
         bool isHorizontal, Padding padding, float spacingInScrollableAxis,
         ITracker tracker,
         bool renderLatestItemsFirst = false,
@@ -246,9 +250,12 @@ namespace FPCSharpUnity.unity.Components.ui {
           .map(_ => mask.rect)
           .toRxVal(mask.rect);
 
+        if (isHorizontal && _container.pivot != Vector2.up) {
+          Debug.LogError($"Horizontal layout's content should have (0, 1) as pivot, not {_container.pivot}!");
+        }
 
         maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (rectSize, size) => {
-          onRectSizeChange(container: _container,
+          Init.onRectSizeChange(container: _container,
             expandElements: expandElements,
             isHorizontal: isHorizontal, containerSizeInScrollableAxis: size, rectSize: rectSize
           );
@@ -256,23 +263,12 @@ namespace FPCSharpUnity.unity.Components.ui {
         });
       }
 
-      /// <summary> What should happen after <see cref="_maskRect"/> gets resized. </summary>
-      public static void onRectSizeChange(
-        RectTransform container, ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal, 
-        float containerSizeInScrollableAxis, Rect rectSize
-      ) {
-        var rectTransformAxis = isHorizontal
-          ? RectTransform.Axis.Horizontal
-          : RectTransform.Axis.Vertical;
-        container.SetSizeWithCurrentAnchors(rectTransformAxis, containerSizeInScrollableAxis);
-      }
-
       /// <param name="element"></param>
       /// <param name="updateLayout">
       /// pass false and then call <see cref="updateLayout"/> manually when doing batch updates
       /// </param>
       [PublicAPI]
-      public void appendDataIntoLayoutData(IElementData element, bool updateLayout = true) {       
+      public void appendDataIntoLayoutData(TData element, bool updateLayout = true) {       
         layoutData.Add(element);
         if (updateLayout) this.updateLayout();
       }
@@ -282,7 +278,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// pass false and then call <see cref="updateLayout"/> manually when doing batch updates
       /// </param>
       [PublicAPI]
-      public void appendDataIntoLayoutData(IEnumerable<IElementData> elements, bool updateLayout = true) {
+      public void appendDataIntoLayoutData(IEnumerable<TData> elements, bool updateLayout = true) {
         layoutData.AddRange(elements);
         if (updateLayout) this.updateLayout();
       }
@@ -343,25 +339,20 @@ namespace FPCSharpUnity.unity.Components.ui {
         _items.Clear();
       }
 
-      public Rect calculateVisibleRect => calculateVisibleRectStatic(container: _container, maskRect: _maskRect);
-
-      public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
-        maskRect.rect.convertCoordinateSystem(
-          ((Transform) maskRect).some(), container
-        );
+      public Rect calculateVisibleRect => Init.calculateVisibleRectStatic(container: _container, maskRect: _maskRect);
 
       /// <summary>
-      /// You can call this after modifying the underlying data to update the layout so
+      /// You <b>must</b> call this after modifying the underlying data to update the layout so
       /// it would show everything correctly.
       /// </summary>
       [PublicAPI]
       public void updateLayout() {
-        updateForEachElement(
+        var result = forEachElement(
           this, static (data, placementVisible, cellRect, dis) => {
             switch (placementVisible) {
               case true: {
                 if (!dis._items.TryGetValue(data, out var instanceOpt)) {
-                  {if (data.asElementWithView.valueOut(out var elementWithView)) {
+                  {if (data.asViewFactory.toStruct().valueOut(out var elementWithView)) {
                     var instance = elementWithView.createItem(dis._container);
                     instanceOpt = instance.some();  
                     dis._items.Add(data, instanceOpt);
@@ -369,7 +360,7 @@ namespace FPCSharpUnity.unity.Components.ui {
                 }
 
                 {if (instanceOpt.valueOut(out var instance)) {
-                  updateVisibleElement(
+                  Init.updateVisibleElement(
                     instance, cellRect: cellRect, padding: dis.padding, isHorizontal: dis.isHorizontal,
                     expandElements: dis.expandElements, containerSize: dis._container.rect
                   );
@@ -385,135 +376,95 @@ namespace FPCSharpUnity.unity.Components.ui {
                 break;
               }
             }
-          }, 
-          out var containerSizeInScrollableAxis_
+          }
         );
         
-        containerSizeInScrollableAxis.value = containerSizeInScrollableAxis_;
+        containerSizeInScrollableAxis.value = result.containerSizeInScrollableAxis;
       }
-
-      /// <summary>
-      /// Is called when an <see cref="IElementData"/> becomes visible inside <see cref="_maskRect"/>.
-      /// </summary>
-      public static void updateVisibleElement(
-        IElementView instance, Rect cellRect, Padding padding, Rect containerSize,
-        ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal
-      ) {
-        if (expandElements == ExpandElementsRectSizeInSecondaryAxis.Expand) {
-          if (isHorizontal) {
-            instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
-              (containerSize.height - padding.vertical) * instance.sizeInSecondaryAxis.value
-            );
-          } 
-          else {
-            instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
-              (containerSize.width - padding.horizontal) * instance.sizeInSecondaryAxis.value
-            );         
-          }
-        }
-        
-        // Call this first, because in there could be code which resizes this item's rectTransform.
-        instance.onUpdateLayout(containerSize: containerSize, padding);
-
-        var rectTrans = instance.rectTransform;
-        rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
-        rectTrans.localPosition = Vector3.zero;
-        rectTrans.anchoredPosition = cellRect.center;
-
-#if UNITY_EDITOR
-        if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
-          Log.d.error(
-            $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
-            + $"{rectTrans.pivot} => {0.5f}", rectTrans
-          );
-        }
-#endif
-      }
-
-      /// <summary>
-      /// Find normalized position of an item for scrolling to. If you use this position to scroll ScrollRect, the
-      /// item will be in the center of viewport (until you reach the content ends, then the scroll is clamped)
-      /// </summary>
-      public Option<float> findItemsNormalizedScrollPositionForItem(Func<IElementData, bool> predicate) {
+      
+      public Option<Percentage> findItemsNormalizedScrollPositionForItem(Func<TData, bool> predicate) {
         var result = Option<Rect>.None;
-        updateForEachElement(
+        var forEachResult = forEachElement(
           predicate, (data, isVisible, cellRect, predicate_) => {
             if (predicate_(data)) {
               result = Some.a(cellRect);
             }
-          }, out var containerSizeInScrollableAxis_
+          }
         );
         {if (result.valueOut(out var cellRect)) {
           var viewportSize = _maskRect.rect;
           var scrollPosition = isHorizontal
-            ? (cellRect.center.x - viewportSize.width / 2f) / (containerSizeInScrollableAxis_ - viewportSize.width)
-            : 1f - (Mathf.Abs(cellRect.center.y) - viewportSize.height / 2f) / (containerSizeInScrollableAxis_ - _maskRect.rect.height);
+            ? (cellRect.center.x - viewportSize.width / 2f) / (forEachResult.containerSizeInScrollableAxis - viewportSize.width)
+            : 1f - (Mathf.Abs(cellRect.center.y) - viewportSize.height / 2f) / (forEachResult.containerSizeInScrollableAxis - _maskRect.rect.height);
           
-          return Some.a(scrollPosition);
+          return Some.a(new Percentage(scrollPosition));
         } else {
           return None._;
         }}
       }
       
-      /// <summary>
-      /// Find item cell rect. This is useful when we want to get the position of an item even if it is not visible.
-      /// </summary>
-      public Option<Rect> findItemRect(Func<IElementData, bool> predicate) {
-        var result = Option<Rect>.None;
-        updateForEachElement(
+      public Option<B> findItem<B>(Func<TData, Rect, Option<B>> predicate) {
+        var result = Option<B>.None;
+        forEachElementStoppable(
           predicate, 
           (data, isVisible, cellRect, predicate_) => {
-            if (result.isNone && predicate_(data)) {
-              result = Some.a(cellRect);
+            if (predicate_(data, cellRect).valueOut(out var match)) {
+              result = Some.a(match);
+              return ForEachElementActionResult.StopIterating;
             }
-          }, 
-          out _
+            else {
+              return ForEachElementActionResult.ContinueIterating;
+            }
+          }
         );
         return result;
       }
       
-      /// <summary>
-      /// Finds currently visible item by type.
-      /// </summary>
-      /// <param name="predicate">Filter to check if item is the one we need.</param>
-      /// <typeparam name="DataType">Item's data type.</typeparam>
-      /// <typeparam name="ViewType">Item's view type.</typeparam>
-      /// <returns></returns>
-      public Option<ViewType> findVisibleItem<DataType, ViewType>(Func<DataType, bool> predicate) 
-        where DataType : IElementData 
-        where ViewType : IElementView
-      {
-        var result = Option<ViewType>.None;
-        updateForEachElement(
+      public ImmutableArrayC<A> collectItems<A>(Func<TData, Rect, Option<A>> predicate) {
+        var result = new ImmutableArrayCBuilder<A>();
+        forEachElement(
           predicate, 
-          (dataGeneric, isVisible, cellRect, predicate_) => {
+          (data, isVisible, cellRect, predicate_) => {
+            if (predicate_(data, cellRect).valueOut(out var match)) {
+              result.add(match);
+            }
+          } 
+        );
+        return result.build();
+      }
+      
+      public Option<TView> findVisibleItem(Func<TData, bool> predicate)
+      {
+        var result = Option<TView>.None;
+        forEachElementStoppable(
+          predicate, 
+          (data, isVisible, cellRect, predicate_) => {
             if (
-              result.isNone 
-              && isVisible
-              && dataGeneric.downcast(default(DataType)).valueOut(out var data) 
+              isVisible
               && predicate_(data)
-              && _items.TryGetValue(dataGeneric, out var maybeNonSpacerView)
+              && _items.TryGetValue(data, out var maybeNonSpacerView)
               && maybeNonSpacerView.valueOut(out var view)
             ) {
-              result = view.downcast(default(ViewType));
+              result = view.downcast(default(TView));
+              return ForEachElementActionResult.StopIterating;
             }
-          }, 
-          out _
+            else {
+              return ForEachElementActionResult.ContinueIterating;
+            }
+          }
         );
         return result;
       }
-      
-      public delegate void UpdateForEachElementAction<in Data>(
-        IElementData elementData, bool placementVisible, Rect cellRect, Data data
-      );
 
-      void updateForEachElement<Data>(
-        Data dataA, UpdateForEachElementAction<Data> updateElement, out float containerSizeInScrollableAxis_
+      /// <inheritdoc cref="Init.forEachElement{TElementData,Data}"/>
+      ForEachElementResult forEachElement<Data>(
+        Data dataA, ForEachElementAction<TData, Data> updateElement
       ) =>
-        updateForEachElementStatic(spacing: spacingInScrollableAxis, iElementDatas: layoutData,
+        Init.forEachElement(
+          spacing: spacingInScrollableAxis, iElementDatas: layoutData,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: _container, visibleRect: calculateVisibleRect, dataA: dataA,
-          updateElement: updateElement, containerSizeInScrollableAxis: out containerSizeInScrollableAxis_
+          forEachElementAction: updateElement
         );
 
       public static void updateForEachElementStatic<Data>(
@@ -621,9 +572,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
       
       public virtual void onUpdateLayout(Rect containerSize, Padding padding) {}
-
-      public bool tryToReassignData(IElementWithViewData newData) => false;
-
+      
       public NonPooledRectTransformElementWithViewData(
         RectTransform rectTransform, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis
       ) {
@@ -661,13 +610,13 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <typeparam name="Obj"></typeparam>
     public abstract class ElementWithViewData<Obj> : IElementWithViewData where Obj : Component {
       readonly GameObjectPool<Obj> pool;
-      [CanBeNull] public readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayout;
       public float sizeInScrollableAxis { get; set; }
       public Percentage sizeInSecondaryAxis { get; }
       
       public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
-
-      public abstract IDisposable setup(Obj view);
+      
+      protected abstract IDisposable setup(Obj view);
 
       public ElementWithViewData(
         GameObjectPool<Obj> pool, float sizeInScrollableAxis, Percentage sizeInSecondaryAxis, 
@@ -681,7 +630,9 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public IElementView createItem(Transform parent) {
         var view = pool.borrow();
-        return new PooledElementView<Obj>(view, this, pool);
+        return new PooledElementView<Obj>(view, setup(view), pool, maybeOnUpdateLayout: maybeOnUpdateLayout,
+          sizeInSecondaryAxis: sizeInSecondaryAxis
+        );
       }
     }
     
@@ -692,39 +643,27 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <typeparam name="Obj"></typeparam>
     public class PooledElementView<Obj> : IElementView where Obj : Component {
       readonly Obj visual;
-      ElementWithViewData<Obj> data;
-      IDisposable disposable;
+      readonly IDisposable disposable;
       readonly GameObjectPool<Obj> pool;
+      [CanBeNull] readonly OnUpdateLayout<Obj> maybeOnUpdateLayoutFunc;
       public RectTransform rectTransform { get; }
-      public Percentage sizeInSecondaryAxis => data.sizeInSecondaryAxis;
+      public Percentage sizeInSecondaryAxis { get; }
 
       public virtual void onUpdateLayout(Rect containerSize, Padding padding) {
-        data.maybeOnUpdateLayout?.Invoke(visual, containerSize, rectTransform, padding);
-      }
-
-      public bool tryToReassignData(IElementWithViewData newData) {
-        disposable.Dispose();
-
-        var maybeData = newData.downcast(in data);
-        {if (maybeData.valueOut(out var newCastedData)) { 
-          data = newCastedData;
-          disposable = data.setup(visual);
-          return true;
-        } else {
-          return false;
-        }}
-      }
-
-      public PooledElementView(
-        Obj visual, ElementWithViewData<Obj> data, GameObjectPool<Obj> pool
-      ) {
-        this.visual = visual;
-        this.data = data;
-        disposable = data.setup(visual);
-        this.pool = pool;
-        rectTransform = (RectTransform) visual.transform;
+        maybeOnUpdateLayoutFunc?.Invoke(visual, containerSize, rectTransform, padding);
       }
       
+      public PooledElementView(
+        Obj visual, IDisposable disposable, GameObjectPool<Obj> pool, OnUpdateLayout<Obj> maybeOnUpdateLayout,
+        Percentage sizeInSecondaryAxis
+      ) {
+        this.sizeInSecondaryAxis = sizeInSecondaryAxis;
+        this.visual = visual;
+        this.disposable = disposable;
+        this.pool = pool;
+        rectTransform = (RectTransform) visual.transform;
+        maybeOnUpdateLayoutFunc = maybeOnUpdateLayout;
+      }
       public void Dispose() {
         if (visual) pool.release(visual);
         disposable.Dispose();

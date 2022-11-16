@@ -174,5 +174,14 @@
             we can not reference `ITypeSymbol` from this assembly, as that is a type that comes from the compiler assembly.
             </summary>
         </member>
+        <member name="F:GenerationAttributes.TypeInMacros.type">
+            <summary>
+            Type of this variable is `INamedTypeSymbol` when accessed while compiling from maro code.
+            Use `TypeInMacrosExts.toSymbol` extension method in that case.
+            <para/>
+            At runtime type of this variable is <see cref="T:System.Type"/>. You can create a typesafe extension method to access this
+            in your code.
+            </summary>
+        </member>
     </members>
 </doc>

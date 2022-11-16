@@ -61,7 +61,15 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
   }
   
-  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTest() {
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTest1() {
+    editorTestPopulateListWithFullWidthEntries(1);
+    _editorTestLayout = true;
+    foreach (var entry in _editorTestEntries) {
+      SceneVisibilityManager.instance.Hide(entry.item.gameObject, includeDescendants: true);
+    }
+  }
+  
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorQuickTestAll() {
     for (var i = 0; i < 20; i++) {
       editorTestPopulateListWithFullWidthEntries();
     }
@@ -71,10 +79,11 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
   }
   
-  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorTestPopulateListWithFullWidthEntries() {
+  [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorTestPopulateListWithFullWidthEntries(int number = 999) {
     _editorTestEntries = _editorTestEntries.Concat(
       _container.children()
         .Where(tr => (tr.gameObject.hideFlags & HideFlags.DontSave) != HideFlags.DontSave)
+        .Take(number)
         .Select(tr => new EditorTestEntry(_item: (RectTransform)tr, _sizeInSecondaryAxis: Percentage.oneHundred,
           _customSizeInScrollableAxis: new UnityOption<float>(None._)
         ))  
@@ -101,12 +110,12 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   [ShowInInspector, HideInPlayMode, FoldoutGroup(EDITOR_TEST), PropertyRange(0, 1)] float editorTestScroll {
     get {
       if (!_scrollRect) return -1;
-      return 1f - (_scrollRect.horizontal
+      return (_scrollRect.horizontal
         ? _scrollRect.horizontalNormalizedPosition
-        : _scrollRect.verticalNormalizedPosition);
+        : 1f - _scrollRect.verticalNormalizedPosition);
     }
     set {
-      if (_scrollRect.horizontal) _scrollRect.horizontalNormalizedPosition = 1f - value;
+      if (_scrollRect.horizontal) _scrollRect.horizontalNormalizedPosition = value;
       else _scrollRect.verticalNormalizedPosition = 1f - value;
     }
   }
@@ -121,12 +130,13 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       var containerSize = _container.rect;
       var isHorizontal = _scrollRect.horizontal;
 
-      Init.updateForEachElementStatic(spacing: _spacingInScrollableAxis,
-        iElementDatas: _editorTestEntries.Select(_ => _.upcast(default(IElementData))).ToList(),
+      var result = Init.forEachElement(
+        spacing: _spacingInScrollableAxis,
+        iElementDatas: _editorTestEntries,
         renderLatestItemsFirst: false, padding: _padding, isHorizontal: isHorizontal,
         containersRectTransform: _container,
         visibleRect: Init.calculateVisibleRectStatic(container: _container, maskRect: _maskRect), dataA: Unit._, 
-        updateElement: (data, placementVisible, cellRect, _) => {
+        forEachElementAction: (data, placementVisible, cellRect, _) => {
           var entry = data.downcast(default(EditorTestEntry)).getOr_LOG_AND_RETURN(
             $"Wrong type for editor test! {data.GetType().FullName} != {nameof(EditorTestEntry)}", Log.d, LogLevel.ERROR
           );
@@ -148,13 +158,12 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
               break;
             }
           }
-        },
-        containerSizeInScrollableAxis: out var containerSizeInScrollableAxis
+        }
       );
 
       Init.onRectSizeChange(
         container: _container, expandElements: _expandElements, isHorizontal: isHorizontal,
-        containerSizeInScrollableAxis: containerSizeInScrollableAxis, rectSize: maskSize
+        containerSizeInScrollableAxis: result.containerSizeInScrollableAxis, rectSize: maskSize
       );
       
       // At runtime these are set by Unity automatically.
@@ -168,7 +177,9 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   }
 
   /// <summary> Is used to draw debug test item previews in editor. </summary>
-  [Serializable, Record] public partial class EditorTestEntry : IElementWithViewData, IElementView {
+  [Serializable, Record] public partial class EditorTestEntry 
+    : IElementData<IElementView>, IViewFactory<IElementView>, IElementView 
+  {
 #pragma warning disable 649
     // ReSharper disable NotNullMemberIsNotInitialized
     [SerializeField, NotNull, PublicAccessor] RectTransform _item;
@@ -180,10 +191,11 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
 #pragma warning restore 649
 
     /// <summary> Optional. Will be set to not null if this item is visible is layout. </summary>
-    [RecordExclude, ShowInInspector, ReadOnly] public RectTransform visiblePreview { get; private set; } = null;
+    [RecordExclude, ShowInInspector, ReadOnly] public RectTransform visiblePreview { get; private set; }
     
-    [RecordExclude, ShowInInspector, ReadOnly] public float sizeInScrollableAxis { get; set; } = 0f;
-    public Option<IElementWithViewData> asElementWithView => Some.a<IElementWithViewData>(this);
+    [RecordExclude, ShowInInspector, ReadOnly] public float sizeInScrollableAxis { get; set; }
+    
+    [LazyProperty] public COption<IViewFactory<IElementView>> asViewFactory => CSome.a(this);
 
     public bool tryToReassignData(DynamicLayout.IElementWithViewData newData) => false;
     
