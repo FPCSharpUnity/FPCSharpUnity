@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using ExhaustiveMatching;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.concurrent;
@@ -9,12 +11,31 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
   public sealed class UnityCoroutine : CustomYieldInstruction, ICoroutine {
-    public event CoroutineFinishedOrStopped onFinish;
     public CoroutineState state { get; private set; } = CoroutineState.Running;
 
     public override bool keepWaiting => state.isRunning();
 
     bool shouldStop;
+
+    event CoroutineFinishedOrStopped _onFinish;
+    public event CoroutineFinishedOrStopped onFinish {
+      add {
+        switch (state) {
+          case CoroutineState.Running:
+            _onFinish += value;
+            break;
+          case CoroutineState.Stopped:
+            value(finished: false);
+            break;
+          case CoroutineState.Finished:
+            value(finished: true);
+            break;
+          default:
+            throw ExhaustiveMatch.Failed(state);
+        }
+      }
+      remove { _onFinish -= value; }
+    }
 
     public UnityCoroutine(
       MonoBehaviour behaviour, IEnumerator enumerator,
@@ -92,8 +113,8 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
 
       state = shouldStop ? CoroutineState.Stopped : CoroutineState.Finished;
-      onFinish?.Invoke(finished: !shouldStop);
-      onFinish = null;
+      _onFinish?.Invoke(finished: !shouldStop);
+      _onFinish = null;
     }
 
     public void stop() => shouldStop = true;
