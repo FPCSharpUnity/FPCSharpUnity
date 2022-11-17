@@ -10,7 +10,7 @@ namespace FPCSharpUnity.unity.Editor {
     public int callbackOrder => 0;
 
     public void OnPostGenerateGradleAndroidProject(string path) {
-      var libGradle = PathStr.a(path) / "FPCSharpUnity.core.androidlib" / "build.gradle";
+      var libGradle = PathStr.a(path) / "fp_csharp_unity_osx.androidlib" / "build.gradle";
 
       editFile(
         libGradle,
