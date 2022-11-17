@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
@@ -11,10 +12,64 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui;
 
+public static partial class DynamicLayoutExts {
+  
+  public interface ILayoutElementUpdatable<InnerData, IdType> : DynamicLayout.IElement
+    where IdType : IEquatable<IdType> 
+  {
+    IdType getId { get; }
+    Option<InnerData> getData { get; }
+    void updateData(InnerData newData);
+  }
+  
+  public static void replaceAllElementsData<CommonDataType, TData, TId>(
+    this DynamicLayout.Init<CommonDataType> layout, IEnumerable<CommonDataType> newDatas
+  )
+    where TId : IEquatable<TId> 
+    where CommonDataType : DynamicLayout.IElement, ILayoutElementUpdatable<TData, TId>
+  {
+    var elementDatas = new Dictionary<TId, CommonDataType>();
+    foreach (var element in newDatas) {
+      elementDatas.Add(element.getId, element);
+    }
+
+    for (int i = 0; i < layout.itemsCount; i++) {
+      var item = layout.getItemAt(i);
+      {if (item.isVisible) {
+        if (
+          elementDatas.TryGetValue(item.getId, out var tpl)
+        ) {
+          if (tpl.getData.valueOut(out var newData)) {
+            item.updateData(newData);
+            item.show(parent: layout.elementsParent, force: true);            
+          }
+          elementDatas.Remove(item.getId);
+        }
+        else {
+          item.hide();
+          layout.removeItemAt(i);
+          i--;
+        }
+      } else {
+        layout.removeItemAt(i);
+        i--;
+      }}      
+    }
+    
+    foreach (var kvp in elementDatas) {
+      layout.appendDataIntoLayoutData(kvp.Value, updateLayout: false);
+    }
+    
+    layout.updateLayout();
+  }
+}
+
 public partial class DynamicLayout {
   public static class Init {
     const float EPS = 1e-9f;
       
+    
+    
     /*/// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
     public static Init<TData, TView> a<TData, TView>(
       DynamicLayout backing,
@@ -178,6 +233,8 @@ public partial class DynamicLayout {
     public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
       maskRect.rect.convertCoordinateSystem(((Transform) maskRect).some(), container);
       
+    
+    
     /// <summary>
     /// Is called when an <see cref="IElementDatas{TView}"/> becomes visible inside <see cref="_maskRect"/>.
     /// </summary>

@@ -198,6 +198,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       public Rect calculateVisibleRect => Init.calculateVisibleRectStatic(container: container, maskRect: maskRect);
 
+      
       /// <summary>
       /// You <b>must</b> call this after modifying the underlying data to update the layout so
       /// it would show everything correctly.
@@ -249,7 +250,12 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
 
       public delegate Option<A> FindItemPredicate<A>(CommonDataType data, Rect cellRect);
-      
+
+      public RectTransform elementsParent => (RectTransform)container.transform;
+      public CommonDataType getItemAt(int idx) => items[idx];
+      public void removeItemAt(int idx) => items.RemoveAt(idx);
+      public int itemsCount => items.Count;
+
       public Option<B> findItem<B>(FindItemPredicate<B> predicate) {
         var result = Option<B>.None;
         forEachElementStoppable(

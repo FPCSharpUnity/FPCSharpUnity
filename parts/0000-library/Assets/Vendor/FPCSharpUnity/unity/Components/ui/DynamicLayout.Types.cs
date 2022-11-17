@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
@@ -63,6 +64,12 @@ public partial class DynamicLayout {
   /// </summary>
   /// <typeparam name="TData">Type of data held by the container.</typeparam>
   public interface IElements<TData> where TData : IElement {
+    RectTransform elementsParent { get; }
+
+    public TData getItemAt(int idx);
+    public void removeItemAt(int idx);
+    int itemsCount { get; }
+
     /// <summary>
     /// Find item cell rect. This is useful when we want to get the position of an item even if it is not visible.
     /// </summary>
@@ -294,7 +301,7 @@ public partial class DynamicLayout {
 
   public abstract class ElementBase<InnerData, View> : ElementBase2 {
     readonly IDisposableTracker tracker;
-    public InnerData data { get; }
+    public InnerData data { get; set; }
     protected Option<IViewProvider<View>> maybeViewProvider;
     public sealed override ISizeProvider sizeProvider { get; }
 
