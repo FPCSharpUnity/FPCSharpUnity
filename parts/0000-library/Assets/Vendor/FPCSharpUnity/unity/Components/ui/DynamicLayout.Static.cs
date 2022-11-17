@@ -15,7 +15,7 @@ public partial class DynamicLayout {
   public static class Init {
     const float EPS = 1e-9f;
       
-    /// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
+    /*/// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
     public static Init<TData, TView> a<TData, TView>(
       DynamicLayout backing,
       IEnumerable<TData> layoutData,
@@ -39,7 +39,7 @@ public partial class DynamicLayout {
       _container, _maskRect, layoutData, isHorizontal: isHorizontal, padding, 
       spacingInScrollableAxis: spacingInScrollableAxis, tracker, renderLatestItemsFirst: renderLatestItemsFirst, 
       expandElements
-    );
+    );*/
 
     /// <summary>
     /// Calculates all positions for <see cref="iElementDatas"/> and invokes a callback
@@ -52,7 +52,7 @@ public partial class DynamicLayout {
       bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
       RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
       ForEachElementActionStoppable<TElementData, Data> forEachElementAction
-    ) where TElementData : IElementDataForLayout {
+    ) where TElementData : IElement {
       var containerRect = containersRectTransform.rect;
       var containerHeight = containerRect.height;
       var containerWidth = containerRect.width;
@@ -93,16 +93,17 @@ public partial class DynamicLayout {
         var data = iElementDatas[idx];
         var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
         float itemLeftPerc;
+        var rowSizeInScrollableAxis = data.sizeInScrollableAxis(isHorizontal: isHorizontal);
         if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
           itemLeftPerc = paddingPercentageStart;
           currentSizeInSecondaryAxisPerc = paddingPercentageStart + itemSizeInSecondaryAxisPerc;
           totalOffsetUntilThisRow += currentRowSizeInScrollableAxis + spacing;
-          currentRowSizeInScrollableAxis = data.sizeInScrollableAxis;
+          currentRowSizeInScrollableAxis = rowSizeInScrollableAxis;
         }
         else {
           itemLeftPerc = currentSizeInSecondaryAxisPerc;
           currentSizeInSecondaryAxisPerc += itemSizeInSecondaryAxisPerc;
-          currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, data.sizeInScrollableAxis);
+          currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, rowSizeInScrollableAxis);
         }
 
         Rect cellRect;
@@ -125,7 +126,7 @@ public partial class DynamicLayout {
           cellRect = new Rect(
             x: totalOffsetUntilThisRow,
             y: -yPos - itemHeight,
-            width: data.sizeInScrollableAxis,
+            width: rowSizeInScrollableAxis,
             height: itemHeight
           );
         }
@@ -133,9 +134,9 @@ public partial class DynamicLayout {
           var x = itemLeftPerc * containerWidth;
           cellRect = new Rect(
             x: x,
-            y: -totalOffsetUntilThisRow - data.sizeInScrollableAxis,
+            y: -totalOffsetUntilThisRow - rowSizeInScrollableAxis,
             width: containerWidth * itemSizeInSecondaryAxisPerc,
-            height: data.sizeInScrollableAxis
+            height: rowSizeInScrollableAxis
           );            
         }
              
@@ -160,7 +161,7 @@ public partial class DynamicLayout {
       bool renderLatestItemsFirst, Padding padding, bool isHorizontal,
       RectTransform containersRectTransform, Rect visibleRect, Data dataA,
       ForEachElementAction<TElementData, Data> forEachElementAction
-    ) where TElementData : IElementDataForLayout =>
+    ) where TElementData : IElement =>
       forEachElementStoppable(
         spacing: spacing, iElementDatas, renderLatestItemsFirst: renderLatestItemsFirst, padding,
         isHorizontal: isHorizontal, containersRectTransform: containersRectTransform, visibleRect: visibleRect,
@@ -178,20 +179,20 @@ public partial class DynamicLayout {
       maskRect.rect.convertCoordinateSystem(((Transform) maskRect).some(), container);
       
     /// <summary>
-    /// Is called when an <see cref="IElementData{TView}"/> becomes visible inside <see cref="_maskRect"/>.
+    /// Is called when an <see cref="IElementDatas{TView}"/> becomes visible inside <see cref="_maskRect"/>.
     /// </summary>
-    public static void updateVisibleElement(
-      IElementView instance, Rect cellRect, Padding padding, Rect containerSize,
+    public static void updateVisibleElement<CommonDataType>(
+      CommonDataType instance, RectTransform rt, Rect cellRect, Padding padding, Rect containerSize,
       ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal
-    ) {
+    ) where CommonDataType : IElement {
       if (expandElements == ExpandElementsRectSizeInSecondaryAxis.Expand) {
         if (isHorizontal) {
-          instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
+          rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
             (containerSize.height - padding.vertical) * instance.sizeInSecondaryAxis.value
           );
         } 
         else {
-          instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+          rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
             (containerSize.width - padding.horizontal) * instance.sizeInSecondaryAxis.value
           );         
         }
@@ -200,16 +201,15 @@ public partial class DynamicLayout {
       // Call this first, because in there could be code which resizes this item's rectTransform.
       instance.onUpdateLayout(containerSize: containerSize, padding);
 
-      var rectTrans = instance.rectTransform;
-      rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
-      rectTrans.localPosition = Vector3.zero;
-      rectTrans.anchoredPosition = cellRect.center;
+      rt.anchorMin = rt.anchorMax = Vector2.up;
+      rt.localPosition = Vector3.zero;
+      rt.anchoredPosition = cellRect.center;
 
 #if UNITY_EDITOR
-      if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
+      if (!rt.pivot.approximately(new Vector2(0.5f, 0.5f))) {
         Log.d.error(
           $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
-          + $"Needed: ({0.5f}, {0.5f}), Actual: {rectTrans.pivot}", rectTrans
+          + $"Needed: ({0.5f}, {0.5f}), Actual: {rt.pivot}", rt
         );
       }
 #endif

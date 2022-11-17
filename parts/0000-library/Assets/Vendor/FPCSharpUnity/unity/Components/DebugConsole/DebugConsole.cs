@@ -42,10 +42,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
     [Record] partial struct Instance {
       public readonly DebugConsoleBinding view;
-      public readonly DynamicLayout.Init<
-        DynamicVerticalLayoutLogElementData, 
-        VerticalLayoutLogEntry.Init
-      > dynamicVerticalLayout;
+      public readonly DynamicLayout.Init<DynamicVerticalLayoutLogElementData> dynamicVerticalLayout;
       public readonly Application.LogCallback logCallback;
       public readonly GameObjectPool<VerticalLayoutLogEntry> pool;
       public readonly IDisposableTracker tracker;
@@ -348,14 +345,10 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       ));
 
       var cache = new List<string>();
-      var layout = DynamicLayout.Init.a(
-        view.dynamicLayout,
-        // ReSharper disable once InconsistentlySynchronizedField
-        logEntries.SelectMany(e => createEntries(e, logEntryPool, cache, view.lineWidth)),
-        tracker,
-        viewExampleForTypeInference: default(VerticalLayoutLogEntry.Init),
-        renderLatestItemsFirst: true
+      var layout = new DynamicLayout.Init<DynamicVerticalLayoutLogElementData>(
+        view.dynamicLayout, tracker, renderLatestItemsFirst: true
       );
+      layout.appendDataIntoLayoutData(logEntries.SelectMany(e => createEntries(e, logEntryPool, cache, view.lineWidth)));
 
       var logCallback = onLogMessageReceived(logEntryPool, cache);
       Application.logMessageReceivedThreaded += logCallback;
@@ -439,23 +432,24 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     
     // DO NOT generate comparer and hashcode - we need reference equality for dynamic vertical layout!
     [Record(GenerateComparer = false, GenerateGetHashCode = false)]
-    partial class DynamicVerticalLayoutLogElementData : 
-      DynamicLayout.IElementData<VerticalLayoutLogEntry.Init>, 
-      DynamicLayout.IViewFactory<VerticalLayoutLogEntry.Init> 
+    public partial class DynamicVerticalLayoutLogElementData : 
+      DynamicLayout.ElementBase<VerticalLayoutLogEntry.Data, VerticalLayoutLogEntry> 
     {
-      readonly GameObjectPool<VerticalLayoutLogEntry> pool;
-      readonly VerticalLayoutLogEntry.Data data;
       
-      public float sizeInScrollableAxis => 20;
-      public Percentage sizeInSecondaryAxis => new Percentage(1f);
-      
-      [LazyProperty] public COption<DynamicLayout.IViewFactory<VerticalLayoutLogEntry.Init>> asViewFactory => CSome.a(this);
+      public DynamicVerticalLayoutLogElementData(
+        GameObjectPool<VerticalLayoutLogEntry> pool, VerticalLayoutLogEntry.Data data, [Implicit] ILog log = default
+      ) : base(
+        data, 
+        sizeProvider: SizeProvider.Static.cached[(20f, new Percentage(1f))], 
+        maybeViewProvider: ViewProvider.Pooled<VerticalLayoutLogEntry>.cached[pool], log
+      ) { }
 
-      public VerticalLayoutLogEntry.Init createItem(Transform parent) {
-        var logEntry = pool.BorrowDisposable();
-        logEntry.value.transform.SetParent(parent, false);
-        return new VerticalLayoutLogEntry.Init(logEntry, data, sizeInSecondaryAxis: sizeInSecondaryAxis);      
+      protected override void afterCreation(VerticalLayoutLogEntry view, RectTransform rt, RectTransform parent) {
+        base.afterCreation(view, rt, parent);
+        rt.SetParent(parent, false);
       }
+
+      protected override void updateState(VerticalLayoutLogEntry view, ITracker tracker) => view.updateState(data);
     }
 
     static SetUpList setupList(
