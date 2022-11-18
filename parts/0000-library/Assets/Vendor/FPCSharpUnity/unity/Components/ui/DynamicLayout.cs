@@ -91,7 +91,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public readonly IDynamicLayout backing;
       
       /// <summary> All layout elements that are present in this layout. </summary>
-      readonly List<CommonDataType> items = new();
+      public readonly List<CommonDataType> items = new();
       
       /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);

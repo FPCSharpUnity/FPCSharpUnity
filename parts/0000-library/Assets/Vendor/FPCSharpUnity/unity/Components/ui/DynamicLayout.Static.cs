@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui;
@@ -23,7 +26,8 @@ public static partial class DynamicLayoutExts {
   }
   
   public static void replaceAllElementsData<CommonDataType, TData, TId>(
-    this DynamicLayout.Init<CommonDataType> layout, IEnumerable<CommonDataType> newDatas
+    this DynamicLayout.Init<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
+    [CanBeNull] Action<IList<CommonDataType>> maybeSortAction = default
   )
     where TId : IEquatable<TId> 
     where CommonDataType : DynamicLayout.IElement, ILayoutElementUpdatable<TData, TId>
@@ -35,30 +39,28 @@ public static partial class DynamicLayoutExts {
 
     for (int i = 0; i < layout.itemsCount; i++) {
       var item = layout.getItemAt(i);
-      {if (item.isVisible) {
-        if (
-          elementDatas.TryGetValue(item.getId, out var tpl)
-        ) {
-          if (tpl.getData.valueOut(out var newData)) {
-            item.updateData(newData);
-            item.show(parent: layout.elementsParent, force: true);            
-          }
-          elementDatas.Remove(item.getId);
+      if (elementDatas.TryGetValue(item.getId, out var tpl)) {
+        // Update with provided data if it is supported
+        if (tpl.getData.valueOut(out var newData)) {
+          item.updateData(newData);
+          if (item.isVisible) item.show(parent: layout.elementsParent, force: true);            
         }
-        else {
-          item.hide();
-          layout.removeItemAt(i);
-          i--;
-        }
-      } else {
+        elementDatas.Remove(item.getId);
+      }
+      else {
+        item.hide();
         layout.removeItemAt(i);
         i--;
-      }}      
+      } 
     }
     
-    foreach (var kvp in elementDatas) {
-      layout.appendDataIntoLayoutData(kvp.Value, updateLayout: false);
+    foreach (var element in newDatas) {
+      if (elementDatas.ContainsKey(element.getId)) {
+        layout.appendDataIntoLayoutData(element, updateLayout: false);
+      }
     }
+
+    maybeSortAction?.Invoke(layout.items);
     
     layout.updateLayout();
   }
