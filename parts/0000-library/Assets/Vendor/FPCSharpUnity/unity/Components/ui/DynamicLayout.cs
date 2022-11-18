@@ -53,7 +53,6 @@ namespace FPCSharpUnity.unity.Components.ui {
   /// </summary>
   public partial class DynamicLayout : UIBehaviour, DynamicLayout.IDynamicLayout {
     #region Unity Serialized Fields
-
 #pragma warning disable 649
 // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
     [SerializeField, NotNull, PublicAccessor] ScrollRect _scrollRect;
@@ -66,39 +65,25 @@ namespace FPCSharpUnity.unity.Components.ui {
     ), PublicAccessor] ExpandElementsRectSizeInSecondaryAxis _expandElements;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
-
     #endregion
-    
-    public interface IDynamicLayout : IDynamicLayoutDirection {
-      ScrollRect scrollRect { get; }
-      RectTransform container { get; }
-      RectTransform maskRect { get; }
-      Padding padding { get; }
-      float spacingInScrollableAxis { get; }
-      ExpandElementsRectSizeInSecondaryAxis expandElements { get; }
-    }
-    
-    public interface IDynamicLayoutDirection {
-      bool isHorizontal { get; }      
-    }
 
     public bool isHorizontal => scrollRect.horizontal;
 
     [DelegateToInterface(delegatedInterface = typeof(IDynamicLayout), delegateTo = nameof(backing))]
-    public partial class Init<CommonDataType> : IElements<CommonDataType>, ILayout
+    public partial class Init<CommonDataType> : IModifyElementsList<CommonDataType>, IElements<CommonDataType>
       where CommonDataType : IElement 
     {
       public readonly IDynamicLayout backing;
-      
-      /// <summary> All layout elements that are present in this layout. </summary>
-      public readonly List<CommonDataType> items = new();
+
+      public IList<CommonDataType> items => _items;
+      readonly List<CommonDataType> _items = new();
       
       /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
       
       /// <summary>
-      /// If true - elements in UI are ordered in reversed order from <see cref="layoutData"/>.
-      /// If false - elements in UI are ordered in same order as <see cref="layoutData"/>.<br/>
+      /// If true - elements in UI are ordered in reversed order from <see cref="items"/>.
+      /// If false - elements in UI are ordered in same order as <see cref="items"/>.<br/>
       /// </summary>
       readonly bool renderLatestItemsFirst;
       
@@ -137,7 +122,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         container.gameObject.EnsureComponent<OnEnableForwarder>().onEvent.subscribe(tracker,
           _ => onEnable(container.gameObject)
         );
-        tracker.track(clearLayout);
+        tracker.track(clearLayoutData);
 
         // We need oncePerFrame() because Unity doesn't allow doing operations like gameObject.SetActive()
         // from OnRectTransformDimensionsChange()
@@ -179,17 +164,12 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </param>
       [PublicAPI]
       public void appendDataIntoLayoutData(IEnumerable<CommonDataType> elements, bool updateLayout = true) {
-        items.AddRange(elements);
+        _items.AddRange(elements);
         if (updateLayout) this.updateLayout();
       }
 
       [PublicAPI]
       public void clearLayoutData() {
-        clearLayout();
-        items.Clear();
-      }
-      
-      void clearLayout() {
         foreach (var item in items) {
           item.hide();
         }
@@ -197,19 +177,13 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
 
       public Rect calculateVisibleRect => Init.calculateVisibleRectStatic(container: container, maskRect: maskRect);
-
       
-      /// <summary>
-      /// You <b>must</b> call this after modifying the underlying data to update the layout so
-      /// it would show everything correctly.
-      /// </summary>
-      [PublicAPI]
-      public void updateLayout() {
+      [PublicAPI] public void updateLayout() {
         var result = forEachElement(
           this, static (data, placementVisible, cellRect, self) => {
             switch (placementVisible) {
               case true: {
-                if (data.show(self.container, force: false).valueOut(out var rt)) {
+                if (data.showOrUpdate(self.container, forceUpdate: false).valueOut(out var rt)) {
                   Init.updateVisibleElement(
                     data, rt, cellRect: cellRect, padding: self.padding, isHorizontal: self.isHorizontal,
                     expandElements: self.expandElements, containerSize: self.container.rect
@@ -295,7 +269,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementAction<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElement(
-          spacing: spacingInScrollableAxis, iElementDatas: items,
+          spacing: spacingInScrollableAxis, iElementDatas: _items,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
           forEachElementAction: updateElement
@@ -306,7 +280,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementActionStoppable<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElementStoppable(
-          spacing: spacingInScrollableAxis, iElementDatas: items,
+          spacing: spacingInScrollableAxis, iElementDatas: _items,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
           forEachElementAction: updateElement

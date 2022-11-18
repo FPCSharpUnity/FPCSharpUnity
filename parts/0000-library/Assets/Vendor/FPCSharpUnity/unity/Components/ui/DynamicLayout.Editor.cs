@@ -145,7 +145,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
           switch (placementVisible) {
             case true: {
               if (!layoutElement.visibleRt.valueOut(out var rt)) {
-                var maybeRt = layoutElement.show(parent: (RectTransform)layoutElement.data.item.transform.parent, force: true);
+                var maybeRt = layoutElement.showOrUpdate(parent: (RectTransform)layoutElement.data.item.transform.parent, forceUpdate: true);
                 // Item is setup as empty.
                 if (!maybeRt.valueOut(out rt)) return;
               }
@@ -205,13 +205,13 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       public DynamicLayoutElement(
         EditorTestEntry data) : base(
         data, sizeProvider: data._customSizeInScrollableAxis.valueOut(out var size) 
-          ? new SizeProvider.Static(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
-          : new SizeProvider.FromTemplateStatic(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
+          ? SizeProvider.Static.a(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
+          : SizeProvider.FromTemplateStatic.a(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
         maybeViewProvider: new ViewProvider.InstantiateAndDestroyEditor<RectTransform>(data._item), log
       ) {}
 
-      protected override void afterCreation(RectTransform view, RectTransform rt, RectTransform parent) {
-        base.afterCreation(view, rt, parent);
+      protected override void becameVisible(RectTransform view, RectTransform rt, RectTransform parent) {
+        base.becameVisible(view, rt, parent);
         view.name += " [Will not save]";
         view.gameObject.hideFlags = HideFlags.DontSave;
         data.maybeVisibleEntry = Some.a(this);
@@ -219,8 +219,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
 
       protected override void updateState(RectTransform view, ITracker tracker) {}
 
-      protected override void afterDeletion() {
-        base.afterDeletion();
+      protected override void becameInvisible() {
+        base.becameInvisible();
         data.maybeVisibleEntry = None._;
       }
     }

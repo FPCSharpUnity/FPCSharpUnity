@@ -437,15 +437,14 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     {
       
       public DynamicVerticalLayoutLogElementData(
-        GameObjectPool<VerticalLayoutLogEntry> pool, VerticalLayoutLogEntry.Data data, [Implicit] ILog log = default
+        GameObjectPool<VerticalLayoutLogEntry> pool, VerticalLayoutLogEntry.Data data
       ) : base(
-        data, 
-        sizeProvider: SizeProvider.Static.cached[(20f, new Percentage(1f))], 
-        maybeViewProvider: ViewProvider.Pooled<VerticalLayoutLogEntry>.cached[pool], log
+        data, sizeProvider: DynamicLayout.SizeProvider.Static.a(20f, new Percentage(1f)), 
+        maybeViewProvider: DynamicLayout.ViewProvider.pooled(pool), log
       ) { }
 
-      protected override void afterCreation(VerticalLayoutLogEntry view, RectTransform rt, RectTransform parent) {
-        base.afterCreation(view, rt, parent);
+      protected override void becameVisible(VerticalLayoutLogEntry view, RectTransform rt, RectTransform parent) {
+        base.becameVisible(view, rt, parent);
         rt.SetParent(parent, false);
       }
 

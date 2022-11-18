@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExhaustiveMatching;
-using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
-using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
@@ -17,45 +15,74 @@ namespace FPCSharpUnity.unity.Components.ui;
 
 public static partial class DynamicLayoutExts {
   
+  /// <summary> Item id type for identifying items between data updates. </summary>
+  [PublicAPI] static void idTypeDescription(){}
+  
+  /// <summary>
+  /// Implement this in your <see cref="DynamicLayout.IElement"/> items if you want for them to be updatable. It's used
+  /// for <see cref="DynamicLayoutExts.replaceAllElementsData{CommonDataType,TData,TId}"/>.
+  /// </summary>
+  /// <typeparam name="InnerData"></typeparam>
+  /// <typeparam name="IdType">See <see cref="DynamicLayoutExts.idTypeDescription"/>.</typeparam>
   public interface ILayoutElementUpdatable<InnerData, IdType> : DynamicLayout.IElement
     where IdType : IEquatable<IdType> 
   {
+    /// <inheritdoc cref="DynamicLayoutExts.idTypeDescription"/>
     IdType getId { get; }
+    
+    /// <summary>
+    /// Get data for updating <see cref="DynamicLayout.IElement"/> data. Can be `None` if this data is not for this
+    /// layout element.
+    /// </summary>
     Option<InnerData> getData { get; }
+    
+    /// <summary> Update element with new data. </summary>
     void updateData(InnerData newData);
   }
   
+  /// <summary>
+  /// Update items without resetting their visuals that are already visible by the user. It is useful when the data
+  /// constantly changes and user wants to interact with items without them changing their order inside scrollView. Use
+  /// this updating instead of full update approach (clear all, and re-add all) if the order of items are not important.
+  /// </summary>
+  /// <param name="layout"></param>
+  /// <param name="newDatas"></param>
+  /// <param name="maybeSortAction"></param>
+  /// <typeparam name="CommonDataType"></typeparam>
+  /// <typeparam name="TData"></typeparam>
+  /// <typeparam name="TId">See <see cref="idTypeDescription"/>.</typeparam>
   public static void replaceAllElementsData<CommonDataType, TData, TId>(
-    this DynamicLayout.Init<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
+    this DynamicLayout.IModifyElementsList<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
     [CanBeNull] Action<IList<CommonDataType>> maybeSortAction = default
   )
     where TId : IEquatable<TId> 
-    where CommonDataType : DynamicLayout.IElement, ILayoutElementUpdatable<TData, TId>
+    where CommonDataType : ILayoutElementUpdatable<TData, TId>
   {
-    var elementDatas = new Dictionary<TId, CommonDataType>();
-    foreach (var element in newDatas) {
-      elementDatas.Add(element.getId, element);
-    }
+    var newDatasDict = newDatas.ToDictionary(static element => element.getId);
 
-    for (int i = 0; i < layout.itemsCount; i++) {
-      var item = layout.getItemAt(i);
-      if (elementDatas.TryGetValue(item.getId, out var tpl)) {
-        // Update with provided data if it is supported
+    // Update existing items with new data and remove old items that are not present in newDatas.
+    for (var i = 0; i < layout.items.Count; i++) {
+      var item = layout.items[i];
+      if (newDatasDict.TryGetValue(item.getId, out var tpl)) {
+        // Update with provided data if it is supported by the item.
         if (tpl.getData.valueOut(out var newData)) {
           item.updateData(newData);
-          if (item.isVisible) item.show(parent: layout.elementsParent, force: true);            
+          if (item.isVisible) item.showOrUpdate(parent: layout.elementsParent, forceUpdate: true);            
         }
-        elementDatas.Remove(item.getId);
+        newDatasDict.Remove(item.getId);
       }
       else {
         item.hide();
-        layout.removeItemAt(i);
+        layout.items.RemoveAt(i);
         i--;
       } 
     }
     
+    // Iterate through initial list first. This way we ensure that the item's order was not modified by dictionary
+    // ordering.
     foreach (var element in newDatas) {
-      if (elementDatas.ContainsKey(element.getId)) {
+      // Add items that were not present before this update.
+      if (newDatasDict.ContainsKey(element.getId)) {
         layout.appendDataIntoLayoutData(element, updateLayout: false);
       }
     }
@@ -69,34 +96,6 @@ public static partial class DynamicLayoutExts {
 public partial class DynamicLayout {
   public static class Init {
     const float EPS = 1e-9f;
-      
-    
-    
-    /*/// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
-    public static Init<TData, TView> a<TData, TView>(
-      DynamicLayout backing,
-      IEnumerable<TData> layoutData,
-      ITracker dt,
-      TView viewExampleForTypeInference,
-      bool renderLatestItemsFirst = false
-    ) where TData : IElementData<TView> where TView : IElementView => new Init<TData, TView>(
-      backing, layoutData, dt, renderLatestItemsFirst: renderLatestItemsFirst
-    );
-      
-    /// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
-    public static Init<TData, TView> a<TData, TView>(
-      RectTransform _container, RectTransform _maskRect,
-      IEnumerable<TData> layoutData,
-      bool isHorizontal, Padding padding, float spacingInScrollableAxis,
-      ITracker tracker,
-      TView viewExampleForTypeInference,
-      bool renderLatestItemsFirst = false,
-      ExpandElementsRectSizeInSecondaryAxis expandElements = ExpandElementsRectSizeInSecondaryAxis.DontExpand
-    ) where TData : IElementData<TView> where TView : IElementView => new Init<TData, TView>(
-      _container, _maskRect, layoutData, isHorizontal: isHorizontal, padding, 
-      spacingInScrollableAxis: spacingInScrollableAxis, tracker, renderLatestItemsFirst: renderLatestItemsFirst, 
-      expandElements
-    );*/
 
     /// <summary>
     /// Calculates all positions for <see cref="iElementDatas"/> and invokes a callback
