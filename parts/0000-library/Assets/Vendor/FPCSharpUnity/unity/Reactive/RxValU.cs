@@ -53,7 +53,7 @@ namespace FPCSharpUnity.unity.Reactive {
     /// </summary>
     public static IRxVal<A> refreshedInEditor<A>(Func<A> calculate) => 
       Application.isEditor 
-        ? ObservableU.everyFrame.map(_ => calculate()).toRxVal(calculate()) 
+        ? ObservableU.everyFrame.toRxVal(calculate) 
         : RxVal.a(calculate());
   }
 }

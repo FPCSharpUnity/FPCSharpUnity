@@ -4,26 +4,26 @@ using GenerationAttributes;
 using FPCSharpUnity.core.reactive;
 using UnityEngine;
 
-namespace FPCSharpUnity.unity.Utilities {
-  public static partial class ScreenUtils {
-    public static Size screenSize => new Size(Screen.width, Screen.height);
+namespace FPCSharpUnity.unity.Utilities; 
 
-    [LazyProperty] public static IRxVal<Size> screenSizeVal => 
-      ObservableU.everyFrame.map(_ => screenSize).toRxVal(screenSize);
+public static partial class ScreenUtils {
+  public static Size screenSize => new Size(Screen.width, Screen.height);
 
-    [LazyProperty] public static IRxVal<Rect> screenSafeArea => 
-      ObservableU.everyFrame.map(_ => Screen.safeArea).toRxVal(Screen.safeArea);
+  [LazyProperty] public static IRxVal<Size> screenSizeVal => 
+    ObservableU.everyFrame.toRxVal(() => screenSize);
 
-    /** Convert screen width percentage to absolute value. **/
-    public static float pWidthToAbs(this float percentWidth) => Screen.width * percentWidth;
+  [LazyProperty] public static IRxVal<Rect> screenSafeArea => 
+    ObservableU.everyFrame.toRxVal(() => Screen.safeArea);
 
-    /** Convert screen height percentage to absolute value. **/
-    public static float pHeightToAbs(this float percentHeight) => Screen.height * percentHeight;
+  /// <summary>Convert screen width percentage to absolute value.</summary>
+  public static float pWidthToAbs(this float percentWidth) => Screen.width * percentWidth;
 
-    /** Convert screen width absolute value to percentage. **/
-    public static float aWidthToPerc(this float absoluteWidth) => absoluteWidth / Screen.width;
+  /// <summary>Convert screen height percentage to absolute value.</summary>
+  public static float pHeightToAbs(this float percentHeight) => Screen.height * percentHeight;
 
-    /** Convert screen height absolute value to percentage. **/
-    public static float aHeightToPerc(this float absoluteHeight) => absoluteHeight / Screen.height;
-  }
+  /// <summary>Convert screen width absolute value to percentage.</summary>
+  public static float aWidthToPerc(this float absoluteWidth) => absoluteWidth / Screen.width;
+
+  /// <summary>Convert screen height absolute value to percentage.</summary>
+  public static float aHeightToPerc(this float absoluteHeight) => absoluteHeight / Screen.height;
 }

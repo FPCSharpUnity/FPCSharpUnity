@@ -22,8 +22,8 @@ namespace FPCSharpUnity.unity.Extensions;
     );
 
   /// <summary>Returns a reactive version of <see cref="TMP_InputField.text"/>.</summary>
-  public static IRxVal<string> textRx(this TMP_InputField inputField) =>
-    inputField.textChanges().toRxVal(inputField.text);
+  public static IRxVal<string> textRx(this TMP_InputField inputField, IRxObservableToIRxValMode mode) =>
+    inputField.textChanges().toRxVal(mode, inputField.text);
 
   /// <summary>Searches for an intersection with a <see cref="TMP_LinkInfo"/>.</summary>
   /// <param name="text">Text to look the intersection for.</param>
