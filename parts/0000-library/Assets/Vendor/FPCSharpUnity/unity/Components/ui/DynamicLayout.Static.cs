@@ -36,7 +36,13 @@ public static partial class DynamicLayoutExts {
     /// </summary>
     Option<InnerData> getData { get; }
     
-    /// <summary> Update element with new data. </summary>
+    /// <summary>
+    /// Update element with new data.
+    /// <para/>
+    /// Why can't we just remove old element and replace it by new one instead of doing this 'data-swap'?<br/>
+    /// That's because hiding and then showing item's visual causes Unity object's and it's components' state to be
+    /// reset (mainly hover state).
+    /// </summary>
     void updateData(InnerData newData);
   }
   
