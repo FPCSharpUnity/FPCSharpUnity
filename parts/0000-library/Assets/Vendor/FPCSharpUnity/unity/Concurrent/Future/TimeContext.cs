@@ -31,19 +31,22 @@ namespace FPCSharpUnity.unity.Concurrent {
     RealTimeButPauseWhenAdIsShowing() {
       var pauseStarted = Time.realtimeSinceStartup;
       externalPause = RxRef.a(false);
-      ASync.onAppPause.toRxVal(false).zip(externalPause, F.or2).subscribeWithoutEmit(
-        NeverDisposeDisposableTracker.instance,
-        paused => {
-          isPaused = paused;
-          if (paused) {
-            pauseStarted = Time.realtimeSinceStartup;
+      ASync.onAppPause
+        .toRxVal(IRxObservableToIRxValMode.notUpdatedWithoutSubscribers, false)
+        .zip(externalPause, F.or2)
+        .subscribeWithoutEmit(
+          NeverDisposeDisposableTracker.instance,
+          paused => {
+            isPaused = paused;
+            if (paused) {
+              pauseStarted = Time.realtimeSinceStartup;
+            }
+            else {
+              var secondsPaused = Time.realtimeSinceStartup - pauseStarted;
+              totalSecondsPaused += secondsPaused;
+            }
           }
-          else {
-            var secondsPaused = Time.realtimeSinceStartup - pauseStarted;
-            totalSecondsPaused += secondsPaused;
-          }
-        }
-      );
+        );
     }
 
     public float passed { get {
