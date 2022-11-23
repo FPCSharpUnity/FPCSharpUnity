@@ -1,4 +1,5 @@
-﻿using FPCSharpUnity.core.reactive;
+﻿using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.reactive;
 
 #if UNITY_ANDROID
 using GenerationAttributes;
@@ -11,6 +12,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Logger;
+using FPCSharpUnity.unity.Reactive;
 #endif
 
 namespace FPCSharpUnity.unity.Android.Ads {
@@ -63,7 +65,7 @@ namespace FPCSharpUnity.unity.Android.Ads {
       ImmutableList<IStandardBannerKnowsState> banners
     ) {
       this.banners = banners;
-      hasAd = banners.Select(_ => _.hasAd).anyOf();
+      hasAd = banners.Select(_ => _.hasAd).toImmutableArrayC().anyOf();
     }
 
     public bool play() {
