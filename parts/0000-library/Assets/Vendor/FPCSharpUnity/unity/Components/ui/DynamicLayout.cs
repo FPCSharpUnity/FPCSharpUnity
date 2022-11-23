@@ -132,7 +132,7 @@ namespace FPCSharpUnity.unity.Components.ui {
           .rectDimensionsChanged
           .oncePerFrame()
           .filter(_ => maskRect) // maskRect can go away before late update, so double check it.
-          .toRxVal(() => mask.rect);
+          .toRxVal(() => maskRect.rect);
 
         if (isHorizontal && container.pivot != Vector2.up) {
           Debug.LogError($"Horizontal layout's content should have (0, 1) as pivot, not {container.pivot}!");
