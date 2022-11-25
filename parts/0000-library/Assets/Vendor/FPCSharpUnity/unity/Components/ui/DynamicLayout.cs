@@ -222,6 +222,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         }}
       }
 
+      /// <summary> A filter to find specific layout element data. </summary>
       public delegate Option<A> FindItemPredicate<A>(CommonDataType data, Rect cellRect);
 
       public RectTransform elementsParent => (RectTransform)container.transform;
@@ -244,10 +245,6 @@ namespace FPCSharpUnity.unity.Components.ui {
           }
         );
         return result;
-      }
-
-      public Option<B> findItem<B>(Func<CommonDataType, Rect, Option<B>> predicate) {
-        throw new NotImplementedException();
       }
 
       public ImmutableArrayC<A> collectItems<A>(Func<CommonDataType, Rect, Option<A>> predicate) {
