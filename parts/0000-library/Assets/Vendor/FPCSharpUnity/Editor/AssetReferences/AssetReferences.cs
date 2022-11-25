@@ -413,7 +413,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
     /// <summary>
     /// Uses out to return instead of Either for performance reasons.
-    ///
+    /// <para/>
     /// I tried to optimize this method similarly to <see cref="parseFileOptimized"/>, but the improvement was too small.
     /// </summary>
     static bool getGuid(AssetPath assetPath, out AssetGuid guid, out byte[] metaFileContents, ILog log) {
@@ -439,7 +439,13 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         }
       }
       else {
-        log.error($"Meta file not found for: {assetPath}");
+        var isInPackages = assetPath.path.StartsWithFast("Packages/") && Directory.Exists(assetPath.path);
+        
+        // Sometimes things in 'Packages/' does not have meta files, not much we can do there except ignore that.
+        if (!isInPackages) {
+          log.error($"Meta file not found for {assetPath}");
+        }
+        
         guid = default;
         metaFileContents = null;
         return false;
