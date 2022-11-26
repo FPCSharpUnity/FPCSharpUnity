@@ -25,21 +25,11 @@ namespace FPCSharpUnity.unity.Reactive {
       // ReSharper restore ExplicitCallerInfoArgument
     );
 
-    // If several events are emitted per same frame, only emit last one in late update.
-    // TODO: test, but how? Can't do async tests in unity.
+    /// <summary>
+    /// <see cref="ObservableOps.oncePerTick{A,B}"/> that dispatches on late update.
+    /// </summary>
     public static IRxObservable<A> oncePerFrame<A>(this IRxObservable<A> o) =>
-      new Observable<A>(onEvent => {
-        var last = Option<A>.None;
-        var mySub = o.subscribe(NoOpDisposableTracker.instance, v => last = v.some());
-        var luSub = ASync.onLateUpdate.subscribe(NoOpDisposableTracker.instance, _ => {
-          foreach (var val in last) {
-            // Clear last before pushing, because exception makes it loop forever.
-            last = None._;
-            onEvent(val);
-          }
-        });
-        return mySub.join(luSub);
-      });
+      o.oncePerTick(ASync.onLateUpdate);
     
     /// <summary>
     /// Only emit an event if it's the first event in this frame.
