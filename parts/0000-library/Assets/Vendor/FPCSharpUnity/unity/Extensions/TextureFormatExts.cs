@@ -1,7 +1,7 @@
 using ExhaustiveMatching;
 using UnityEngine;
 
-namespace Vendor.FPCSharpUnity.unity.Extensions; 
+namespace FPCSharpUnity.unity.Extensions; 
 
 public static class TextureFormatExts {
   public static bool isCompressed(this TextureFormat format) {
@@ -55,8 +55,6 @@ public static class TextureFormatExts {
       case TextureFormat.ASTC_8x8:
       case TextureFormat.ASTC_10x10:
       case TextureFormat.ASTC_12x12:
-      case TextureFormat.ETC_RGB4_3DS:
-      case TextureFormat.ETC_RGBA8_3DS:
       case TextureFormat.ETC_RGB4Crunched:
       case TextureFormat.ETC2_RGBA8Crunched:
       case TextureFormat.ASTC_HDR_4x4:
@@ -65,12 +63,6 @@ public static class TextureFormatExts {
       case TextureFormat.ASTC_HDR_8x8:
       case TextureFormat.ASTC_HDR_10x10:
       case TextureFormat.ASTC_HDR_12x12:
-      case TextureFormat.ASTC_RGBA_4x4:
-      case TextureFormat.ASTC_RGBA_5x5:
-      case TextureFormat.ASTC_RGBA_6x6:
-      case TextureFormat.ASTC_RGBA_8x8:
-      case TextureFormat.ASTC_RGBA_10x10:
-      case TextureFormat.ASTC_RGBA_12x12:
         return true;
       default:
         throw ExhaustiveMatch.Failed(format);
