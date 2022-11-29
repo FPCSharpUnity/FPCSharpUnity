@@ -95,18 +95,16 @@ public partial class DynamicLayout {
     /// <param name="updateLayout">
     /// pass false and then call <see cref="updateLayout"/> manually when doing batch updates
     /// </param>
-    [PublicAPI]
     public void appendDataIntoLayoutData(TData element, bool updateLayout = true);
 
     /// <param name="elements"></param>
     /// <param name="updateLayout">
     /// pass false and then call <see cref="updateLayout"/> manually when doing batch updates
     /// </param>
-    [PublicAPI]
     public void appendDataIntoLayoutData(IEnumerable<TData> elements, bool updateLayout = true);
 
     /// <summary> Clear layout elements and remove their visuals. </summary>
-    [PublicAPI] public void clearLayoutData();
+    public void clearLayoutData();
   }
 
   public interface IModifyElementsList<TData> : ILayout<TData> where TData : IElement {
@@ -117,7 +115,7 @@ public partial class DynamicLayout {
     /// <see cref="Init{CommonDataType}.clearLayoutData"/> and <see cref="Init{CommonDataType}.updateLayout"/>
     /// instead.
     /// </summary>
-    IList<TData> items { get; }    
+    List<TData> items { get; }    
   }
   
   /// <summary> Container part of <see cref="Init{CommonDataType}"/>. </summary>
@@ -338,7 +336,7 @@ public partial class DynamicLayout {
 
       public SingleInstance(Obj instance, [CanBeNull] Action<bool, Obj> maybeCustomSetActiveCallback = null) {
         this.instance = instance;
-        this.maybeCustomSetActiveCallback = maybeCustomSetActiveCallback?.some() ?? None._;
+        this.maybeCustomSetActiveCallback = Option.a(maybeCustomSetActiveCallback);
       }
 
       public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {
@@ -465,7 +463,7 @@ public partial class DynamicLayout {
     /// Mutable! Will be set to `Some(item's view)` if item is currently visible inside viewport.<br/>
     /// Will be `None` if it's not visible/doesn't support to be visible.
     /// </summary>
-    Option<IViewProvider<View>.ViewInstance> visibleInstance { get; set; }
+    Option<IViewProvider<View>.ViewInstance> visibleInstance;
     
     public virtual void onUpdateLayout(Rect containerSize, Padding padding){}
     

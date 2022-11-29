@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.pools;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
@@ -16,13 +16,14 @@ namespace FPCSharpUnity.unity.Components.ui;
 public static partial class DynamicLayoutExts {
   
   /// <summary> Item id type for identifying items between data updates. </summary>
+  // Used for XML docs only.
   [PublicAPI] static void idTypeDescription(){}
   
   /// <summary>
   /// Implement this in your <see cref="DynamicLayout.IElement"/> items if you want for them to be updatable. It's used
   /// for <see cref="DynamicLayoutExts.replaceAllElementsData{CommonDataType,TData,TId}"/>.
   /// </summary>
-  /// <typeparam name="InnerData"></typeparam>
+  /// <typeparam name="InnerData">Data that we want to update inside <see cref="DynamicLayout.IElement"/>.</typeparam>
   /// <typeparam name="IdType">See <see cref="DynamicLayoutExts.idTypeDescription"/>.</typeparam>
   public interface ILayoutElementUpdatable<InnerData, IdType> : DynamicLayout.IElement
     where IdType : IEquatable<IdType> 
@@ -31,15 +32,20 @@ public static partial class DynamicLayoutExts {
     IdType getId { get; }
     
     /// <summary>
-    /// Get data for updating <see cref="DynamicLayout.IElement"/> data. Can be `None` if this data is not for this
-    /// layout element.
+    /// Example: the <see cref="DynamicLayout"/> we want to use supports two <see cref="DynamicLayout.IElement"/> types:
+    /// RowElement and SpacerElement. RowElement has specific data (<see cref="InnerData"/>) inside that we want to
+    /// update without clearing whole layout and re-adding every element back. While SpacerElement doesn't need any data
+    /// to be updated and so we return `None` here. This means that only a subset of supported
+    /// <see cref="DynamicLayout.IElement"/>s that have <see cref="InnerData"/> inside needs be updated.
+    /// <para/>
+    /// If this is `None`, we will not call <see cref="updateData"/> on the item.
     /// </summary>
-    Option<InnerData> getData { get; }
+    Option<InnerData> extractDataForUpdating { get; }
     
     /// <summary>
     /// Update element with new data.
     /// <para/>
-    /// Why can't we just remove old element and replace it by new one instead of doing this 'data-swap'?<br/>
+    /// We can't just remove old element and replace it by new one instead of doing this 'data-swap'. <br/>
     /// That's because hiding and then showing item's visual causes Unity object's and it's components' state to be
     /// reset (mainly hover state).
     /// </summary>
@@ -51,27 +57,34 @@ public static partial class DynamicLayoutExts {
   /// constantly changes and user wants to interact with items without them changing their order inside scrollView. Use
   /// this updating instead of full update approach (clear all, and re-add all) if the order of items are not important.
   /// </summary>
-  /// <param name="layout"></param>
-  /// <param name="newDatas"></param>
-  /// <param name="maybeSortAction"></param>
-  /// <typeparam name="CommonDataType"></typeparam>
-  /// <typeparam name="TData"></typeparam>
+  /// <param name="layout">Dynamic layout we want to update.</param>
+  /// <param name="newDatas">Updated list of layout elements we want to show in dynamic layout.</param>
+  /// <param name="maybeSortAction">If provided, the layout elements will be sorted using this callback.</param>
+  /// <typeparam name="CommonDataType">
+  /// <see cref="DynamicLayout.IElement"/> type that is supported by <see cref="layout"/> elements.
+  /// </typeparam>
+  /// <typeparam name="TData">A subset of data types we want to update inside <see cref="CommonDataType"/>.</typeparam>
   /// <typeparam name="TId">See <see cref="idTypeDescription"/>.</typeparam>
   public static void replaceAllElementsData<CommonDataType, TData, TId>(
     this DynamicLayout.IModifyElementsList<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
     [CanBeNull] Action<IList<CommonDataType>> maybeSortAction = default
   )
     where TId : IEquatable<TId> 
-    where CommonDataType : ILayoutElementUpdatable<TData, TId>
+    where CommonDataType : ILayoutElementUpdatable<TData, TId> 
   {
-    var newDatasDict = newDatas.ToDictionary(static element => element.getId);
+    using var newDatasDictDisposable = DictionaryPool<TId, CommonDataType>.instance.BorrowDisposable();
+    var newDatasDict = newDatasDictDisposable.value;
+
+    foreach (var data in newDatas) {
+      newDatasDict[data.getId] = data;
+    }
 
     // Update existing items with new data and remove old items that are not present in newDatas.
     for (var i = 0; i < layout.items.Count; i++) {
       var item = layout.items[i];
       if (newDatasDict.TryGetValue(item.getId, out var tpl)) {
         // Update with provided data if it is supported by the item.
-        if (tpl.getData.valueOut(out var newData)) {
+        if (tpl.extractDataForUpdating.valueOut(out var newData)) {
           item.updateData(newData);
           if (item.isVisible) item.showOrUpdate(parent: layout.elementsParent, forceUpdate: true);            
         }

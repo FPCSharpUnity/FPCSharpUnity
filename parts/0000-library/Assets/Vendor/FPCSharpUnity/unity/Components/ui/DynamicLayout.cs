@@ -17,6 +17,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
+using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Pools;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -51,7 +52,7 @@ namespace FPCSharpUnity.unity.Components.ui {
   /// +-----------------+
   /// ]]></code>
   /// </summary>
-  public partial class DynamicLayout : UIBehaviour, DynamicLayout.IDynamicLayout {
+  [HasLogger] public partial class DynamicLayout : UIBehaviour, DynamicLayout.IDynamicLayout {
     #region Unity Serialized Fields
 #pragma warning disable 649
 // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
@@ -74,10 +75,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       where CommonDataType : IElement 
     {
       public readonly IDynamicLayout backing;
+      public List<CommonDataType> items { get; } = new();
 
-      public IList<CommonDataType> items => _items;
-      readonly List<CommonDataType> _items = new();
-      
       /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
       
@@ -135,7 +134,7 @@ namespace FPCSharpUnity.unity.Components.ui {
           .toRxVal(() => maskRect.rect);
 
         if (isHorizontal && container.pivot != Vector2.up) {
-          Debug.LogError($"Horizontal layout's content should have (0, 1) as pivot, not {container.pivot}!");
+          log.error($"Horizontal layout's content should have (0, 1) as pivot, not {container.pivot}!");
         }
 
         maskSize.zipSubscribe(containerSizeInScrollableAxis, tracker, (rectSize, size) => {
@@ -163,7 +162,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </param>
       [PublicAPI]
       public void appendDataIntoLayoutData(IEnumerable<CommonDataType> elements, bool updateLayout = true) {
-        _items.AddRange(elements);
+        items.AddRange(elements);
         if (updateLayout) this.updateLayout();
       }
 
@@ -265,7 +264,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementAction<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElement(
-          spacing: spacingInScrollableAxis, iElementDatas: _items,
+          spacing: spacingInScrollableAxis, iElementDatas: items,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
           forEachElementAction: updateElement
@@ -276,7 +275,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementActionStoppable<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElementStoppable(
-          spacing: spacingInScrollableAxis, iElementDatas: _items,
+          spacing: spacingInScrollableAxis, iElementDatas: items,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
           forEachElementAction: updateElement
