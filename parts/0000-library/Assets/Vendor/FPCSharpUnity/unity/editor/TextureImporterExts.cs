@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿#if UNITY_EDITOR
+
+using System.Linq;
 using UnityEditor;
 
-namespace FPCSharpUnity.unity.Editor.extensions {
+namespace FPCSharpUnity.unity.editor {
   public static class TextureImporterExts {
     public class Platform {
       //https://docs.unity3d.com/ScriptReference/TextureImporterPlatformSettings-name.html
@@ -70,3 +72,5 @@ namespace FPCSharpUnity.unity.Editor.extensions {
       $"{nameof(ps.overridden)}:{ps.overridden}";
   }
 }
+
+#endif
