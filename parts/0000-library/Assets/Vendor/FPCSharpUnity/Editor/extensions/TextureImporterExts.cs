@@ -1,5 +1,4 @@
-﻿#if UNITY_5_5_OR_NEWER
-using System.Linq;
+﻿using System.Linq;
 using UnityEditor;
 
 namespace FPCSharpUnity.unity.Editor.extensions {
@@ -29,6 +28,12 @@ namespace FPCSharpUnity.unity.Editor.extensions {
       Platform(string name) { this.name = name; }
 
       static Platform a(string name) => new Platform(name);
+
+      /// <summary>
+      /// Creates empty <see cref="TextureImporterPlatformSettings"/> with only the platform field set.
+      /// </summary>
+      public TextureImporterPlatformSettings createSettings() => 
+        new TextureImporterPlatformSettings().setPlatform(this);
     }
 
     public static TextureImporterPlatformSettings getPlatformSettings(
@@ -65,4 +70,3 @@ namespace FPCSharpUnity.unity.Editor.extensions {
       $"{nameof(ps.overridden)}:{ps.overridden}";
   }
 }
-#endif
