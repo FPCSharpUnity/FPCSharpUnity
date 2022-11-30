@@ -13,9 +13,9 @@ namespace FPCSharpUnity.unity.Components.gradient {
       var c1 = topColor.RGBToHSV();
       var c2 = bottomColor.RGBToHSV();
       GradientHelper.modifyVertices(
-        vertexList, (c, t) => {
+        vertexList, (c1, c2), static (tpl, c, t) => {
           var a = ((Color) c).RGBToHSV();
-          var b = Color.Lerp(c2, c1, t);
+          var b = Color.Lerp(tpl.c2, tpl.c1, t);
           return new Color(a.r + b.r, a.g * b.g, a.b * b.b).HSVToRGB();
         },
         type

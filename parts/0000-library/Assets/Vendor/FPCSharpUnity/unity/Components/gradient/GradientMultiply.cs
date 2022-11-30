@@ -8,7 +8,8 @@ namespace FPCSharpUnity.unity.Components.gradient {
 
     public override void ModifyVertices(List<UIVertex> vertexList) =>
       GradientHelper.modifyVertices(
-        vertexList, (c, t) => mult(c, Color32.Lerp(bottomColor, topColor, t)), type
+        vertexList, (bottomColor, topColor),
+        static (tpl, c, t) => mult(c, Color32.Lerp(tpl.bottomColor, tpl.topColor, t)), type
       );
 
     static Color32 mult(Color32 a, Color32 b) => new Color32(
