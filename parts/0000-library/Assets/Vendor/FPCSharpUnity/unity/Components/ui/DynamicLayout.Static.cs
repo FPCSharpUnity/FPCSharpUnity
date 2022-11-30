@@ -5,6 +5,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.pools;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
@@ -59,7 +60,9 @@ public static partial class DynamicLayoutExts {
   /// </summary>
   /// <param name="layout">Dynamic layout we want to update.</param>
   /// <param name="newDatas">Updated list of layout elements we want to show in dynamic layout.</param>
-  /// <param name="maybeSortAction">If provided, the layout elements will be sorted using this callback.</param>
+  /// <param name="maybeComparableForSorting">
+  /// If provided, the layout elements will be sorted using this comparable.
+  /// </param>
   /// <typeparam name="CommonDataType">
   /// <see cref="DynamicLayout.IElement"/> type that is supported by <see cref="layout"/> elements.
   /// </typeparam>
@@ -67,7 +70,7 @@ public static partial class DynamicLayoutExts {
   /// <typeparam name="TId">See <see cref="idTypeDescription"/>.</typeparam>
   public static void replaceAllElementsData<CommonDataType, TData, TId>(
     this DynamicLayout.IModifyElementsList<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
-    [CanBeNull] Action<IList<CommonDataType>> maybeSortAction = default
+    Option<Comparable<CommonDataType>> maybeComparableForSorting = default
   )
     where TId : IEquatable<TId> 
     where CommonDataType : ILayoutElementUpdatable<TData, TId> 
@@ -106,7 +109,9 @@ public static partial class DynamicLayoutExts {
       }
     }
 
-    maybeSortAction?.Invoke(layout.items);
+    {if (maybeComparableForSorting.valueOut(out var comparable)) {
+      layout.items.stableSort(comparable);
+    }}
     
     layout.updateLayout();
   }
