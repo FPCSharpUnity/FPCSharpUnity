@@ -11,13 +11,14 @@ namespace FPCSharpUnity.unity.Components.gradient {
     [SerializeField, PublicAccessor] Color32 topColor = Color.white, bottomColor = Color.black;
 
     public override void ModifyVertices(List<UIVertex> vertexList) {
-      GradientHelper.modifyVertices(vertexList, (c, t) => Color32.Lerp(bottomColor, topColor, t), type);
+      GradientHelper.modifyVertices(
+        vertexList, (bottomColor, topColor),
+        static (tpl, c, t) => Color32.Lerp(tpl.bottomColor, tpl.topColor, t), type
+      );
     }
 
     [Button] void swapColors() {
-      var temp = topColor;
-      topColor = bottomColor;
-      bottomColor = temp;
+      (topColor, bottomColor) = (bottomColor, topColor);
     }
 
     [PublicAPI]

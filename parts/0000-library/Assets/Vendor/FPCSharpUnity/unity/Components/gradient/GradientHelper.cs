@@ -1,28 +1,29 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using ExhaustiveMatching;
 
 namespace FPCSharpUnity.unity.Components.gradient {
   public static class GradientHelper {
     public enum GradientType { Vertical, Horizontal }
 
-    public static void modifyVertices(
-      List<UIVertex> vertexList, Func<Color32, float, Color32> f, GradientType type
+    public static void modifyVertices<Data>(
+      List<UIVertex> vertexList, Data data, Func<Data, Color32, float, Color32> f, GradientType type
     ) {
       switch (type) {
         case GradientType.Vertical:
-          modifyVertices(vertexList, f, v => v.y);
+          modifyVertices(vertexList, data, f, v => v.y);
           break;
         case GradientType.Horizontal:
-          modifyVertices(vertexList, f, v => v.x);
+          modifyVertices(vertexList, data, f, v => v.x);
           break;
         default:
-          throw new ArgumentOutOfRangeException(nameof(type), type, null);
+          throw ExhaustiveMatch.Failed(type);
       }
     }
 
-    static void modifyVertices(
-      List<UIVertex> vertexList, Func<Color32, float, Color32> f, Func<Vector3, float> getAxisFn
+    static void modifyVertices<Data>(
+      List<UIVertex> vertexList, Data data, Func<Data, Color32, float, Color32> f, Func<Vector3, float> getAxisFn
     ) {
       var count = vertexList.Count;
       if (count == 0) return;
@@ -43,7 +44,7 @@ namespace FPCSharpUnity.unity.Components.gradient {
 
       for (var i = 0; i < count; i++) {
         var uiVertex = vertexList[i];
-        uiVertex.color = f(uiVertex.color, (getAxisFn(uiVertex.position) - min) / uiElementHeight);
+        uiVertex.color = f(data, uiVertex.color, (getAxisFn(uiVertex.position) - min) / uiElementHeight);
         vertexList[i] = uiVertex;
       }
     }
