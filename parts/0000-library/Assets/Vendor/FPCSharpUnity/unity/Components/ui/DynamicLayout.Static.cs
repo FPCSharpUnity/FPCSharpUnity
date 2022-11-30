@@ -1,45 +1,125 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ExhaustiveMatching;
-using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.pools;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui;
 
+public static partial class DynamicLayoutExts {
+  
+  /// <summary> Item id type for identifying items between data updates. </summary>
+  // Used for XML docs only.
+  [PublicAPI] static void idTypeDescription(){}
+  
+  /// <summary>
+  /// Implement this in your <see cref="DynamicLayout.IElement"/> items if you want for them to be updatable. It's used
+  /// for <see cref="DynamicLayoutExts.replaceAllElementsData{CommonDataType,TData,TId}"/>.
+  /// </summary>
+  /// <typeparam name="InnerData">Data that we want to update inside <see cref="DynamicLayout.IElement"/>.</typeparam>
+  /// <typeparam name="IdType">See <see cref="DynamicLayoutExts.idTypeDescription"/>.</typeparam>
+  public interface ILayoutElementUpdatable<InnerData, IdType> : DynamicLayout.IElement
+    where IdType : IEquatable<IdType> 
+  {
+    /// <inheritdoc cref="DynamicLayoutExts.idTypeDescription"/>
+    IdType getId { get; }
+    
+    /// <summary>
+    /// Example: the <see cref="DynamicLayout"/> we want to use supports two <see cref="DynamicLayout.IElement"/> types:
+    /// RowElement and SpacerElement. RowElement has specific data (<see cref="InnerData"/>) inside that we want to
+    /// update without clearing whole layout and re-adding every element back. While SpacerElement doesn't need any data
+    /// to be updated and so we return `None` here. This means that only a subset of supported
+    /// <see cref="DynamicLayout.IElement"/>s that have <see cref="InnerData"/> inside needs be updated.
+    /// <para/>
+    /// If this is `None`, we will not call <see cref="updateData"/> on the item.
+    /// </summary>
+    Option<InnerData> extractDataForUpdating { get; }
+    
+    /// <summary>
+    /// Update element with new data.
+    /// <para/>
+    /// We can't just remove old element and replace it by new one instead of doing this 'data-swap'. <br/>
+    /// That's because hiding and then showing item's visual causes Unity object's and it's components' state to be
+    /// reset (mainly hover state).
+    /// </summary>
+    void updateData(InnerData newData);
+  }
+  
+  /// <summary>
+  /// Update items without resetting their visuals that are already visible by the user. It is useful when the data
+  /// constantly changes and user wants to interact with items without them changing their order inside scrollView. Use
+  /// this updating instead of full update approach (clear all, and re-add all) if the order of items are not important.
+  /// </summary>
+  /// <param name="layout">Dynamic layout we want to update.</param>
+  /// <param name="newDatas">Updated list of layout elements we want to show in dynamic layout.</param>
+  /// <param name="maybeComparableForSorting">
+  /// If provided, the layout elements will be sorted using this comparable.
+  /// </param>
+  /// <typeparam name="CommonDataType">
+  /// <see cref="DynamicLayout.IElement"/> type that is supported by <see cref="layout"/> elements.
+  /// </typeparam>
+  /// <typeparam name="TData">A subset of data types we want to update inside <see cref="CommonDataType"/>.</typeparam>
+  /// <typeparam name="TId">See <see cref="idTypeDescription"/>.</typeparam>
+  public static void replaceAllElementsData<CommonDataType, TData, TId>(
+    this DynamicLayout.IModifyElementsList<CommonDataType> layout, IReadOnlyList<CommonDataType> newDatas,
+    Option<Comparable<CommonDataType>> maybeComparableForSorting = default
+  )
+    where TId : IEquatable<TId> 
+    where CommonDataType : ILayoutElementUpdatable<TData, TId> 
+  {
+    using var newDatasDictDisposable = DictionaryPool<TId, CommonDataType>.instance.BorrowDisposable();
+    var newDatasDict = newDatasDictDisposable.value;
+
+    foreach (var data in newDatas) {
+      newDatasDict[data.getId] = data;
+    }
+
+    // Update existing items with new data and remove old items that are not present in newDatas.
+    for (var i = 0; i < layout.items.Count; i++) {
+      var item = layout.items[i];
+      if (newDatasDict.TryGetValue(item.getId, out var tpl)) {
+        // Update with provided data if it is supported by the item.
+        if (tpl.extractDataForUpdating.valueOut(out var newData)) {
+          item.updateData(newData);
+          if (item.isVisible) item.showOrUpdate(parent: layout.elementsParent, forceUpdate: true);            
+        }
+        newDatasDict.Remove(item.getId);
+      }
+      else {
+        item.hide();
+        layout.items.RemoveAt(i);
+        i--;
+      } 
+    }
+    
+    // Iterate through initial list first. This way we ensure that the item's order was not modified by dictionary
+    // ordering.
+    foreach (var element in newDatas) {
+      // Add items that were not present before this update.
+      if (newDatasDict.ContainsKey(element.getId)) {
+        layout.appendDataIntoLayoutData(element, updateLayout: false);
+      }
+    }
+
+    {if (maybeComparableForSorting.valueOut(out var comparable)) {
+      layout.items.stableSort(comparable);
+    }}
+    
+    layout.updateLayout();
+  }
+}
+
 public partial class DynamicLayout {
   public static class Init {
     const float EPS = 1e-9f;
-      
-    /// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
-    public static Init<TData, TView> a<TData, TView>(
-      DynamicLayout backing,
-      IEnumerable<TData> layoutData,
-      ITracker dt,
-      TView viewExampleForTypeInference,
-      bool renderLatestItemsFirst = false
-    ) where TData : IElementData<TView> where TView : IElementView => new Init<TData, TView>(
-      backing, layoutData, dt, renderLatestItemsFirst: renderLatestItemsFirst
-    );
-      
-    /// <summary>Apply method for <see cref="Init{TData,TView}"/> constructor.</summary>
-    public static Init<TData, TView> a<TData, TView>(
-      RectTransform _container, RectTransform _maskRect,
-      IEnumerable<TData> layoutData,
-      bool isHorizontal, Padding padding, float spacingInScrollableAxis,
-      ITracker tracker,
-      TView viewExampleForTypeInference,
-      bool renderLatestItemsFirst = false,
-      ExpandElementsRectSizeInSecondaryAxis expandElements = ExpandElementsRectSizeInSecondaryAxis.DontExpand
-    ) where TData : IElementData<TView> where TView : IElementView => new Init<TData, TView>(
-      _container, _maskRect, layoutData, isHorizontal: isHorizontal, padding, 
-      spacingInScrollableAxis: spacingInScrollableAxis, tracker, renderLatestItemsFirst: renderLatestItemsFirst, 
-      expandElements
-    );
 
     /// <summary>
     /// Calculates all positions for <see cref="iElementDatas"/> and invokes a callback
@@ -52,7 +132,7 @@ public partial class DynamicLayout {
       bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
       RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
       ForEachElementActionStoppable<TElementData, Data> forEachElementAction
-    ) where TElementData : IElementDataForLayout {
+    ) where TElementData : IElement {
       var containerRect = containersRectTransform.rect;
       var containerHeight = containerRect.height;
       var containerWidth = containerRect.width;
@@ -93,16 +173,17 @@ public partial class DynamicLayout {
         var data = iElementDatas[idx];
         var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
         float itemLeftPerc;
+        var rowSizeInScrollableAxis = data.sizeInScrollableAxis(isHorizontal: isHorizontal);
         if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
           itemLeftPerc = paddingPercentageStart;
           currentSizeInSecondaryAxisPerc = paddingPercentageStart + itemSizeInSecondaryAxisPerc;
           totalOffsetUntilThisRow += currentRowSizeInScrollableAxis + spacing;
-          currentRowSizeInScrollableAxis = data.sizeInScrollableAxis;
+          currentRowSizeInScrollableAxis = rowSizeInScrollableAxis;
         }
         else {
           itemLeftPerc = currentSizeInSecondaryAxisPerc;
           currentSizeInSecondaryAxisPerc += itemSizeInSecondaryAxisPerc;
-          currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, data.sizeInScrollableAxis);
+          currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, rowSizeInScrollableAxis);
         }
 
         Rect cellRect;
@@ -125,7 +206,7 @@ public partial class DynamicLayout {
           cellRect = new Rect(
             x: totalOffsetUntilThisRow,
             y: -yPos - itemHeight,
-            width: data.sizeInScrollableAxis,
+            width: rowSizeInScrollableAxis,
             height: itemHeight
           );
         }
@@ -133,9 +214,9 @@ public partial class DynamicLayout {
           var x = itemLeftPerc * containerWidth;
           cellRect = new Rect(
             x: x,
-            y: -totalOffsetUntilThisRow - data.sizeInScrollableAxis,
+            y: -totalOffsetUntilThisRow - rowSizeInScrollableAxis,
             width: containerWidth * itemSizeInSecondaryAxisPerc,
-            height: data.sizeInScrollableAxis
+            height: rowSizeInScrollableAxis
           );            
         }
              
@@ -160,7 +241,7 @@ public partial class DynamicLayout {
       bool renderLatestItemsFirst, Padding padding, bool isHorizontal,
       RectTransform containersRectTransform, Rect visibleRect, Data dataA,
       ForEachElementAction<TElementData, Data> forEachElementAction
-    ) where TElementData : IElementDataForLayout =>
+    ) where TElementData : IElement =>
       forEachElementStoppable(
         spacing: spacing, iElementDatas, renderLatestItemsFirst: renderLatestItemsFirst, padding,
         isHorizontal: isHorizontal, containersRectTransform: containersRectTransform, visibleRect: visibleRect,
@@ -177,21 +258,23 @@ public partial class DynamicLayout {
     public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
       maskRect.rect.convertCoordinateSystem(((Transform) maskRect).some(), container);
       
+    
+    
     /// <summary>
-    /// Is called when an <see cref="IElementData{TView}"/> becomes visible inside <see cref="_maskRect"/>.
+    /// Is called when an <see cref="IElementDatas{TView}"/> becomes visible inside <see cref="_maskRect"/>.
     /// </summary>
-    public static void updateVisibleElement(
-      IElementView instance, Rect cellRect, Padding padding, Rect containerSize,
+    public static void updateVisibleElement<CommonDataType>(
+      CommonDataType instance, RectTransform rt, Rect cellRect, Padding padding, Rect containerSize,
       ExpandElementsRectSizeInSecondaryAxis expandElements, bool isHorizontal
-    ) {
+    ) where CommonDataType : IElement {
       if (expandElements == ExpandElementsRectSizeInSecondaryAxis.Expand) {
         if (isHorizontal) {
-          instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
+          rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
             (containerSize.height - padding.vertical) * instance.sizeInSecondaryAxis.value
           );
         } 
         else {
-          instance.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
+          rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
             (containerSize.width - padding.horizontal) * instance.sizeInSecondaryAxis.value
           );         
         }
@@ -200,16 +283,15 @@ public partial class DynamicLayout {
       // Call this first, because in there could be code which resizes this item's rectTransform.
       instance.onUpdateLayout(containerSize: containerSize, padding);
 
-      var rectTrans = instance.rectTransform;
-      rectTrans.anchorMin = rectTrans.anchorMax = Vector2.up;
-      rectTrans.localPosition = Vector3.zero;
-      rectTrans.anchoredPosition = cellRect.center;
+      rt.anchorMin = rt.anchorMax = Vector2.up;
+      rt.localPosition = Vector3.zero;
+      rt.anchoredPosition = cellRect.center;
 
 #if UNITY_EDITOR
-      if (!rectTrans.pivot.approximately(new Vector2(0.5f, 0.5f))) {
+      if (!rt.pivot.approximately(new Vector2(0.5f, 0.5f))) {
         Log.d.error(
           $"This {nameof(DynamicLayout)} element has wrong pivot setup! This element will be positioned incorrectly! "
-          + $"Needed: ({0.5f}, {0.5f}), Actual: {rectTrans.pivot}", rectTrans
+          + $"Needed: ({0.5f}, {0.5f}), Actual: {rt.pivot}", rt
         );
       }
 #endif
