@@ -1,6 +1,8 @@
 #if UNITY_EDITOR
 using System;
 using System.Linq;
+using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
@@ -129,32 +131,32 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       var maskSize = _maskRect.rect;
       var containerSize = _container.rect;
       var isHorizontal = _scrollRect.horizontal;
+      var entries = _editorTestEntries.Select(entry =>
+        entry.maybeVisibleEntry.valueOut(out var e) ? e : new EditorTestEntry.DynamicLayoutElement(entry)
+      ).toImmutableArrayC();
 
       var result = Init.forEachElement(
         spacing: _spacingInScrollableAxis,
-        iElementDatas: _editorTestEntries,
+        iElementDatas: entries,
         renderLatestItemsFirst: false, padding: _padding, isHorizontal: isHorizontal,
         containersRectTransform: _container,
         visibleRect: Init.calculateVisibleRectStatic(container: _container, maskRect: _maskRect), dataA: Unit._, 
-        forEachElementAction: (data, placementVisible, cellRect, _) => {
-          var entry = data.downcast(default(EditorTestEntry)).getOr_LOG_AND_RETURN(
-            $"Wrong type for editor test! {data.GetType().FullName} != {nameof(EditorTestEntry)}", Log.d, LogLevel.ERROR
-          );
-          
-          entry.sizeInScrollableAxis = entry.customSizeInScrollableAxis.value.getOrElse(() => 
-            isHorizontal ? entry.item.rect.width : entry.item.rect.height
-          );
-          
+        forEachElementAction: (layoutElement, placementVisible, cellRect, _) => {
           switch (placementVisible) {
             case true: {
-              var instance = entry.visiblePreview ? entry : entry.createItem(_container);
-              Init.updateVisibleElement(instance, cellRect: cellRect, padding: padding,
-                expandElements: _expandElements, isHorizontal: isHorizontal, containerSize: containerSize
+              if (!layoutElement.visibleRt.valueOut(out var rt)) {
+                var maybeRt = layoutElement.showOrUpdate(parent: (RectTransform)layoutElement.data.item.transform.parent, forceUpdate: true);
+                // Item is setup as empty.
+                if (!maybeRt.valueOut(out rt)) return;
+              }
+              Init.updateVisibleElement(
+                layoutElement, rt, cellRect: cellRect, padding: padding, expandElements: _expandElements, 
+                isHorizontal: isHorizontal, containerSize: containerSize
               );   
               break;
             }
             case false: {
-              entry.clearPreview();
+              layoutElement.hide();
               break;
             }
           }
@@ -177,8 +179,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   }
 
   /// <summary> Is used to draw debug test item previews in editor. </summary>
-  [Serializable, Record] public partial class EditorTestEntry 
-    : IElementData<IElementView>, IViewFactory<IElementView>, IElementView 
+  [Serializable, Record] public partial class EditorTestEntry
   {
 #pragma warning disable 649
     // ReSharper disable NotNullMemberIsNotInitialized
@@ -191,28 +192,38 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
 #pragma warning restore 649
 
     /// <summary> Optional. Will be set to not null if this item is visible is layout. </summary>
-    [RecordExclude, ShowInInspector, ReadOnly] public RectTransform visiblePreview { get; private set; }
+    [ShowInInspector] public RectTransform visiblePreview => maybeVisibleEntry.flatMap(_ => _.visibleRt).getOrNull();
+    [RecordExclude] public Option<DynamicLayoutElement> maybeVisibleEntry { get; private set; }
     
-    [RecordExclude, ShowInInspector, ReadOnly] public float sizeInScrollableAxis { get; set; }
+    [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(EditorTestEntry));
     
-    [LazyProperty] public COption<IViewFactory<IElementView>> asViewFactory => CSome.a(this);
-
     public void clearPreview() {
       if (visiblePreview) DestroyImmediate(visiblePreview.gameObject);
     }
+    
+    public class DynamicLayoutElement : ElementBase<EditorTestEntry, RectTransform> {
+      public DynamicLayoutElement(
+        EditorTestEntry data) : base(
+        data, sizeProvider: data._customSizeInScrollableAxis.valueOut(out var size) 
+          ? SizeProvider.Static.a(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
+          : SizeProvider.FromTemplateStatic.a(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
+        maybeViewProvider: new ViewProvider.InstantiateAndDestroyEditor<RectTransform>(data._item), log
+      ) {}
 
-    public IElementView createItem(Transform parent) {
-      clearPreview();
-      var item = _item.clone(parent: _item.parent);
-      item.name += " [Will not save]";
-      visiblePreview = item;
-      item.gameObject.hideFlags = HideFlags.DontSave;
-      return this;
+      protected override void becameVisible(RectTransform view, RectTransform rt, RectTransform parent) {
+        base.becameVisible(view, rt, parent);
+        view.name += " [Will not save]";
+        view.gameObject.hideFlags = HideFlags.DontSave;
+        data.maybeVisibleEntry = Some.a(this);
+      }
+
+      protected override void updateState(RectTransform view, ITracker tracker) {}
+
+      protected override void becameInvisible() {
+        base.becameInvisible();
+        data.maybeVisibleEntry = None._;
+      }
     }
-
-    public void Dispose() => clearPreview();
-    public RectTransform rectTransform => visiblePreview;
-    public void onUpdateLayout(Rect containerSize, Padding padding) {}
   }
 }
 #endif
