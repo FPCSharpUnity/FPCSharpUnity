@@ -1,7 +1,7 @@
 ﻿// From my experiments profiling doesn't add any overhead but it might have issues with multithreading so it is
 // turned off by default.
 //#define DO_PROFILE
-﻿using System.Linq;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -230,8 +230,12 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       var structureCache = StructureCache.defaultInstance;
       var unityTags = UnityEditorInternal.InternalEditorUtility.tags.ToImmutableHashSet();
       var scanned = 0;
+      
+      var distinctObjects = objects.Distinct().toImmutableArrayC();
 
-      var componentsDuplicated = objects.SelectMany(o => {
+      validateMissingPrefabAssets();
+
+      var componentsDuplicated = distinctObjects.SelectMany(o => {
         if (o is GameObject go) {
           return go.transform
             .andAllChildrenRecursive()
@@ -348,6 +352,32 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
       // FIXME: there should not be a need to a Distinct call here, we have a bug somewhere in the code.
       return errors.Distinct().ToImmutableList();
+
+      void validateMissingPrefabAssets() {
+        using var ps = new ProfiledScope(Macros.classAndMethodNameShort);
+          
+        foreach (var obj in distinctObjects) {
+          switch (obj) {
+            case GameObject go:
+              validateGO(go);
+              break;
+          }
+
+          void validateGO(GameObject go) {
+            foreach (var transform in go.transform.andAllChildrenRecursive()) {
+              if (
+                PrefabUtility.IsPrefabAssetMissing(transform)
+                // Prefab API does not work as expected on components of prefab assets.
+                // It only works in an open scene or in a prefab that is opened in prefab editing mode.
+                // But we can still detect this error by checking the name of the GameObject.
+                || transform.name.Contains("Missing Prefab with guid:")
+              ) {
+                errors.Add(new Error(Error.Type.MissingPrefabAsset, $"Missing prefab asset on '{transform.name}'", go));
+              }
+            }
+          }
+        }
+      }
     }
 
     /// <summary>
