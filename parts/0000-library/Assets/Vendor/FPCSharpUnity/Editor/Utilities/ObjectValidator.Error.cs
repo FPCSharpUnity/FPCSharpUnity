@@ -18,6 +18,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         MissingComponent,
         MissingRequiredComponent,
         MissingReference,
+        MissingPrefabAsset,
         NullReference,
         EmptyCollection,
         EmptyString,
