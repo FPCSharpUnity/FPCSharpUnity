@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
@@ -7,6 +10,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.typeclasses;
 using UnityEditor;
 using static FPCSharpUnity.core.typeclasses.Str;
 
@@ -120,12 +124,68 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     /// <returns>True if task was canceled</returns>
     public bool progressCancellable(int idx, int total) => _progress(idx, total, true);
 
-    /** A simple method to measure execution times between calls **/
+    /// <summary>A simple method to measure execution times between calls</summary>
     public void done() {
       var duration = new Duration(sw.ElapsedMilliseconds.toIntClamped());
       if (log.isInfo()) log.info($"{s(current)} done in {s(duration.toTimeSpan.toHumanString())}");
       _showProgressBar($"{s(current)} done in {s(duration.toTimeSpan.toHumanString())}.", 1);
       current = NONE;
+    }
+
+    /// <summary>
+    /// Runs a cancellable multi-threaded processing (using TPL).
+    /// </summary>
+    /// <param name="name">Name to show for the progress window.</param>
+    /// <param name="items">Items to process.</param>
+    /// <param name="onItem">Invoked for each item.</param>
+    public void progressCancellableParallel<A>(string name, IReadOnlyCollection<A> items, Action<A> onItem) {
+      start(name);
+      // long because Interlocked only supports that.
+      var cancelled = 0L;
+      var countStartedProcessing = 0L;
+      var countFinishedProcessing = 0L;
+      
+      // Schedule the items to be processed in parallel. 
+      foreach (var item in items) {
+        Task.Run(() => {
+          // ReSharper disable once AccessToModifiedClosure
+          if (Interlocked.Read(ref cancelled) != 0) {
+            Interlocked.Increment(ref countFinishedProcessing);
+          }
+          else {
+            // ReSharper disable once AccessToModifiedClosure
+            Interlocked.Increment(ref countStartedProcessing);
+            try {
+              onItem(item);
+            }
+            finally {
+              Interlocked.Increment(ref countFinishedProcessing);
+            }
+          }
+        });
+      }
+
+      // Render the progress from the Unity main thread.
+      while (shouldKeepGoing()) {
+        var idx = Interlocked.Read(ref countStartedProcessing) - 1;
+        var cancelledBool = progressCancellable(idx.toIntClamped(), items.Count);
+        if (cancelledBool) Interlocked.Increment(ref cancelled);
+        
+        // Re-render every once in a while.
+        Thread.Sleep(200.millis());
+      }
+
+      if (Interlocked.Read(ref cancelled) != 0) {
+        log.mInfo($"{s(name)} was cancelled: processed items: {s(countFinishedProcessing)} / {s(items.Count)}");
+      }
+      
+      done();
+
+      bool shouldKeepGoing() =>
+        // Keep going if not cancelled.
+        Interlocked.Read(ref cancelled) == 0
+        // And there is still jobs left.
+        && Interlocked.Read(ref countFinishedProcessing) != items.Count;
     }
 
     public void Dispose() { EditorUtility.ClearProgressBar(); }
