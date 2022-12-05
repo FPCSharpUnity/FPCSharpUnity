@@ -162,5 +162,23 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tween_callbacks {
     protected override bool shouldInvokeOnReset => true;
   }
   
+  [Serializable]
+  public class EnableBehaviourCallback : CallbackBase {
+#pragma warning disable 649
+    // ReSharper disable NotNullMemberIsNotInitialized
+    [SerializeField, NotNull, OnValueChanged(CHANGE)] Behaviour _behaviour;
+    [SerializeField, OnValueChanged(CHANGE)] bool _state;
+    // ReSharper restore NotNullMemberIsNotInitialized
+#pragma warning restore 649
+
+    protected override void invoke() => _behaviour.enabled = _state;
+
+    public override bool isValid => _behaviour;
+
+    public override Object getTarget() => _behaviour;
+    
+    protected override bool shouldInvokeOnReset => true;
+  }
+  
   // ReSharper restore NotNullMemberIsNotInitialized
 }
