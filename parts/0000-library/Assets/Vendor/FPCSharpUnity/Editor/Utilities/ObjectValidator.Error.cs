@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 namespace FPCSharpUnity.unity.Utilities.Editor {
   public static partial class ObjectValidator {
     [Record(ConstructorFlags.None, GenerateToString = false)]
-    public partial struct Error {
+    public readonly partial struct Error {
       public enum Type : byte {
         MissingComponent,
         MissingRequiredComponent,
@@ -41,12 +41,11 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       public readonly Type type;
       public readonly string message;
       public readonly Object obj;
+      
       /// <summary>Path of the Unity GameObject tree.</summary>
-      ///
-      /// <example>
-      /// Player/Particles/Spawn
-      /// </example>
+      /// <example>Player/Particles/Spawn</example>
       public readonly string objFullPath;
+      
       public readonly OneOf<AssetPath, ScenePath, UnknownLocation> location;
 
       public override string ToString() =>
