@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Components;
 using FPCSharpUnity.unity.Components.gradient;
 using FPCSharpUnity.unity.Components.ui;
@@ -453,6 +454,48 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   public sealed class GraphicColor : SerializedTweenerColor<Graphic> {
     protected override Color get => _target.color;
     protected override void set(Color value) => _target.color = value;
+    public override Color editorColor => cColor;
+  }
+  
+  [Serializable]
+  public sealed class GraphicAssetColor : SerializedTweenerV2<Graphic, Color, ColorAsset> {
+    
+    protected override Color lerp(float percentage) => Color.LerpUnclamped(_start.color, _end.color, percentage);
+    protected override Color add(Color a, Color b) => a + b;
+    protected override Color subtract(Color a, Color b) => a - b;
+    
+    protected override Color get => _target.color;
+    protected override void set(Color value) => _target.color = value;
+    
+#if UNITY_EDITOR
+    protected override void editor__setStart() {}
+    protected override void editor__setEnd() {}
+#endif
+    
+    public override Color editorColor => cColor;
+  }
+  
+  [Serializable]
+  public sealed class GraphicsSetColor : SerializedTweenerColor<GraphicsSet> {
+    protected override Color get => _target.graphics.headOption().map(static _ => _.color).getOrDefault();
+    protected override void set(Color value) => _target.color = value;
+    public override Color editorColor => cColor;
+  }
+  
+  [Serializable]
+  public sealed class GraphicsSetAssetColor : SerializedTweenerV2<GraphicsSet, Color, ColorAsset> {
+    protected override Color lerp(float percentage) => Color.LerpUnclamped(_start.color, _end.color, percentage);
+    protected override Color add(Color a, Color b) => a + b;
+    protected override Color subtract(Color a, Color b) => a - b;
+    
+    protected override Color get => _target.graphics.headOption().map(static _ => _.color).getOrDefault();
+    protected override void set(Color value) => _target.color = value;
+    
+#if UNITY_EDITOR
+    protected override void editor__setStart() {}
+    protected override void editor__setEnd() {}
+#endif
+    
     public override Color editorColor => cColor;
   }
   
