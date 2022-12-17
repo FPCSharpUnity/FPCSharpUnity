@@ -113,7 +113,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
     DConsole() {
       isActiveAndMaximizedRx = currentRx.flatMap(maybeInstance => 
-        maybeInstance.map(_ => _.view.maximizedRx).getOrElse(RxVal.cached(false))
+        maybeInstance.map(_ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
       );
     }
 
