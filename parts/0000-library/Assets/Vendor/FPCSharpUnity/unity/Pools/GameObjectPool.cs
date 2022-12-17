@@ -146,6 +146,9 @@ namespace FPCSharpUnity.unity.Pools {
       return result;
     }
 
+    /// <summary>Number of items pooled.</summary>
+    public int pooledCount => values.Count;
+
     public T borrow() {
       var result = values.Count > 0 ? values.Pop() : createAndInit();
       var go = toGameObject(result);

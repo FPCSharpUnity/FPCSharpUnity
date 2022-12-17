@@ -42,6 +42,7 @@ namespace FPCSharpUnity.unity.debug {
         Log.d.isDebug() && obj is GameObject go ? go.transform.debugPath() : obj.name, 
         unityObject: Some.a(obj)
       );
+      
       public static implicit operator ScopeKey(UnityEngine.Object obj) => fromUnityObject(obj);
     }
     
@@ -163,8 +164,10 @@ namespace FPCSharpUnity.unity.debug {
 
       public ActionValue(Action value) : this("Run", value) {}
     }
+    
     /// <summary>Renders the key in column 1 and value in column 2.</summary>
     [Record] public sealed partial class KVValue : IRenderableValue { public readonly IRenderableValue key, value; }
+    
     /// <summary>Renders a header and then the value, but indents the value by the specified indent.</summary>
     [Record] public sealed partial class HeaderValue : IRenderableValue {
       public readonly IRenderableValue header, value;
@@ -172,6 +175,7 @@ namespace FPCSharpUnity.unity.debug {
 
       public HeaderValue(IRenderableValue header, IRenderableValue value) : this(header, value, 1) {}
     }
+    
     /// <summary>Renders given values with header stating the count and separator between values.</summary>
     [Record] public sealed partial class EnumerableValue : IRenderableValue {
       /// <summary>Should we render the element count?</summary>
