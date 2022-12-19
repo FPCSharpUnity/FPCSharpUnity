@@ -19,8 +19,8 @@ namespace FPCSharpUnity.unity.Utilities {
 #if UNITY_EDITOR
         createIsPlayingAndNotExitingPlayModeForEditor();
 #else
-      // If we're not in editor, then we're just always playing.
-      RxVal.cached(true)
+        // If we're not in editor, then we're just always playing.
+        RxVal.staticallyCached(true);
 #endif
     
 #if UNITY_EDITOR
