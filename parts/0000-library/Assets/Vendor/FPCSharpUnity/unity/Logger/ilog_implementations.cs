@@ -1,11 +1,11 @@
 using System;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Concurrent;
-using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
+using FPCSharpUnity.core.utils.registry;
 
 namespace FPCSharpUnity.unity.Logger {
   /**
@@ -15,7 +15,7 @@ namespace FPCSharpUnity.unity.Logger {
    **/
   [PublicAPI] public sealed class DeferToMainThreadLog : ILog {
     readonly ILog backing;
-    public Option<RegisterToLogRegistry> registerToRegistry => backing.registerToRegistry;
+    public Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry => backing.registerToRegistry;
 
     public DeferToMainThreadLog(ILog backing) { this.backing = backing; }
 
@@ -38,9 +38,9 @@ namespace FPCSharpUnity.unity.Logger {
   /// Useful for batch mode to log to the log file without the stack traces.
   /// </summary>
   [PublicAPI] public partial class ConsoleLog : LogBase {
-    public override Option<RegisterToLogRegistry> registerToRegistry { get; }
+    public override Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry { get; }
 
-    public ConsoleLog(Option<RegisterToLogRegistry> registerToRegistry) {
+    public ConsoleLog(Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry) {
       this.registerToRegistry = registerToRegistry;
     }
 
@@ -48,7 +48,7 @@ namespace FPCSharpUnity.unity.Logger {
   }
 
   [PublicAPI, Singleton] public partial class NoOpLog : LogBase {
-    public override Option<RegisterToLogRegistry> registerToRegistry => None._;
+    public override Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry => None._;
     protected override void logInner(LogLevel l, LogEntry entry) {}
   }
 }

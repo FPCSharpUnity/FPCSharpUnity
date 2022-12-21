@@ -6,6 +6,7 @@ using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Data {
+  /// <summary>
   /// You can succinctly define <see cref="KeyCodeWithModifiers"/> with this:
   /// 
   /// <code>
@@ -14,7 +15,8 @@ namespace FPCSharpUnity.unity.Data {
   /// 
   /// var keyCodeWithModifiers = Ctrl+Alt+Z;
   /// </code>
-  [Record(ConstructorFlags.None)] public partial struct KeyModifier {
+  /// </summary>
+  [Record(ConstructorFlags.None)] public readonly partial struct KeyModifier {
     public static readonly KeyModifier 
       Ctrl = new KeyModifier(Val.Ctrl), Alt = new KeyModifier(Val.Alt), Shift = new KeyModifier(Val.Shift);
     

@@ -15,7 +15,8 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.debug {
-  public class StateExposerEditorWindow : EditorWindow, IMB_OnGUI {
+  [HasLogger]
+  public partial class StateExposerEditorWindow : EditorWindow, IMB_OnGUI {
     [MenuItem("Tools/Window/State Exposer")]
     public static void OpenWindow() => GetWindow<StateExposerEditorWindow>("State Exposer").Show();
     
@@ -29,6 +30,8 @@ namespace FPCSharpUnity.unity.debug {
 
     readonly HashSet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> 
       expandObjects = new(), expandInnerScopes = new();
+
+    readonly HashSet<string> expandHeaderValues = new();
 
     float repaintEverySeconds = 0.1f;
     DateTime lastRepaint = DateTime.MinValue;
@@ -53,7 +56,7 @@ namespace FPCSharpUnity.unity.debug {
             var previous = GC.GetTotalMemory(forceFullCollection: false);
             GC.Collect();
             var current = GC.GetTotalMemory(forceFullCollection: false);
-            Log.d.info(
+            log.info(
               $"Garbage collection performed, previous={previous.toBytesReadable()}, current={current.toBytesReadable()}"
             );
           }
@@ -114,7 +117,7 @@ namespace FPCSharpUnity.unity.debug {
                 headerValue: _ => true
               );
               
-              static void render(StateExposer.IRenderableValue value) => value.voidMatch(
+              void render(StateExposer.IRenderableValue value) => value.voidMatch(
                 stringValue: str => EditorGUILayout.LabelField(str.value, multilineTextStyle.strict),
                 floatValue: flt => EditorGUILayout.FloatField(flt.value, multilineTextStyle.strict),
                 boolValue: b => EditorGUILayout.Toggle(b.value),
@@ -139,8 +142,19 @@ namespace FPCSharpUnity.unity.debug {
                 },
                 headerValue: header => {
                   using var _ = new EditorGUILayout.VerticalScope();
-                  render(header.header);
-                  using (new EditorGUI.IndentLevelScope(header.indentBy)) render(header.value);
+                  
+                  bool renderBody;
+                  {if (header.header.asString.valueOut(out var renderableAsString)) {
+                    // We need some sort of stable identifier to store the foldout state and we can't use object
+                    // instances for that, thus we use path and value combined as a string.
+                    var id = $"{path.collection.mkStringEnum()}: {renderableAsString}";
+                    renderBody = foldoutGeneric(expandHeaderValues, id, renderableAsString);
+                  } else {
+                    render(header.header);
+                    renderBody = true;
+                  }}
+                  
+                  if (renderBody) using (new EditorGUI.IndentLevelScope(header.indentBy)) render(header.value);
                 }
               );
             }
@@ -159,10 +173,14 @@ namespace FPCSharpUnity.unity.debug {
           }
         }
 
-        bool foldout(ISet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> set, string name) {
-          var ret = EditorGUILayout.Foldout(set.Contains(path), name);
-          if (ret) set.Add(path);
-          else set.Remove(path);
+        bool foldout(ISet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> set, string name) => 
+          foldoutGeneric(set, path, name);
+
+        // Returns true if we should render the value.
+        bool foldoutGeneric<Value>(ISet<Value> set, Value value, string name) {
+          var ret = EditorGUILayout.Foldout(set.Contains(value), name);
+          if (ret) set.Add(value);
+          else set.Remove(value);
           return ret;
         }
       }

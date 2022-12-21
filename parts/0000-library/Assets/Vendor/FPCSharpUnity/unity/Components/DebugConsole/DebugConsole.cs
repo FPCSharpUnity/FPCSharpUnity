@@ -22,6 +22,7 @@ using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
+using static FPCSharpUnity.unity.Data.KeyModifier;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -93,7 +94,8 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
     static void initDConsole(DConsole dConsole) {
       var r = dConsole.registrarFor(nameof(DConsole), NeverDisposeDisposableTracker.instance, persistent: true);
-      r.register("Run GC", GC.Collect);
+      r.register("Run GC", GC.Collect, Ctrl+Alt+KeyCode.G);
+      r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
       r.register("Self-test", () => "self-test");
       r.register(
         "Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContextU.unscaledTime)

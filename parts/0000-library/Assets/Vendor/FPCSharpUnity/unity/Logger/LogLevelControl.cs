@@ -25,15 +25,15 @@ namespace FPCSharpUnity.unity.Logger {
     public static void subscribeToApplyOverridenLevels(ILogRegistry registry, Option<ILog> maybeLog) {
       registry.onRegister.subscribe(DisposableTrackerU.disposeOnExitPlayMode, args => {
         {if (
-          prefValDict.get(args.name).valueOut(out var prefVal) 
+          prefValDict.get(args.key).valueOut(out var prefVal) 
           && prefVal.value.valueOut(out var levelOverride)
-          && args.log.level != levelOverride
+          && args.value.level != levelOverride
         ) {
           {if (maybeLog.valueOut(out var log)) {
-            log.mInfo($"Overriding log level on '{args.name.asString()}' from {args.log.level} to {levelOverride}.");
+            log.mInfo($"Overriding log level on '{args.key.asString()}' from {args.value.level} to {levelOverride}.");
           }}
 
-          args.log.level = levelOverride;
+          args.value.level = levelOverride;
         }}
       });
     }

@@ -70,7 +70,7 @@ namespace FPCSharpUnity.unity.Logger {
           _default = useConsoleLog ? new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
           // First subscribe and only then register, because subscription listens to the registration.
           LogLevelControl.subscribeToApplyOverridenLevels(registry, Some.a(_default));
-          register(new(_default, DEFAULT_LOGGER_NAME));
+          register(new(DEFAULT_LOGGER_NAME, _default));
         }
         
         return _default;

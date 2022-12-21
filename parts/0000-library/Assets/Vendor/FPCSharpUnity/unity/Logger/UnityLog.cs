@@ -6,6 +6,7 @@ using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.utils.registry;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -17,9 +18,9 @@ namespace FPCSharpUnity.unity.Logger {
     /// </summary>
     const string MESSAGE_PREFIX = "[FPC#Log]";
 
-    public override Option<RegisterToLogRegistry> registerToRegistry { get; }
+    public override Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry { get; }
 
-    public UnityLog(Option<RegisterToLogRegistry> registerToRegistry) {
+    public UnityLog(Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry) {
       this.registerToRegistry = registerToRegistry;
     }
 
