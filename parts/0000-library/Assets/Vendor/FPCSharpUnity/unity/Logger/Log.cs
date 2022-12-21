@@ -20,7 +20,6 @@ namespace FPCSharpUnity.unity.Logger {
   /// </summary>
   [PublicAPI] public static class Log {
     // InitializeOnLoad is needed to set static variables on main thread.
-    // FKRs work without it, but on Gummy Bear repo tests fail
 #if UNITY_EDITOR
     [UnityEditor.InitializeOnLoadMethod]
 #endif
@@ -71,6 +70,9 @@ namespace FPCSharpUnity.unity.Logger {
           // First subscribe and only then register, because subscription listens to the registration.
           LogLevelControl.subscribeToApplyOverridenLevels(registry, Some.a(_default));
           register(new(DEFAULT_LOGGER_NAME, _default));
+          
+          // Set the global log if it's not set yet.
+          GlobalLog.maybeLog |= Some.a(_default);
         }
         
         return _default;
