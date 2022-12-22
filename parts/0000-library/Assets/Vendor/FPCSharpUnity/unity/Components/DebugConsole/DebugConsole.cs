@@ -63,13 +63,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <summary>
     /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in debug builds.
     /// </summary>
-    const int MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS = 2000;
+    const int MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS = 500;
     
     /// <summary>
-    /// Maximum amount of entries to add to the view per one frame. We limit this to avoid freezing the player when
+    /// Maximum amount of lines to add to the view per one frame. We limit this to avoid freezing the player when
     /// there are a lot of log messages to add at once. 
     /// </summary>
-    const int BATCH_SIZE_FOR_ADDING_LOG_ENTRIES_TO_VIEW = 10;
+    const int BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW =
+      // 25 lines is about 1 screen worth of content.
+      25;
 
     /// <summary>
     /// While debug console is not opened we catch the log messages in the background and put them here so that when
@@ -619,13 +621,13 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           lock (messagesToAdd) {
             if (!messagesToAdd.IsEmpty) {
               var lineWidth = binding.lineWidth;
-              var processed = 0;
-              while (!messagesToAdd.IsEmpty && processed < BATCH_SIZE_FOR_ADDING_LOG_ENTRIES_TO_VIEW) {
+              var processedLines = 0;
+              while (!messagesToAdd.IsEmpty && processedLines < BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW) {
                 var entry = messagesToAdd.RemoveFront();
                 foreach (var e in createEntries(entry, pool, cache, lineWidth)) {
                   layout.appendDataIntoLayoutData(e);
+                  processedLines++;
                 }
-                processed++;
               }
             }
           }
