@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using ExhaustiveMatching;
 using FPCSharpUnity.unity.Collection;
 using FPCSharpUnity.unity.Components.dispose;
 using FPCSharpUnity.unity.Components.ui;
@@ -44,23 +45,46 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     [Record] partial struct Instance {
       public readonly DebugConsoleBinding view;
       public readonly DynamicLayout.Init<DynamicVerticalLayoutLogElementData> dynamicVerticalLayout;
-      public readonly Application.LogCallback logCallback;
       public readonly GameObjectPool<VerticalLayoutLogEntry> pool;
       public readonly IDisposableTracker tracker;
     }
 
     [Record] public readonly partial struct LogEntry {
+      public readonly DateTime createdAt;
       public readonly string message;
       public readonly LogType type;
     }
+    
+    /// <summary>
+    /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in non-debug builds.
+    /// </summary>
+    const int MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS = 200;
+    
+    /// <summary>
+    /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in debug builds.
+    /// </summary>
+    const int MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS = 500;
+    
+    /// <summary>
+    /// Maximum amount of lines to add to the view per one frame. We limit this to avoid freezing the player when
+    /// there are a lot of log messages to add at once. 
+    /// </summary>
+    const int BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW =
+      // 25 lines is about 1 screen worth of content.
+      25;
 
-    static readonly Deque<LogEntry> logEntries = new();
+    /// <summary>
+    /// While debug console is not opened we catch the log messages in the background and put them here so that when
+    /// we open the debug console we would know at least the last
+    /// <see cref="MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS"/> log messages.
+    /// </summary>
+    static readonly Deque<LogEntry> backgroundLogEntries = new();
+    
     static readonly LazyVal<DConsole> _instance = Lazy.a(() => {
-        var dConsole = new DConsole();
-        initDConsole(dConsole);
-        return dConsole;
-      }
-    );
+      var dConsole = new DConsole();
+      initDConsole(dConsole);
+      return dConsole;
+    });
     public static DConsole instance => _instance.strict;
     static bool dConsoleUnlocked;
     public readonly IRxVal<bool> isActiveAndMaximizedRx;
@@ -72,12 +96,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       if (!Application.isEditor) {
         // In editor we have the editor console, so this is not really needed.
         Application.logMessageReceivedThreaded += (message, stacktrace, type) => {
-          lock (logEntries) {
-            const int MAX_COUNT = 200;
-            while (!Log.d.isDebug() && !Debug.isDebugBuild && logEntries.Count > MAX_COUNT) {
-              logEntries.RemoveFront();
-            }
-            logEntries.Add(new LogEntry(message, type));
+          var entry = new LogEntry(DateTime.Now, message, type);
+          var limit =
+            Log.d.isDebug() || Debug.isDebugBuild
+              ? MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS
+              : MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS;
+          
+          lock (backgroundLogEntries) {
+            while (backgroundLogEntries.Count > limit) backgroundLogEntries.RemoveFront();
+            backgroundLogEntries.Add(entry);
           }
         };
       }
@@ -108,7 +135,10 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
       r.register("Clear visible log", clearVisibleLog);
       r.register("Clear saved log", () => {
-        logEntries.Clear();
+        lock (backgroundLogEntries) {
+          backgroundLogEntries.Clear();
+        }
+
         clearVisibleLog();
       });
     }
@@ -311,9 +341,9 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     public DConsoleRegistrar registrarFor(string prefix, ITracker tracker, bool persistent) =>
       new DConsoleRegistrar(this, prefix, tracker, persistent);
     
-    public void show(Option<string> unlockCode, DebugConsoleBinding binding = null) {
+    public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null) {
       var tracker = new DisposableTracker();
-      binding = binding ? binding : Resources.Load<DebugConsoleBinding>("Debug Console Prefab");
+      prefab = prefab ? prefab : Resources.Load<DebugConsoleBinding>("Debug Console Prefab");
 
       {
         if (currentRx.value.valueOut(out var currentInstance)) {
@@ -327,7 +357,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       BoundButtonList commandButtonList = null;
       var selectedGroup = Option<SelectedGroup>.None;
-      var view = binding.clone();
+      var view = prefab.clone();
       view.hideModals();
       
       var commandsList = setupList(
@@ -346,14 +376,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         () => view.logEntry.prefab.clone()
       ));
 
-      var cache = new List<string>();
       var layout = new DynamicLayout.Init<DynamicVerticalLayoutLogElementData>(
         view.dynamicLayout, tracker, renderLatestItemsFirst: true
       );
-      layout.appendDataIntoLayoutData(logEntries.SelectMany(e => createEntries(e, logEntryPool, cache, view.lineWidth)));
+      startAddMessagesToViewCoroutine(layout, view, logEntryPool, tracker);
 
-      var logCallback = onLogMessageReceived(logEntryPool, cache);
-      Application.logMessageReceivedThreaded += logCallback;
       // Make sure to clean up on app quit to prevent problems with unity quick play mode enter.
       ASync.onAppQuit.subscribe(view.gameObject.asDisposableTracker(), _ => destroy());
       view.closeButton.onClick.AddListener(destroy);
@@ -370,7 +397,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         }
       };
 
-      currentRx.value = new Instance(view, layout, logCallback, logEntryPool, tracker).some();
+      currentRx.value = new Instance(view, layout, logEntryPool, tracker).some();
 
       BoundButtonList setupGroups(bool clearCommandsFilterText) {
         var groupButtons = commands.OrderBySafe(_ => _.Key).Select(commandGroup => {
@@ -516,16 +543,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       LogEntry data, GameObjectPool<VerticalLayoutLogEntry> pool,
       List<string> cache, float lineWidth
     ) {
-      string typeToString(LogType t) {
-        switch (t) {
-          case LogType.Error: return " ERROR";
-          case LogType.Assert: return " ASSERT";
-          case LogType.Warning: return " WARN";
-          case LogType.Log: return "";
-          case LogType.Exception: return " EXCEPTION";
-          default: throw new Exception(t.ToString());
-        }
-      }
+      string typeToString(LogType t) =>
+        t switch {
+          LogType.Error => " ERROR",
+          LogType.Assert => " ASSERT",
+          LogType.Warning => " WARN",
+          LogType.Log => "",
+          LogType.Exception => " EXCEPTION",
+          _ => throw ExhaustiveMatch.Failed(t)
+        };
 
       Color typeToColor(LogType t) {
         switch (t) {
@@ -535,11 +561,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           case LogType.Assert: return Color.magenta;
           case LogType.Warning: return new Color32(213, 144, 0, 255);
           case LogType.Log: return Color.black;
-          default: throw new Exception();
+          default: throw ExhaustiveMatch.Failed(t);
         }
       }
 
-      var shortText = $"{DateTime.Now:hh:mm:ss}{typeToString(data.type)} {data.message}";
+      var shortText = $"{data.createdAt:hh:mm:ss}{typeToString(data.type)} {data.message}";
 
       // letter width can't be smaller, tested on galaxy S5
       const float LETTER_WIDTH = 11.3f;
@@ -553,27 +579,67 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
     }
     
-    Application.LogCallback onLogMessageReceived(
+    /// <summary>
+    /// Creates a double-ended queue for log entries and starts two processes.
+    /// <para/>
+    /// First one catches the new log messages and puts them to the end of the queue.
+    /// <para/>
+    /// Second one takes the entries from the queue and puts them into the <see cref="layout"/>.
+    /// <para/>
+    /// The goal of this is to make sure that we do not block the UI if there are a lot of log entries.
+    /// </summary>
+    void startAddMessagesToViewCoroutine(
+      DynamicLayout.Init<DynamicVerticalLayoutLogElementData> layout,
+      DebugConsoleBinding binding,
       GameObjectPool<VerticalLayoutLogEntry> pool,
-      List<string> resultsTo
-    ) =>
-      (message, stackTrace, type) => {
-        if (!currentRx.value.isSome) return;
-        ASync.OnMainThread(() => {
-          // The instance can go away while we're switching threads.
-          foreach (var instance in currentRx.value) {
-            foreach (var e in createEntries(
-              new LogEntry(message, type), pool, resultsTo,
-              instance.view.lineWidth
-            )) instance.dynamicVerticalLayout.appendDataIntoLayoutData(e);
+      ITracker tracker
+    ) {
+      var messagesToAdd = new Deque<LogEntry>();
+
+      // Copy the existing entries in a blocking fashion and hope that it is fast enough.
+      lock (backgroundLogEntries) {
+        messagesToAdd.AddRange(backgroundLogEntries);
+      }
+
+      catchNewIncomingMessages();
+      addMessagesToLayoutEveryFrame();
+      
+      void catchNewIncomingMessages() {
+        var logCallback = new Application.LogCallback((message, stackTrace, type) => {
+          var createdAt = DateTime.Now;
+          lock (messagesToAdd) {
+            messagesToAdd.Add(new LogEntry(createdAt, message, type));
           }
         });
-      };
+        tracker.track(() => Application.logMessageReceivedThreaded -= logCallback);
+        Application.logMessageReceivedThreaded += logCallback;
+      }
+
+      void addMessagesToLayoutEveryFrame() {
+        var cache = new List<string>();
+        tracker.track(ASync.EveryFrame(() => {
+          lock (messagesToAdd) {
+            if (!messagesToAdd.IsEmpty) {
+              var lineWidth = binding.lineWidth;
+              var processedLines = 0;
+              while (!messagesToAdd.IsEmpty && processedLines < BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW) {
+                var entry = messagesToAdd.RemoveFront();
+                foreach (var e in createEntries(entry, pool, cache, lineWidth)) {
+                  layout.appendDataIntoLayoutData(e);
+                  processedLines++;
+                }
+              }
+            }
+          }
+          
+          return true;
+        }));
+      }
+    }
 
     public void destroy() {
       foreach (var instance in currentRx.value) {
         Debug.Log("Destroying DConsole.");
-        Application.logMessageReceivedThreaded -= instance.logCallback;
         instance.tracker.Dispose();
         instance.pool.dispose(Object.Destroy);
         Object.Destroy(instance.view.gameObject);
