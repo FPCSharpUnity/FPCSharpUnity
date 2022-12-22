@@ -52,7 +52,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
           return assetFtr.toRxVal().map(csOpt => csOpt.toRight(new IsLoading(true)));
         }
 
-        return RxVal.cached(F.left<IsLoading, A>(new IsLoading(false)));
+        return RxVal.staticallyCached(F.left<IsLoading, A>(new IsLoading(false)));
       });
 
       itemState.subscribe(tracker, e => {
