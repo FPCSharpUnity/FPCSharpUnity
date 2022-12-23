@@ -1,4 +1,7 @@
-﻿using FPCSharpUnity.unity.Components.Interfaces;
+﻿using System.Collections.Generic;
+using System.Linq;
+using FPCSharpUnity.core.exts;
+using FPCSharpUnity.unity.Components.Interfaces;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -15,6 +18,8 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull, PublicAccessor] Graphic[] _graphics;
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
+
+    public void setGraphics(IEnumerable<Graphic> e) => _graphics = e.ToArray();
 
     public void Reset() => _graphics = GetComponentsInChildren<Graphic>();
     
