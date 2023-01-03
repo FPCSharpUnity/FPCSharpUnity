@@ -16,19 +16,21 @@ using FPCSharpUnity.core.utils;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
-  [PublicAPI] public struct DConsoleRegistrar {
-    public readonly DConsole console;
-    public readonly string commandGroup;
-    public readonly bool persistent;
+  [PublicAPI] public readonly struct DConsoleRegistrar {
+    readonly DConsole.Commands console;
+    
+    /// <summary>Name of the command group for which this registrar is for.</summary>
+    public readonly DConsole.GroupName commandGroup;
+    
+    /// <summary>Tracker for <see cref="DConsole.register"/>.</summary>
     readonly ITracker tracker;
 
-    public DConsoleRegistrar(
-      DConsole console, string commandGroup, ITracker tracker, bool persistent
+    internal DConsoleRegistrar(
+      DConsole.Commands console, DConsole.GroupName commandGroup, ITracker tracker
     ) {
       this.console = console;
       this.commandGroup = commandGroup;
       this.tracker = tracker;
-      this.persistent = persistent;
     }
 
     static readonly HasObjFunc<Unit> unitSomeFn = () => Some.a(F.unit);
@@ -37,16 +39,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       string name, Action run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
     ) => register(name, api => run(), shortcut, canShow);
     public ISubscription register(
-      string name, Action<API> run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
+      string name, Action<DConsoleCommandAPI> run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
     ) => register(name, api => { run(api); return F.unit; }, shortcut, canShow);
     public ISubscription register<A>(
       string name, Func<A> run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
     ) => register(name, api => run(), shortcut, canShow);
     public ISubscription register<A>(
-      string name, Func<API, A> run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
+      string name, Func<DConsoleCommandAPI, A> run, KeyCodeWithModifiers? shortcut = null, Func<bool> canShow = null
     ) => register(name, unitSomeFn, (api, _) => run(api), shortcut, canShow);
     public ISubscription register<A>(
-      string name, Func<API, Future<A>> run, KeyCodeWithModifiers? shortcut = null,
+      string name, Func<DConsoleCommandAPI, Future<A>> run, KeyCodeWithModifiers? shortcut = null,
       Func<bool> canShow = null
     ) => register(name, unitSomeFn, (api, _) => run(api), shortcut, canShow);
     public ISubscription register<Obj>(
@@ -54,7 +56,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       Func<bool> canShow = null
     ) => register(name, objOpt, (api, obj) => run(obj), shortcut, canShow);
     public ISubscription register<Obj>(
-      string name, HasObjFunc<Obj> objOpt, Action<API, Obj> run, KeyCodeWithModifiers? shortcut = null,
+      string name, HasObjFunc<Obj> objOpt, Action<DConsoleCommandAPI, Obj> run, KeyCodeWithModifiers? shortcut = null,
       Func<bool> canShow = null
     ) => register(name, objOpt, (api, obj) => { run(api, obj); return F.unit; }, shortcut, canShow);
     public ISubscription register<Obj, A>(
@@ -62,7 +64,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       Func<bool> canShow = null
     ) => register(name, objOpt, (api, obj) => run(obj), shortcut, canShow);
     public ISubscription register<Obj, A>(
-      string name, HasObjFunc<Obj> objOpt, Func<API, Obj, A> run, KeyCodeWithModifiers? shortcut = null,
+      string name, HasObjFunc<Obj> objOpt, Func<DConsoleCommandAPI, Obj, A> run, KeyCodeWithModifiers? shortcut = null,
       Func<bool> canShow = null
     ) => register(name, objOpt, (api, obj) => Future.successful(run(api, obj)), shortcut, canShow);
     public ISubscription register<Obj, A>(
@@ -70,7 +72,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       Func<bool> canShow = null
     ) => register(name, objOpt, (api, obj) => run(obj), shortcut, canShow);
     public ISubscription register<Obj, A>(
-      string name, HasObjFunc<Obj> objOpt, Func<API, Obj, Future<A>> run, KeyCodeWithModifiers? shortcut = null,
+      string name, HasObjFunc<Obj> objOpt, Func<DConsoleCommandAPI, Obj, Future<A>> run, KeyCodeWithModifiers? shortcut = null,
       Func<bool> canShow = null
     ) {
       var prefixedName = $"[DC|{commandGroup}]> {name}";
@@ -88,7 +90,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           }
         }
         else Debug.Log($"{prefixedName} not running: {typeof(Obj)} is None.");
-      }, canShow ?? (() => true), persistent: persistent));
+      }, canShow ?? (() => true)));
     }
 
     public void registerToggle(
@@ -167,14 +169,14 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     ) => registerCountdown(name, count, api => run(), shortcut, canShow);
     
     public void registerCountdown(
-      string name, uint count, Action<API> run, KeyCodeWithModifiers? shortcut=null, Func<bool> canShow = null
+      string name, uint count, Action<DConsoleCommandAPI> run, KeyCodeWithModifiers? shortcut=null, Func<bool> canShow = null
     ) =>
       register(name, shortcut: shortcut, run: countdownAction(count, run), canShow: canShow);
 
     /// <summary>
     /// Creates an action for that you can register that only executes after certain amount of invocations. 
     /// </summary>
-    public Func<API, string> countdownAction(uint count, Action<API> runOnCountdown) {
+    public Func<DConsoleCommandAPI, string> countdownAction(uint count, Action<DConsoleCommandAPI> runOnCountdown) {
       var f = countdownActionObj<Unit>(count, (api, obj) => runOnCountdown(api));
       return api => f(api, Unit._);
     }
@@ -182,7 +184,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <summary>
     /// As <see cref="countdownAction"/> but allows to check for <see cref="HasObjFunc{Obj}"/>.
     /// </summary>
-    public Func<API, Obj, string> countdownActionObj<Obj>(uint count, Action<API, Obj> runOnCountdown) {
+    public Func<DConsoleCommandAPI, Obj, string> countdownActionObj<Obj>(uint count, Action<DConsoleCommandAPI, Obj> runOnCountdown) {
       var countdown = count;
       return (api, obj) => {
         countdown--;

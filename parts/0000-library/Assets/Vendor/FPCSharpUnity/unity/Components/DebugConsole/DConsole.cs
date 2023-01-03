@@ -30,32 +30,6 @@ using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public partial class DConsole {
-    public enum Direction { Left, Up, Right, Down }
-
-    [Record(ConstructorFlags.Withers)] public partial struct Command {
-      public readonly string cmdGroup, name;
-      public readonly Option<KeyCodeWithModifiers> shortcut; 
-      public readonly Action<API> run;
-      public readonly Func<bool> canShow;
-      /// <summary>If false this command will be removed from commands list on DConsole re-render.</summary>
-      public readonly bool persistent;
-
-      public string label => shortcut.valueOut(out var sc) ? $"[{s(sc)}] {name}" : name;
-    }
-
-    [Record] partial struct Instance {
-      public readonly DebugConsoleBinding view;
-      public readonly DynamicLayout.Init<DynamicVerticalLayoutLogElementData> dynamicVerticalLayout;
-      public readonly GameObjectPool<VerticalLayoutLogEntry> pool;
-      public readonly IDisposableTracker tracker;
-    }
-
-    [Record] public readonly partial struct LogEntry {
-      public readonly DateTime createdAt;
-      public readonly string message;
-      public readonly LogType type;
-    }
-    
     /// <summary>
     /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in non-debug builds.
     /// </summary>
@@ -80,18 +54,28 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <see cref="MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS"/> log messages.
     /// </summary>
     static readonly Deque<LogEntry> backgroundLogEntries = new();
-    
-    static readonly LazyVal<DConsole> _instance = Lazy.a(() => {
-      var dConsole = new DConsole();
-      initDConsole(dConsole);
-      return dConsole;
-    });
+
+    static LazyVal<DConsole> _instance = Lazy.a(() => new DConsole().tap(initDConsole));
     public static DConsole instance => _instance.strict;
+    
+    /// <summary>
+    /// If an unlock code is provided to <see cref="show"/> then this holds the state of whether the correct code has
+    /// been entered by user.
+    /// </summary>
     static bool dConsoleUnlocked;
-    public readonly IRxVal<bool> isActiveAndMaximizedRx;
+    
+    /// <summary>Will be true if the view is currently instantiated and not minimized.</summary>
+    [LazyProperty] public IRxVal<bool> isActiveAndMaximizedRx =>
+      currentViewRx.flatMap(static maybeView => 
+        maybeView.map(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
+      );
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
 
+    /// <summary>
+    /// Registers a handler to Unity that captures the log messages and stores them in
+    /// <see cref="backgroundLogEntries"/>. 
+    /// </summary>
     [RuntimeInitializeOnLoadMethod]
     static void registerLogMessages() {
       if (!Application.isEditor) {
@@ -111,131 +95,88 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
     }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void cleanUpCommandsOnRestart() {
-      // With quick Unity restarts the view can be gone, but the static variable still hold the reference.
-      foreach (var dConsole in _instance.value) {
-        dConsole.commands.Clear();
-        initDConsole(dConsole);
-      }
-    }
-
     static void initDConsole(DConsole dConsole) {
-      var r = dConsole.registrarFor(nameof(DConsole), NeverDisposeDisposableTracker.instance, persistent: true);
-      r.register("Run GC", GC.Collect, Ctrl+Alt+KeyCode.G);
-      r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
-      r.register("Self-test", () => "self-test");
-      r.register(
-        "Future Self-test", () => Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContextU.unscaledTime)
+      dConsole.registrarOnShow(
+        NeverDisposeDisposableTracker.instance, nameof(DConsole),
+        (_, r) => {
+          r.register("Run GC", GC.Collect, Ctrl+Alt+KeyCode.G);
+          r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
+          r.register("Self-test", () => "self-test");
+          r.register("Future Self-test", () => 
+            Future.delay(Duration.fromSeconds(1), () => "after 1 s", TimeContextU.unscaledTime)
+          );
+          r.register("Re-render", api => api.rerender());
+          
+          r.register("Clear visible log", clearVisibleLog);
+          r.register("Clear saved log", () => {
+            lock (backgroundLogEntries) {
+              backgroundLogEntries.Clear();
+            }
+
+            clearVisibleLog();
+          });
+        }
       );
       
       void clearVisibleLog() {
-        foreach (var i in instance.currentRx.value) {
+        foreach (var i in instance.currentViewRx.value) {
           i.dynamicVerticalLayout.clearLayoutData();
         }
       }
-      r.register("Clear visible log", clearVisibleLog);
-      r.register("Clear saved log", () => {
-        lock (backgroundLogEntries) {
-          backgroundLogEntries.Clear();
-        }
-
-        clearVisibleLog();
-      });
     }
 
-    DConsole() {
-      isActiveAndMaximizedRx = currentRx.flatMap(maybeInstance => 
-        maybeInstance.map(_ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
-      );
-    }
-
-    public delegate void OnShow(DConsole console);
-
-    readonly IDictionary<string, List<Command>> commands = new Dictionary<string, List<Command>>();
-    event OnShow onShow;
+    /// <summary>
+    /// Invoked when <see cref="DConsole"/> is shown.
+    /// </summary>
+    public delegate void OnShow(Commands console);
     
+    /// <summary>
+    /// Set of callbacks to invoke when a <see cref="DConsole"/> is shown.
+    /// </summary>
+    readonly HashSet<OnShow> onShow = new();
+    
+    /// <summary>
+    /// As <see cref="registerOnShow"/> but gives you <see cref="DConsoleRegistrar"/> for the given
+    /// <see cref="prefix"/>.
+    /// </summary>
+    /// <param name="tracker">When this is disposed the registration will be destroyed.</param>
+    /// <param name="prefix"><see cref="DConsoleRegistrar.commandGroup"/></param>
+    /// <param name="action"><see cref="OnShow"/> with the created <see cref="DConsoleRegistrar"/>.</param>
+    /// <returns>Dispose of me to unregister.</returns>
     public ISubscription registrarOnShow(
-      ITracker tracker, string prefix, Action<DConsole, DConsoleRegistrar> action
+      ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action
     ) =>
-      registerOnShow(tracker, console => {
-        var r = console.registrarFor(prefix, tracker, persistent: false);
-        action(console, r);
+      registerOnShow(tracker, commands => {
+        var r = commands.registrarFor(prefix, tracker);
+        action(commands, r);
       });
 
+    /// <summary>
+    /// Invokes the given <see cref="OnShow"/> callback when the <see cref="DConsole"/> is shown.
+    /// </summary>
+    /// <param name="tracker">When this is disposed the registration will be destroyed.</param>
+    /// <param name="runOnShow"></param>
+    /// <returns>Dispose of me to unregister.</returns>
     public ISubscription registerOnShow(ITracker tracker, OnShow runOnShow) {
       if (!Application.isPlaying) {
         return Subscription.empty;
       }
 
-      var sub = new Subscription(() => onShow -= runOnShow);
-      onShow += runOnShow;
+      ISubscription sub = null;
+      sub = new Subscription(() => {
+        onShow.Remove(runOnShow);
+        
+        // ReSharper disable once AccessToModifiedClosure
+        tracker.untrack(sub);
+      });
+      onShow.Add(runOnShow);
       tracker.track(sub);
       return sub;
     }
 
-    readonly IRxRef<Option<Instance>> currentRx = RxRef.a<Option<Instance>>(None._);
+    /// <summary>Will be `Some` if a view is currently instantiated.</summary>
+    readonly IRxRef<Option<ViewInstance>> currentViewRx = RxRef.a<Option<ViewInstance>>(None._);
 
-    public static readonly ImmutableList<int> DEFAULT_MOUSE_SEQUENCE = ImmutableList.Create(0, 1, 3, 2, 0, 2, 3, 1, 0);
-    public static readonly ImmutableList<Direction> DEFAULT_DIRECTION_SEQUENCE =
-      ImmutableList.Create(
-        Direction.Left, Direction.Right,
-        Direction.Left, Direction.Right,
-        Direction.Left, Direction.Up,
-        Direction.Right, Direction.Down,
-        Direction.Right, Direction.Up
-      );
-
-    public static readonly DebugSequenceMouseData DEFAULT_MOUSE_DATA = new();
-    public sealed class DebugSequenceMouseData {
-      public readonly int width, height;
-      public readonly ImmutableList<int> sequence;
-
-      public DebugSequenceMouseData(int width=2, int height=2, ImmutableList<int> sequence=null) {
-        this.width = width;
-        this.height = height;
-        this.sequence = sequence ?? DEFAULT_MOUSE_SEQUENCE;
-      }
-    }
-
-    public static readonly DebugSequenceDirectionData DEFAULT_DIRECTION_DATA = new DebugSequenceDirectionData();
-    public class DebugSequenceDirectionData {
-      public readonly string horizontalAxisName, verticalAxisName;
-      public readonly Duration timeframe;
-      public readonly ImmutableList<Direction> sequence;
-
-      public DebugSequenceDirectionData(
-        string horizontalAxisName="Horizontal",
-        string verticalAxisName="Vertical",
-        TimeSpan timeframe=default,
-        ImmutableList<Direction> sequence=null
-      ) {
-        this.horizontalAxisName = horizontalAxisName;
-        this.verticalAxisName = verticalAxisName;
-        this.timeframe = timeframe == default ? 5.seconds() : timeframe;
-        sequence ??= DEFAULT_DIRECTION_SEQUENCE;
-        this.sequence = sequence;
-
-        for (var idx = 0; idx < sequence.Count - 1; idx++) {
-          var current = sequence[idx];
-          var next = sequence[idx + 1];
-          if (current == next) throw new ArgumentException(
-            $"{nameof(DebugSequenceDirectionData)} sequence can't contain subsequent elements! " +
-            $"Found {current} at {idx} & {idx + 1}.",
-            nameof(sequence)
-          );
-        }
-      }
-    }
-
-    public enum DebugSequenceInvocationMethod : byte {
-      /// <summary>Invoked by clicking down in regions with the mouse.</summary>
-      Mouse,
-      /// <summary>Invoked by providing a specified sequence via Unity Input axis API.</summary>
-      UnityInputAxisDirections,
-      /// <summary>Invoked by pressing a specified <see cref="KeyCodeWithModifiers"/>.</summary>
-      Keyboard,
-    }
     public static IRxObservable<DebugSequenceInvocationMethod> createDebugSequenceObservable(
       ITracker tracker,
       ITimeContextUnity timeContext = null,
@@ -307,54 +248,29 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     ) {
       showObservable.subscribe(tracker, _ => instance.show(unlockCode, binding));
     }
-
-    public ISubscription register(ITracker tracker, Command command) {
-      foreach (var shortcut in command.shortcut) {
-        if (checkShortcutForDuplication(shortcut)) {
-          command = command.withShortcut(None._);
-        }
-      }
-
-      var list = commands.getOrUpdate(command.cmdGroup, () => new List<Command>());
-      list.Add(command);
-      var sub = new Subscription(() => list.Remove(command));
-      tracker.track(sub, callerMemberName: $"DConsole register: {command.cmdGroup}/{command.name}");
-      return sub;
-
-      bool checkShortcutForDuplication(KeyCodeWithModifiers shortcut) {
-        var hasConflicts = false;
-        foreach (var (groupName, groupCommands) in commands) {
-          foreach (var otherCommand in groupCommands) {
-            if (otherCommand.shortcut.exists(shortcut)) {
-              Debug.LogError(
-                $"{command.cmdGroup}/{command.name} shortcut {s(shortcut)} " +
-                $"conflicts with {groupName}/{otherCommand.name}"
-              );
-              hasConflicts = true;
-            }
-          }
-        }
-
-        return hasConflicts;
-      }
-    }
-
-    public DConsoleRegistrar registrarFor(string prefix, ITracker tracker, bool persistent) =>
-      new DConsoleRegistrar(this, prefix, tracker, persistent);
     
+    /// <summary>
+    /// Shows the debug console. If the console is minimized then just maximizes it.
+    /// </summary>
+    /// <param name="unlockCode">
+    /// If provided the command buttons are not visible until user enters the given unlock code.
+    /// </param>
+    /// <param name="prefab">Which prefab to use. Uses the default one from resources if not provided.</param>
     public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null) {
-      var tracker = new DisposableTracker();
+      // Just maximize it if we already have an instance. 
+      {if (currentViewRx.value.valueOut(out var currentInstance)) {
+        currentInstance.view.toggleMaximized();
+        return;
+      }}
+      
       prefab = prefab ? prefab : Resources.Load<DebugConsoleBinding>("Debug Console Prefab");
 
-      {
-        if (currentRx.value.valueOut(out var currentInstance)) {
-          currentInstance.view.toggleMaximized();
-          return;
-        }
-      }
-      var maybeOnShow = onShow.opt();
-      onShow = null;
-      maybeOnShow.getOrNull()?.Invoke(this);
+      var commands = new Commands();
+
+      // Will get disposed of when the debug console is destroyed.
+      var tracker = new DisposableTracker();
+      
+      invokeOnShowCallbacks(commands);
 
       BoundButtonList commandButtonList = null;
       var selectedGroup = Option<SelectedGroup>.None;
@@ -366,8 +282,8 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         () => selectedGroup.fold(ImmutableList<ButtonBinding>.Empty, _ => _.commandButtons)
       );
       
-      APIImpl apiForClosures = null;
-      var api = apiForClosures = new APIImpl(view, rerender: rerender);
+      DConsoleCommandAPIImpl apiForClosures = null;
+      var api = apiForClosures = new DConsoleCommandAPIImpl(view, rerender: rerender);
       Object.DontDestroyOnLoad(view);
 
       commandButtonList = setupGroups(clearCommandsFilterText: true);
@@ -387,8 +303,8 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       view.closeButton.onClick.AddListener(destroy);
       view.minimiseButton.onClick.AddListener(view.toggleMaximized);
       view.onUpdate += () => {
-        foreach (var kv in commands) {
-          foreach (var command in kv.Value) {
+        foreach (var (_, list) in commands.dictionary) {
+          foreach (var command in list) {
             foreach (var shortcut in command.shortcut) {
               if (shortcut.getKeyDown) {
                 command.run(api);
@@ -398,13 +314,13 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         }
       };
 
-      currentRx.value = new Instance(view, layout, logEntryPool, tracker).some();
+      currentViewRx.value = new ViewInstance(view, layout, logEntryPool, tracker).some();
 
       BoundButtonList setupGroups(bool clearCommandsFilterText) {
-        var groupButtons = commands.OrderBySafe(_ => _.Key).Select(commandGroup => {
+        var groupButtons = commands.dictionary.OrderBySafe(_ => _.Key).Select(commandGroup => {
           var validGroupCommands = commandGroup.Value.Where(cmd => cmd.canShow()).ToArray();
           var button = addButton(view.buttonPrefab, view.commandGroups.holder.transform);
-          button.text.text = commandGroup.Key;
+          button.text.text = s(commandGroup.Key);
           button.button.onClick.AddListener(showThisGroup);
           return button;
 
@@ -423,64 +339,45 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       void rerender() {
         var maybeSelectedGroupName = selectedGroup.map(_ => _.groupButton.text.text);
-        log.info($"Re-rendering DConsole, currently selected group = {maybeSelectedGroupName}.");
+        log.mInfo($"Re-rendering DConsole, currently selected group = {maybeSelectedGroupName}.");
 
-        // Update command lists.
-        foreach (var (_, groupCommands) in commands) {
-          groupCommands.removeWhere(cmd => !cmd.persistent);
-        }
-
-        foreach (var groupName in commands.Keys.ToArray()) {
-          if (commands[groupName].isEmpty()) commands.Remove(groupName);
-        }
-
-        maybeOnShow.getOrNull()?.Invoke(this);
-
-        // Clean up existing groups
-        {
-          // ReSharper disable once AccessToModifiedClosure
-          var existingGroups = commandButtonList;
-          System.Diagnostics.Debug.Assert(existingGroups != null, nameof(existingGroups) + " != null");
-          existingGroups.list.subscription.Dispose();
-          foreach (var existingGroup in existingGroups.buttons) {
-            existingGroup.button.destroyGameObject();
-          }
-        }
+        cleanupExistingGroups();
+        
+        commands = new Commands();
+        invokeOnShowCallbacks(commands);
+        
         var groups = commandButtonList = setupGroups(clearCommandsFilterText: false);
+        reselectPreviousGroup(groups, maybeSelectedGroupName);
+      }
 
-        {
-          if (
-            maybeSelectedGroupName.valueOut(out var selectedGroupName)
-            && groups.buttons.findOut(selectedGroupName, (g, n) => g.text.text == n, out var group)
-          ) {
-            group.button.onClick.Invoke();
-            commandsList.applyFilter();
-          }
+      // Clears all of the Unity objects for the buttons for the existing groups.
+      void cleanupExistingGroups() {
+        // ReSharper disable once AccessToModifiedClosure
+        var existingGroups = commandButtonList;
+        System.Diagnostics.Debug.Assert(existingGroups != null, nameof(existingGroups) + " != null");
+        existingGroups.list.subscription.Dispose();
+        foreach (var existingGroup in existingGroups.buttons) {
+          existingGroup.button.destroyGameObject();
+        }
+      }
+
+      void invokeOnShowCallbacks(Commands commands) {
+        foreach (var onShow in this.onShow) {
+          onShow(commands);
+        }
+      }
+
+      void reselectPreviousGroup(BoundButtonList groups, Option<string> maybeSelectedGroupName) {
+        if (
+          maybeSelectedGroupName.valueOut(out var selectedGroupName)
+          && groups.buttons.findOut(selectedGroupName, (g, n) => g.text.text == n, out var group)
+        ) {
+          group.button.onClick.Invoke();
+          commandsList.applyFilter();
         }
       }
     }
     
-    // DO NOT generate comparer and hashcode - we need reference equality for dynamic vertical layout!
-    [Record(GenerateComparer = false, GenerateGetHashCode = false)]
-    public partial class DynamicVerticalLayoutLogElementData : 
-      DynamicLayout.ElementBase<VerticalLayoutLogEntry.Data, VerticalLayoutLogEntry> 
-    {
-      
-      public DynamicVerticalLayoutLogElementData(
-        GameObjectPool<VerticalLayoutLogEntry> pool, VerticalLayoutLogEntry.Data data
-      ) : base(
-        data, sizeProvider: DynamicLayout.SizeProvider.Static.a(20f, new Percentage(1f)), 
-        maybeViewProvider: DynamicLayout.ViewProvider.pooled(pool), log
-      ) { }
-
-      protected override void becameVisible(VerticalLayoutLogEntry view, RectTransform rt, RectTransform parent) {
-        base.becameVisible(view, rt, parent);
-        rt.SetParent(parent, false);
-      }
-
-      protected override void updateState(VerticalLayoutLogEntry view, ITracker tracker) => view.updateState(data);
-    }
-
     static SetUpList setupList(
       Option<string> unlockCodeOpt, DebugConsoleListBinding listBinding, bool clearFilterText,
       Func<IEnumerable<ButtonBinding>> contents
@@ -500,13 +397,14 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       void applyFilter() => update(listBinding.filterInput.text);
 
       void update(string query) {
-        if (unlockCodeOpt.valueOut(out var unlockCode)) {
+        {if (unlockCodeOpt.valueOut(out var unlockCode)) {
           if (unlockCode.Equals(query, StringComparison.OrdinalIgnoreCase)) {
             dConsoleUnlocked = true;
             // disable filter while query matches unlock code
             query = "";
           }
-        }
+        }}
+        
         var hideButtons = unlockCodeOpt.isSome && !dConsoleUnlocked;
         var showButtons = !hideButtons;
         foreach (var button in contents()) {
@@ -517,9 +415,9 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
 
     static ImmutableList<ButtonBinding> showGroup(
-      DebugConsoleBinding view, API api, string groupName, IEnumerable<Command> commands
+      DebugConsoleBinding view, DConsoleCommandAPI api, GroupName groupName, IEnumerable<Command> commands
     ) {
-      view.commandGroupLabel.text = groupName;
+      view.commandGroupLabel.text = s(groupName);
       var commandsHolder = view.commands.holder;
       foreach (var t in commandsHolder.transform.children()) Object.Destroy(t.gameObject);
       return commands.Select(command => {
@@ -540,6 +438,9 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       return button;
     }
 
+    /// <summary>
+    /// Converts the <see cref="LogEntry"/> to one or more <see cref="DynamicVerticalLayoutLogElementData"/>.  
+    /// </summary>
     static IEnumerable<DynamicVerticalLayoutLogElementData> createEntries(
       LogEntry data, GameObjectPool<VerticalLayoutLogEntry> pool,
       List<string> cache, float lineWidth
@@ -692,78 +593,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
 
     public void destroy() {
-      foreach (var instance in currentRx.value) {
-        Debug.Log("Destroying DConsole.");
-        instance.tracker.Dispose();
-        instance.pool.dispose(Object.Destroy);
-        Object.Destroy(instance.view.gameObject);
-      }
-      currentRx.value = None._;
+      foreach (var instance in currentViewRx.value) instance.destroy();
+      currentViewRx.value = None._;
     }
   }
 
   public delegate Option<Obj> HasObjFunc<Obj>();
-
-  [PublicAPI] public interface ModalInputAPI {
-    /// <summary>Allows you to get or set the text which is in the input box (where user typed his input in).</summary>
-    public string inputText { get; set; }
-    /// <summary>Allows you to get or set the text which is shown as an error.</summary>
-    public string errorText { get; set; }
-    /// <summary>Closes the modal dialog.</summary>
-    public void closeDialog();
-  }
-
-  class ModalInputAPIImpl : ModalInputAPI {
-    readonly DebugConsoleBinding view;
-
-    public ModalInputAPIImpl(DebugConsoleBinding view) => this.view = view;
-
-    public string inputText { get => view.inputModal.input.text; set => view.inputModal.input.text = value; }
-    public string errorText { get => view.inputModal.error.text; set => view.inputModal.error.text = value; }
-    public void closeDialog() => view.hideModals();
-  }
-  
-  [PublicAPI] public interface API {
-    void showModalInput(
-      string inputLabel, string inputPlaceholder,
-      ButtonData<ModalInputAPI> button1, Option<ButtonData<ModalInputAPI>> button2 = default
-    );
-
-    void rerender();
-  }
-
-  class APIImpl : API {
-    readonly DebugConsoleBinding view;
-    readonly Action _rerender;
-
-    public APIImpl(DebugConsoleBinding view, Action rerender) {
-      this.view = view;
-      _rerender = rerender;
-    }
-
-    public void showModalInput(
-      string inputLabel, string inputPlaceholder, 
-      ButtonData<ModalInputAPI> button1, Option<ButtonData<ModalInputAPI>> button2 = default
-    ) {
-      view.showModal(inputModal: true);
-      var m = view.inputModal;
-      m.label.text = inputLabel;
-      m.error.text = "";
-      m.inputPlaceholder.text = inputPlaceholder;
-      var inputApi = new ModalInputAPIImpl(view);
-      setupButton(m.button1, button1);
-      m.button2.button.setActiveGO(button2.isSome);
-      { if (button2.valueOut(out var b2)) setupButton(m.button2, b2); }
-
-      void setupButton(ButtonBinding b, ButtonData<ModalInputAPI> data) {
-        b.text.text = data.label;
-        b.button.onClick.RemoveAllListeners();
-        b.button.onClick.AddListener(() => data.onClick(inputApi));
-      }
-    }
-
-    public void rerender() => _rerender();
-  }
     
   [Record(ConstructorFlags.Apply)] public sealed partial class ButtonData<A> {
     public readonly string label;
@@ -771,7 +606,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
   }
 
   [PublicAPI] public static partial class ButtonData {
-    public static readonly ButtonData<ModalInputAPI> cancel = a<ModalInputAPI>("Cancel", api => api.closeDialog());
+    public static readonly ButtonData<DConsoleModalInputAPI> cancel = a<DConsoleModalInputAPI>("Cancel", api => api.closeDialog());
   }
 
   /// <summary>Set-up button list instance.</summary>
