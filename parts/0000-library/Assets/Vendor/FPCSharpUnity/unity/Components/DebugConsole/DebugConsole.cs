@@ -9,6 +9,7 @@ using FPCSharpUnity.unity.Components.dispose;
 using FPCSharpUnity.unity.Components.ui;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Dispose;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
@@ -640,15 +641,19 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           
           return true;
         }));
-        
-        tracker.track(ASync.EveryXSeconds(0.25f, () => {
-          int messagesLeft;
-          lock (messagesToAdd) { messagesLeft = messagesToAdd.Count; }
 
+        var messagesLeftRef = Ref.withCallback(0, messagesLeft => {
           binding.remainingEntriesLabel.text =
             messagesLeft == 0
               ? "All log entries processed."
               : $"{s(messagesLeft)} log entries remaining.";
+        });        
+        tracker.track(ASync.EveryXSeconds(0.25f, () => {
+          int messagesLeft;
+          // Only get the count in the lock to minimize the time it takes.
+          lock (messagesToAdd) { messagesLeft = messagesToAdd.Count; }
+          // Only change the text if the number has actually changed.
+          messagesLeftRef.value = messagesLeft;
 
           return true;
         }));
