@@ -601,8 +601,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         messagesToAdd.AddRange(backgroundLogEntries);
       }
 
+      var addMessagesToLayoutEnabled = true;
+
       catchNewIncomingMessages();
       addMessagesToLayoutEveryFrame();
+      setupAddMessagesToLayoutEnabledToggling();
+      setupClearBackgroundMessages();
       
       void catchNewIncomingMessages() {
         var logCallback = new Application.LogCallback((message, stackTrace, type) => {
@@ -618,6 +622,8 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       void addMessagesToLayoutEveryFrame() {
         var cache = new List<string>();
         tracker.track(ASync.EveryFrame(() => {
+          if (!addMessagesToLayoutEnabled) return true;
+          
           lock (messagesToAdd) {
             if (!messagesToAdd.IsEmpty) {
               var lineWidth = binding.lineWidth;
@@ -634,6 +640,49 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           
           return true;
         }));
+        
+        tracker.track(ASync.EveryXSeconds(0.25f, () => {
+          int messagesLeft;
+          lock (messagesToAdd) { messagesLeft = messagesToAdd.Count; }
+
+          binding.remainingEntriesLabel.text =
+            messagesLeft == 0
+              ? "All log entries processed."
+              : $"{s(messagesLeft)} log entries remaining.";
+
+          return true;
+        }));
+      }
+
+      void setupAddMessagesToLayoutEnabledToggling() {
+        var button = binding.toggleAddingLogEntriesToViewButton;
+        
+        setText();
+        
+        button.button.onClick.AddListener(onClick);
+        tracker.track(() => button.button.onClick.RemoveListener(onClick));
+
+        void onClick() {
+          addMessagesToLayoutEnabled = !addMessagesToLayoutEnabled;
+          setText();
+        }
+
+        void setText() {
+          button.text.text = addMessagesToLayoutEnabled ? "||" : "|>";
+        }
+      }
+
+      void setupClearBackgroundMessages() {
+        var button = binding.clearBackgroundLogEntriesButton;
+        
+        button.onClick.AddListener(onClick);
+        tracker.track(() => button.onClick.RemoveListener(onClick));
+
+        void onClick() {
+          lock (messagesToAdd) {
+            messagesToAdd.Clear();
+          }
+        }
       }
     }
 
