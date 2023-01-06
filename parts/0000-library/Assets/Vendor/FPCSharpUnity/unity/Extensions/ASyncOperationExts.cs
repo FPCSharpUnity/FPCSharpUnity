@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
   [PublicAPI] public static class ASyncOperationExts {
-    public static Future<AsyncOperation> toFuture(this AsyncOperation op) {
-      var f = Future.async<AsyncOperation>(out var p);
-      op.completed += p.complete;
+    public static Future<AsyncOp> toFuture<AsyncOp>(this AsyncOp op) where AsyncOp : AsyncOperation {
+      var f = Future.async<AsyncOp>(out var p);
+      op.completed += _ => p.complete(op);
       return f;
     }
 
