@@ -1,5 +1,4 @@
 ﻿using System;
-using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Components.ui;
 using FPCSharpUnity.unity.Data;
@@ -17,7 +16,18 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     [NotNull] public DebugConsoleListBinding commandGroups, commands;
     [NotNull] public Text commandGroupLabel;
     [NotNull] public ButtonBinding buttonPrefab;
+    
+    /// <summary>Number of entries that we still haven't added to the log viewport.</summary>
+    [NotNull] public Text remainingEntriesLabel;
+    
     [NotNull] public Button closeButton, minimiseButton;
+    
+    /// <summary>Click me to pause/unpause adding the log entries to the view.</summary>
+    [NotNull] public ButtonBinding toggleAddingLogEntriesToViewButton;
+    
+    /// <summary>Click me to clear all log entries that are still not added to the view.</summary>
+    [NotNull] public Button clearBackgroundLogEntriesButton;
+    
     [NotNull] public DynamicLayout dynamicLayout;
     [NotNull] public VerticalLayoutLogEntryPrefab logEntry;
     [NotNull] public GameObject logPanel;

@@ -59,5 +59,18 @@ namespace FPCSharpUnity.unity.Data {
       sb.Append(_keyCode.ToString());
       return sb.ToString();
     }
+
+    /// <summary>
+    /// Returns true if pressing the given <see cref="keyCodeWithModifiers"/> (KCWM) would trigger this one as well.
+    /// </summary>
+    public bool wouldTriggerOn(KeyCodeWithModifiers keyCodeWithModifiers) {
+      // Doesn't match if the key code is different.
+      if (_keyCode != keyCodeWithModifiers._keyCode) return false;
+      // If we need to press the modifier but the given KCWM does not, then pressing it would not trigger us.
+      else if (_ctrl && !keyCodeWithModifiers._ctrl) return false;
+      else if (_alt && !keyCodeWithModifiers._alt) return false;
+      else if (_shift && !keyCodeWithModifiers._shift) return false;
+      else return true;
+    }
   }
 }

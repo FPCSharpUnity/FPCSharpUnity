@@ -45,7 +45,7 @@ namespace FPCSharpUnity.unity.Logger {
         var registered = getRegistered();
 
         {
-          var r = console.registrarFor("Loggers", tracker, persistent: false);
+          var r = console.registrarFor("Loggers", tracker);
           r.register("List all", () => 
             registered.OrderBySafe(_ => s(_.Key)).Select(kv => $"{s(kv.Key)}: {kv.Value.level}").mkStringEnumNewLines()
           );
@@ -53,7 +53,7 @@ namespace FPCSharpUnity.unity.Logger {
 
         // Render other loggers
         foreach (var (name, log) in registered) {
-          var r = console.registrarFor($"Log: {s(name)}", tracker, persistent: false);
+          var r = console.registrarFor($"Log: {s(name)}", tracker);
           r.registerEnum("Level", Ref.a(() => log.level, v => log.level = v), levels);
         }
       });
