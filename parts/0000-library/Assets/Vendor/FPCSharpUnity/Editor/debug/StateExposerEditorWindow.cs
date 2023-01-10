@@ -10,6 +10,7 @@ using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Utilities;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -54,7 +55,7 @@ namespace FPCSharpUnity.unity.debug {
           repaintEverySeconds = EditorGUILayout.FloatField("Repaint every (seconds)", repaintEverySeconds);
           if (GUILayout.Button("Run GC")) {
             var previous = GC.GetTotalMemory(forceFullCollection: false);
-            GC.Collect();
+            GCUtils.runGC();
             var current = GC.GetTotalMemory(forceFullCollection: false);
             log.info(
               $"Garbage collection performed, previous={previous.toBytesReadable()}, current={current.toBytesReadable()}"

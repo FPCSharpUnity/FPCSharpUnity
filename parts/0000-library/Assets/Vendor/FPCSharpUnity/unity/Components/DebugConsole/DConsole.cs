@@ -22,7 +22,9 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
+using UnityEngine.Scripting;
 using static FPCSharpUnity.core.typeclasses.Str;
 using static FPCSharpUnity.unity.Data.KeyModifier;
 using Debug = UnityEngine.Debug;
@@ -99,7 +101,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       dConsole.registrarOnShow(
         NeverDisposeDisposableTracker.instance, nameof(DConsole),
         (_, r) => {
-          r.register("Run GC", GC.Collect, Ctrl+Alt+KeyCode.G);
+          r.register("GC mode", () => 
+            $"mode={GarbageCollector.GCMode}, incremental={GarbageCollector.isIncremental}, "
+            + $"incremental slice={GarbageCollector.incrementalTimeSliceNanoseconds}ns"
+          );
+          r.register("Run GC", () => {
+            var pre = GCUtils.MemoryStats.get();
+            GCUtils.runGC();
+            var post = GCUtils.MemoryStats.get();
+            return GCUtils.MemoryStats.differenceString(pre: pre, post: post);
+          }, Ctrl+Alt+KeyCode.G);
           r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
           r.register("Self-test", () => "self-test");
           r.register("Future Self-test", () => 
