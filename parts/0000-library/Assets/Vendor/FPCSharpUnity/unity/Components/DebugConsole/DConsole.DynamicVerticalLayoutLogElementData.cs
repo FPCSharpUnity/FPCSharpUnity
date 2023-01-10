@@ -16,7 +16,7 @@ public partial class DConsole {
     public DynamicVerticalLayoutLogElementData(
       GameObjectPool<VerticalLayoutLogEntry> pool, VerticalLayoutLogEntry.Data data
     ) : base(
-      data, sizeProvider: DynamicLayout.SizeProvider.Static.a(20f, new Percentage(1f)), 
+      data, sizeProvider: new DynamicLayout.SizeProvider.Static(20f, new Percentage(1f)), 
       maybeViewProvider: DynamicLayout.ViewProvider.pooled(pool), log
     ) { }
 
