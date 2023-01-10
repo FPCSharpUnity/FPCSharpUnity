@@ -109,7 +109,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
             var pre = GCUtils.MemoryStats.get();
             GCUtils.runGC();
             var post = GCUtils.MemoryStats.get();
-            return GCUtils.MemoryStats.differenceString(pre: pre, post: post);
+            return pre.differenceString(post);
           }, Ctrl+Alt+KeyCode.G);
           r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
           r.register("Self-test", () => "self-test");

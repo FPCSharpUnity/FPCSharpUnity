@@ -45,31 +45,20 @@ public static partial class GCUtils {
     public readonly long graphicsDriver;
 
     /// <summary>Renders a debug string of memory difference.</summary>
-    /// <param name="pre">Memory before an action.</param>
+    /// <param name="this">Memory before an action.</param>
     /// <param name="post">Memory stats after an action.</param>
-    public static string differenceString(MemoryStats pre, MemoryStats post) {
+    public string differenceString(MemoryStats post) {
+      var pre = this;
       var diff = post - pre;
       return $@"
-totalAllocatedMemory
-pre = {pre.totalAllocatedMemory.toBytesReadable()}\tpost = {post.totalAllocatedMemory.toBytesReadable()}\tdiff = {diff.totalAllocatedMemory.toBytesReadable()}
-
-totalReservedMemory
-pre = {pre.totalReservedMemory.toBytesReadable()}\tpost = {post.totalReservedMemory.toBytesReadable()}\tdiff = {diff.totalReservedMemory.toBytesReadable()}
-
-totalUnusedReservedMemory
-pre = {pre.totalUnusedReservedMemory.toBytesReadable()}\tpost = {post.totalUnusedReservedMemory.toBytesReadable()}\tdiff = {diff.totalUnusedReservedMemory.toBytesReadable()}
-
-monoUsedSize
-pre = {pre.monoUsedSize.toBytesReadable()}\tpost = {post.monoUsedSize.toBytesReadable()}\tdiff = {diff.monoUsedSize.toBytesReadable()}
-
-monoHeapSize
-pre = {pre.monoHeapSize.toBytesReadable()}\tpost = {post.monoHeapSize.toBytesReadable()}\tdiff = {diff.monoHeapSize.toBytesReadable()}
-
-tempAllocator
-pre = {pre.tempAllocator.toBytesReadable()}\tpost = {post.tempAllocator.toBytesReadable()}\tdiff = {diff.tempAllocator.toBytesReadable()}
-
-graphicsDriver
-pre = {pre.graphicsDriver.toBytesReadable()}\tpost = {post.graphicsDriver.toBytesReadable()}\tdiff = {diff.graphicsDriver.toBytesReadable()}
+(pre) - (post) = (diff)
+totalAllocatedMemory: {pre.totalAllocatedMemory.toBytesReadable()} - {post.totalAllocatedMemory.toBytesReadable()} = {diff.totalAllocatedMemory.toBytesReadable()}
+totalReservedMemory: {pre.totalReservedMemory.toBytesReadable()} - {post.totalReservedMemory.toBytesReadable()} = {diff.totalReservedMemory.toBytesReadable()}
+totalUnusedReservedMemory: {pre.totalUnusedReservedMemory.toBytesReadable()} - {post.totalUnusedReservedMemory.toBytesReadable()} = {diff.totalUnusedReservedMemory.toBytesReadable()}
+monoUsedSize: {pre.monoUsedSize.toBytesReadable()} - {post.monoUsedSize.toBytesReadable()} = {diff.monoUsedSize.toBytesReadable()}
+monoHeapSize: {pre.monoHeapSize.toBytesReadable()} - {post.monoHeapSize.toBytesReadable()} = {diff.monoHeapSize.toBytesReadable()}
+tempAllocator: {pre.tempAllocator.toBytesReadable()} - {post.tempAllocator.toBytesReadable()} = {diff.tempAllocator.toBytesReadable()}
+graphicsDriver: {pre.graphicsDriver.toBytesReadable()} - {post.graphicsDriver.toBytesReadable()} = {diff.graphicsDriver.toBytesReadable()}
 ".Trim();
     }
 
