@@ -182,8 +182,41 @@
             <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
             <param name="memberSyntax">Code that contains one or more class members.</param>
         </member>
+        <member name="T:IncrementalCompiler.MacroProcessorImplicits.StaticImplicitsDict">
+            <summary>
+            All accessible (public and internal) static fields and properties with an <see cref="T:GenerationAttributes.Implicit"/> attribute.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.MacroProcessorImplicits.StaticImplicitsDict.#ctor(System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.ITypeSymbol,IncrementalCompiler.MacroProcessorImplicits.FieldOrProperty})">
+            <summary>
+            All accessible (public and internal) static fields and properties with an <see cref="T:GenerationAttributes.Implicit"/> attribute.
+            </summary>
+        </member>
+        <member name="T:IncrementalCompiler.MacroProcessorImplicits.StaticImplicitMethodsDict">
+            <summary>
+            All parameters of the method are implicit.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.MacroProcessorImplicits.StaticImplicitMethodsDict.#ctor(System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.ITypeSymbol,Microsoft.CodeAnalysis.IMethodSymbol})">
+            <summary>
+            All parameters of the method are implicit.
+            </summary>
+        </member>
+        <member name="T:IncrementalCompiler.MacroProcessorImplicits.DescendantTypesDict">
+            <summary>
+            Contains all direct descendant types of each type.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.MacroProcessorImplicits.DescendantTypesDict.#ctor(System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.ITypeSymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.ITypeSymbol}})">
+            <summary>
+            Contains all direct descendant types of each type.
+            </summary>
+        </member>
         <member name="M:IncrementalCompiler.MacroProcessorImplicits.AfterCheckAttributes(System.Action{System.String})">
             <returns>Added implicit parameters to passthrough methods.</returns>
+        </member>
+        <member name="F:IncrementalCompiler.MacroProcessorImplicits.ImplicitSymbolRef.displayString">
+            <summary> Used to display it to the user in the diagnostics </summary>
         </member>
         <member name="M:CodeGenerator.TypeInMacrosExts.toSymbol(GenerationAttributes.TypeInMacros)">
             <summary>
