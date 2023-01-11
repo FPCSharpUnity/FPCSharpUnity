@@ -6,6 +6,8 @@ using FPCSharpUnity.core.log;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.macros;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 
@@ -15,7 +17,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
   /// <summary>
   /// <see cref="MonoBehaviour"/> that runs our <see cref="TweenManager"/>s.
   /// </summary>
-  [AddComponentMenu("")]
+  [AddComponentMenu(""), ExtractXMLDocIntoConst, TypeInfoBox(XML_DOC_TweenManagerRunner)]
   public partial class TweenManagerRunner : MonoBehaviour, IMB_Update, IMB_FixedUpdate, IMB_LateUpdate {
     
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

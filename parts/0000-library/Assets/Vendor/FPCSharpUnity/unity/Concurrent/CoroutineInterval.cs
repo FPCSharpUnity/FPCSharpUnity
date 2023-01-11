@@ -1,20 +1,20 @@
 ﻿using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.core.concurrent;
+using GenerationAttributes;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
-  /*
-    Sample usage:
-
-    foreach (var p in new CoroutineInterval(3)) {
-      // p goes from 0 to 1 linearly
-      setValue(Mathf.Lerp(start, end, p.value);
-      yield return null;
-    }
-    // inside loop never reaches exactly 1, so we need to handle this after the loop
-    setValue(end);
-  */
-  public struct CoroutineInterval {
+  /// <example>
+  /// foreach (var p in new CoroutineInterval(3)) {
+  ///   // p goes from 0 to 1 linearly
+  ///   setValue(Mathf.Lerp(start, end, p.value);
+  ///   yield return null;
+  /// }
+  /// 
+  /// // inside loop never reaches exactly 1, so we need to handle this after the loop
+  /// setValue(end);
+  /// </example>
+  [Record] public readonly partial struct CoroutineInterval {
     readonly ITimeContextUnity timeContext;
     readonly Duration startTime, endTime;
     readonly bool alwaysFinish;

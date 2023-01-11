@@ -13,6 +13,7 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Components.dispose;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -182,7 +183,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     protected Carousel() {
       __currentElement = Lazy.a(() => {
         var res = RxRef.a(elements.get(page.value));
-        _page.subscribe(gameObject, p => res.value = elements.get(p));
+        _page.subscribe(gameObject.asDisposableTracker(), p => res.value = elements.get(p));
         return res;
       });
     }

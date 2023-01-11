@@ -106,7 +106,13 @@ namespace FPCSharpUnity.unity.Pools {
     readonly Func<T, GameObject> toGameObject;
     readonly Func<T> create;
     readonly Option<GameObjectPool.SetActive<T>> setActive;
-    readonly Option<Action<T>> wakeUp, sleep;
+    
+    /// <summary>Invoked when the object is borrowed out of the pool.</summary>
+    readonly Option<Action<T>> wakeUp;
+    
+    /// <summary>Invoked when the object is released back to the pool.</summary>
+    readonly Option<Action<T>> sleep;
+    
     readonly bool dontDestroyOnLoad;
     readonly Option<int> maybeMaxSize;
     
