@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using ExhaustiveMatching;
 using FPCSharpUnity.unity.Collection;
 using FPCSharpUnity.unity.Components.dispose;
@@ -156,9 +155,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <returns>Dispose of me to unregister.</returns>
     public ISubscription registrarOnShow(
       ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      [Implicit] CallerData callerData = default
     ) =>
       registerOnShow(
         tracker, 
@@ -166,9 +163,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           var r = commands.registrarFor(prefix);
           action(commands, r);
         },
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-        // ReSharper restore ExplicitCallerInfoArgument
+        callerData
       );
 
     /// <summary>
@@ -178,10 +173,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="runOnShow"></param>
     /// <returns>Dispose of me to unregister.</returns>
     public ISubscription registerOnShow(
-      ITracker tracker, OnShow runOnShow,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      ITracker tracker, OnShow runOnShow, [Implicit] CallerData callerData = default
     ) {
       if (!Application.isPlaying) {
         return Subscription.empty;
@@ -195,12 +187,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         tracker.untrack(sub);
       });
       onShow.Add(runOnShow);
-      tracker.track(
-        sub,
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-        // ReSharper restore ExplicitCallerInfoArgument
-      );
+      tracker.track(sub, callerData);
       return sub;
     }
 
