@@ -218,6 +218,11 @@
         <member name="F:IncrementalCompiler.MacroProcessorImplicits.ImplicitSymbolRef.displayString">
             <summary> Used to display it to the user in the diagnostics </summary>
         </member>
+        <member name="F:IncrementalCompiler.MacroProcessorImplicits.ImplicitSymbolRef.isHidden">
+            <summary>
+            Hidden means it can't be referenced in the current context, because another local variable has the same name.
+            </summary>
+        </member>
         <member name="M:CodeGenerator.TypeInMacrosExts.toSymbol(GenerationAttributes.TypeInMacros)">
             <summary>
             This cast should always succeed. See <see cref="T:GenerationAttributes.TypeInMacros"/>.
