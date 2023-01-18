@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace FPCSharpUnity.unity.Extensions {
   [PublicAPI] public static partial class ToggleExts {
     /// <summary>Returns an event stream of <see cref="Toggle.isOn"/> changes.</summary>
-    public static IRxObservable<bool> toggleChanges(this Toggle toggle) =>
+    public static IRxObservable<bool> isOnChanges(this Toggle toggle) =>
       Observable.fromEvent2<bool, UnityAction<bool>>(
         registerCallback: push => {
           var callback = new UnityAction<bool>(push);
@@ -17,7 +17,7 @@ namespace FPCSharpUnity.unity.Extensions {
       );
 
     /// <summary>Returns a reactive version of <see cref="Toggle.isOn"/>.</summary>
-    public static IRxVal<bool> toggleRx(this Toggle toggle, IRxObservableToIRxValMode mode) =>
-      toggle.toggleChanges().toRxVal(mode, toggle.isOn);
+    public static IRxVal<bool> isOnRx(this Toggle toggle, IRxObservableToIRxValMode mode) =>
+      toggle.isOnChanges().toRxVal(mode, toggle.isOn);
   }
 }
