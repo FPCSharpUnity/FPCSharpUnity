@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.caching;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.log;
@@ -74,30 +74,14 @@ namespace FPCSharpUnity.unity.Data {
     public void copySubscriptionsTo(IList<IRxObservableSub> subs) => rxRef.copySubscriptionsTo(subs);
 
     public void subscribe(
-      ITracker tracker, Action<A> onEvent, out ISubscription subscription,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      ITracker tracker, Action<A> onEvent, out ISubscription subscription, CallerData callerData
     ) =>
-      rxRef.subscribe(
-        tracker: tracker, onEvent: onEvent, subscription: out subscription,
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-        // ReSharper restore ExplicitCallerInfoArgument
-      );
+      rxRef.subscribe(tracker: tracker, onEvent: onEvent, subscription: out subscription, callerData);
 
     public ISubscription subscribeWithoutEmit(
-      ITracker tracker, Action<A> onEvent,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      ITracker tracker, Action<A> onEvent, CallerData callerData
     ) =>
-      rxRef.subscribeWithoutEmit(
-        tracker: tracker, onEvent: onEvent,
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-        // ReSharper restore ExplicitCallerInfoArgument
-      );
+      rxRef.subscribeWithoutEmit(tracker: tracker, onEvent: onEvent, callerData);
 
     #endregion
   }

@@ -22,15 +22,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <summary>Name of the command group for which this registrar is for.</summary>
     public readonly DConsole.GroupName commandGroup;
     
-    /// <summary>Tracker for <see cref="DConsole.register"/>.</summary>
-    readonly ITracker tracker;
-
     internal DConsoleRegistrar(
-      DConsole.Commands console, DConsole.GroupName commandGroup, ITracker tracker
+      DConsole.Commands console, DConsole.GroupName commandGroup
     ) {
       this.console = console;
       this.commandGroup = commandGroup;
-      this.tracker = tracker;
     }
 
     static readonly HasObjFunc<Unit> unitSomeFn = () => Some.a(F.unit);
@@ -76,7 +72,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       Func<bool> canShow = null
     ) {
       var prefixedName = $"[DC|{commandGroup}]> {name}";
-      return console.register(tracker, new DConsole.Command(commandGroup, name, shortcut.toOption(), api => {
+      return console.register(new DConsole.Command(commandGroup, name, shortcut.toOption(), api => {
         var opt = objOpt();
         if (opt.valueOut(out var obj)) {
           var returnFuture = run(api, obj);

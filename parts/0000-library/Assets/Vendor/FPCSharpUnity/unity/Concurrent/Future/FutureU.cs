@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Runtime.CompilerServices;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Functional;
 using JetBrains.Annotations;
@@ -84,17 +83,11 @@ namespace FPCSharpUnity.unity.Concurrent {
       ITracker tracker,
       int framesToDelay,
       Action<A> onEvent,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0,
+      [Implicit] CallerData callerData = default,
       [Implicit] ILog log=default
     ) => observable.subscribeWithSubTracker(
       tracker: tracker,
-      onChange: (a, subTracker) => delayFrames(subTracker, framesToDelay).onComplete(_ => onEvent(a)),
-      // ReSharper disable ExplicitCallerInfoArgument
-      callerMemberName: callerMemberName, callerFilePath: callerFilePath,
-      callerLineNumber: callerLineNumber
-      // ReSharper restore ExplicitCallerInfoArgument
+      onChange: (a, subTracker) => delayFrames(subTracker, framesToDelay).onComplete(_ => onEvent(a)), callerData, log
     );
   }
 }

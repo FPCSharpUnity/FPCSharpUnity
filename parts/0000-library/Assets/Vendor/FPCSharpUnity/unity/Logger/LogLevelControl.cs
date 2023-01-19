@@ -1,3 +1,4 @@
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
@@ -20,10 +21,12 @@ namespace FPCSharpUnity.unity.Logger {
 
     /// <summary>
     /// Subscribes to <see cref="ILogRegistry.onRegister"/> events and overrides the levels of the loggers upon
-    /// registration. If <see cref="maybeLog"/> is provided, a message is logged
+    /// registration. If <see cref="maybeLog"/> is provided, a message is logged.
+    /// <para/>
+    /// The given <see cref="ITracker"/> is used to know when we should unsubscribe.
     /// </summary>
-    public static void subscribeToApplyOverridenLevels(ILogRegistry registry, Option<ILog> maybeLog) {
-      registry.onRegister.subscribe(DisposableTrackerU.disposeOnExitPlayMode, args => {
+    public static void subscribeToApplyOverridenLevels(ILogRegistry registry, ITracker tracker, Option<ILog> maybeLog) {
+      registry.onRegister.subscribe(tracker, args => {
         {if (
           prefValDict.get(args.key).valueOut(out var prefVal) 
           && prefVal.value.valueOut(out var levelOverride)

@@ -25,7 +25,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// </summary>
     /// <typeparam name="InnerData">Data that we want to update inside <see cref="DynamicLayout.IElement"/>.</typeparam>
     /// <typeparam name="IdType">See <see cref="DynamicLayoutExts.idTypeDescription"/>.</typeparam>
-    public interface ILayoutElementUpdatable<InnerData, IdType> : DynamicLayout.IElement
+    public interface ILayoutElementUpdatable<InnerData, out IdType> : DynamicLayout.IElement
       where IdType : IEquatable<IdType> 
     {
       /// <inheritdoc cref="DynamicLayoutExts.idTypeDescription"/>

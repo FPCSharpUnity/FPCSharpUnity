@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
@@ -16,28 +14,27 @@ public partial class DConsole {
   /// </summary>
   public class Commands {
     public readonly Dictionary<GroupName, List<Command>> dictionary = new();
-    
+
     /// <summary>
     /// Creates a <see cref="DConsoleRegistrar"/> for the specified command group.
     /// </summary>
     /// <param name="commandGroupName">See <see cref="DConsoleRegistrar.commandGroup"/>.</param>
-    /// <param name="tracker">See <see cref="DConsoleRegistrar.tracker"/>.</param>
-    public DConsoleRegistrar registrarFor(string commandGroupName, ITracker tracker) =>
-      new DConsoleRegistrar(this, new GroupName(commandGroupName), tracker);
+    public DConsoleRegistrar registrarFor(string commandGroupName) =>
+      new DConsoleRegistrar(this, new GroupName(commandGroupName));
     
     /// <summary>
     /// Registers the command to be shown between commands for the current view.
+    /// <para/>
+    /// The registrations are killed when the current view is destroyed.
     /// </summary>
-    /// <param name="tracker">Unregisters the <see cref="Command"/> when disposed.</param>
     /// <param name="command"></param>
     /// <returns>Subscription that unregisters the <see cref="Command"/> when disposed.</returns>
-    public ISubscription register(ITracker tracker, Command command) {
+    public ISubscription register(Command command) {
       command = clearShortcutIfItConflicts();
 
       var list = dictionary.getOrUpdate(command.cmdGroup, () => new List<Command>());
       list.Add(command);
       var sub = new Subscription(() => list.Remove(command));
-      tracker.track(sub, callerMemberName: $"DConsole register: {s(command.cmdGroup)}/{s(command.name)}");
       return sub;
 
       // Drops the shortcut it conflicts are detected.
