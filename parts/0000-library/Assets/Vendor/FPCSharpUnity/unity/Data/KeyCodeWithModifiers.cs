@@ -6,6 +6,7 @@ using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Data {
+  /// <summary>
   /// You can succinctly define <see cref="KeyCodeWithModifiers"/> with this:
   /// 
   /// <code>
@@ -14,7 +15,8 @@ namespace FPCSharpUnity.unity.Data {
   /// 
   /// var keyCodeWithModifiers = Ctrl+Alt+Z;
   /// </code>
-  [Record(ConstructorFlags.None)] public partial struct KeyModifier {
+  /// </summary>
+  [Record(ConstructorFlags.None)] public readonly partial struct KeyModifier {
     public static readonly KeyModifier 
       Ctrl = new KeyModifier(Val.Ctrl), Alt = new KeyModifier(Val.Alt), Shift = new KeyModifier(Val.Shift);
     
@@ -56,6 +58,19 @@ namespace FPCSharpUnity.unity.Data {
       if (_ctrl || _alt || _shift) sb.Append('+');
       sb.Append(_keyCode.ToString());
       return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns true if pressing the given <see cref="keyCodeWithModifiers"/> (KCWM) would trigger this one as well.
+    /// </summary>
+    public bool wouldTriggerOn(KeyCodeWithModifiers keyCodeWithModifiers) {
+      // Doesn't match if the key code is different.
+      if (_keyCode != keyCodeWithModifiers._keyCode) return false;
+      // If we need to press the modifier but the given KCWM does not, then pressing it would not trigger us.
+      else if (_ctrl && !keyCodeWithModifiers._ctrl) return false;
+      else if (_alt && !keyCodeWithModifiers._alt) return false;
+      else if (_shift && !keyCodeWithModifiers._shift) return false;
+      else return true;
     }
   }
 }

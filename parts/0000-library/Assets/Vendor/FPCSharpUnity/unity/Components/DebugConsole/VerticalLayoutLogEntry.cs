@@ -16,8 +16,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
     #endregion
 
-    [Record]
-    public partial struct Data {
+    [Record] public readonly partial struct Data {
       public readonly string text;
       public readonly Color color;
     }

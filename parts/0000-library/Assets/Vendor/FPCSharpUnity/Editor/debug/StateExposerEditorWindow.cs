@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ExhaustiveMatching;
 using FPCSharpUnity.unity.Components.Interfaces;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Utilities;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.debug {
-  public class StateExposerEditorWindow : EditorWindow, IMB_OnGUI {
+  [HasLogger]
+  public partial class StateExposerEditorWindow : EditorWindow, IMB_OnGUI {
     [MenuItem("Tools/Window/State Exposer")]
     public static void OpenWindow() => GetWindow<StateExposerEditorWindow>("State Exposer").Show();
     
@@ -29,6 +31,8 @@ namespace FPCSharpUnity.unity.debug {
 
     readonly HashSet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> 
       expandObjects = new(), expandInnerScopes = new();
+
+    readonly HashSet<string> expandHeaderValues = new();
 
     float repaintEverySeconds = 0.1f;
     DateTime lastRepaint = DateTime.MinValue;
@@ -51,9 +55,9 @@ namespace FPCSharpUnity.unity.debug {
           repaintEverySeconds = EditorGUILayout.FloatField("Repaint every (seconds)", repaintEverySeconds);
           if (GUILayout.Button("Run GC")) {
             var previous = GC.GetTotalMemory(forceFullCollection: false);
-            GC.Collect();
+            GCUtils.runGC();
             var current = GC.GetTotalMemory(forceFullCollection: false);
-            Log.d.info(
+            log.info(
               $"Garbage collection performed, previous={previous.toBytesReadable()}, current={current.toBytesReadable()}"
             );
           }
@@ -100,49 +104,81 @@ namespace FPCSharpUnity.unity.debug {
 
               void renderLabel() => EditorGUILayout.LabelField($"{data.name}:", longLabelTextStyle.strict);
 
-              static bool isMultiline(StateExposer.IRenderableValue value) => value.match(
-                stringValue: str => 
+              static bool isMultiline(StateExposer.RenderableValue value) => value switch {
+                StateExposer.ActionValue _ => false,
+                StateExposer.BoolValue _ => false,
+                StateExposer.EnumerableValue enumerable => enumerable.values.Count != 0,
+                StateExposer.FloatValue _ => false,
+                StateExposer.HeaderValue _ => true,
+                StateExposer.KVValue kv => isMultiline(kv.key) || isMultiline(kv.value),
+                StateExposer.ObjectValue _ => false,
+                StateExposer.StringValue str => 
                   str.value.Contains('\n')
                   // Assume that if we have long lines they will wrap
                   || str.value.Length > 100,
-                floatValue: _ => false,
-                boolValue: _ => false,
-                objectValue: _ => false,
-                actionValue: _ => false,
-                kVValue: kv => isMultiline(kv.key) || isMultiline(kv.value),
-                enumerableValue: enumerable => enumerable.values.Count != 0,
-                headerValue: _ => true
-              );
+                _ => throw ExhaustiveMatch.Failed(value)
+              };
               
-              static void render(StateExposer.IRenderableValue value) => value.voidMatch(
-                stringValue: str => EditorGUILayout.LabelField(str.value, multilineTextStyle.strict),
-                floatValue: flt => EditorGUILayout.FloatField(flt.value, multilineTextStyle.strict),
-                boolValue: b => EditorGUILayout.Toggle(b.value),
-                objectValue: obj => EditorGUILayout.ObjectField(obj.value, typeof(Object), allowSceneObjects: true),
-                actionValue: act => { if (GUILayout.Button(act.label)) act.value(); },
-                kVValue: kv => {
-                  using var _ = new EditorGUILayout.HorizontalScope();
-                  render(kv.key);
-                  render(kv.value);
-                },
-                enumerableValue: enumerable => {
-                  using var _ = new EditorGUILayout.VerticalScope();
-                  var first = true;
-                  if (enumerable.showCount) {
-                    EditorGUILayout.LabelField($"{enumerable.values.Count} elements", longLabelTextStyle.strict);
+              void render(StateExposer.RenderableValue renderableValue) {
+                switch (renderableValue) {
+                  case StateExposer.ActionValue act:
+                    if (GUILayout.Button(act.label)) act.value();
+                    break;
+                  case StateExposer.BoolValue b:
+                    EditorGUILayout.Toggle(b.value);
+                    break;
+                  case StateExposer.EnumerableValue enumerable: {
+                    using var _ = new EditorGUILayout.VerticalScope();
+                    var first = true;
+                    if (enumerable.showCount) {
+                      EditorGUILayout.LabelField($"{enumerable.values.Count} elements", longLabelTextStyle.strict);
+                    }
+
+                    foreach (var value in enumerable.values) {
+                      if (!first) EditorGUILayout.Separator();
+                      render(value);
+                      first = false;
+                    }
+
+                    break;
                   }
-                  foreach (var value in enumerable.values) {
-                    if (!first) EditorGUILayout.Separator();
-                    render(value);
-                    first = false;
+                  case StateExposer.FloatValue flt:
+                    EditorGUILayout.FloatField(flt.value, multilineTextStyle.strict);
+                    break;
+                  case StateExposer.HeaderValue header: {
+                    using var _ = new EditorGUILayout.VerticalScope();
+                  
+                    bool renderBody;
+                    {if (header.header.asString.valueOut(out var renderableAsString)) {
+                      // We need some sort of stable identifier to store the foldout state and we can't use object
+                      // instances for that, thus we use path and value combined as a string.
+                      var id = $"{path.collection.mkStringEnum()}: {renderableAsString}";
+                      renderBody = foldoutGeneric(expandHeaderValues, id, renderableAsString);
+                    } else {
+                      render(header.header);
+                      renderBody = true;
+                    }}
+                  
+                    if (renderBody) using (new EditorGUI.IndentLevelScope(header.indentBy)) render(header.value);
+
+                    break;
                   }
-                },
-                headerValue: header => {
-                  using var _ = new EditorGUILayout.VerticalScope();
-                  render(header.header);
-                  using (new EditorGUI.IndentLevelScope(header.indentBy)) render(header.value);
+                  case StateExposer.KVValue kv: {
+                    using var _ = new EditorGUILayout.HorizontalScope();
+                    render(kv.key);
+                    render(kv.value);
+                    break;
+                  }
+                  case StateExposer.ObjectValue obj:
+                    EditorGUILayout.ObjectField(obj.value, typeof(Object), allowSceneObjects: true);
+                    break;
+                  case StateExposer.StringValue str:
+                    EditorGUILayout.LabelField(str.value, multilineTextStyle.strict);
+                    break;
+                  default:
+                    throw ExhaustiveMatch.Failed(renderableValue);
                 }
-              );
+              }
             }
           }
         }
@@ -150,7 +186,7 @@ namespace FPCSharpUnity.unity.debug {
         void renderScopes() {
           foreach (var (key, innerScope) in scopes.OrderBySafe(_ => _.Key.name)) {
             EditorGUILayout.LabelField(key.name, scopeKeyTextStyle.strict);
-            {if (key.unityObject.valueOut(out var unityObject)) {
+            {if (key.unityObject.flatMap(_ => _.Target()).valueOut(out var unityObject)) {
               using var _ = new EditorGUI.IndentLevelScope();
               EditorGUILayout.ObjectField(unityObject, typeof(Object), allowSceneObjects: true);
             }}
@@ -159,10 +195,14 @@ namespace FPCSharpUnity.unity.debug {
           }
         }
 
-        bool foldout(ISet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> set, string name) {
-          var ret = EditorGUILayout.Foldout(set.Contains(path), name);
-          if (ret) set.Add(path);
-          else set.Remove(path);
+        bool foldout(ISet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> set, string name) => 
+          foldoutGeneric(set, path, name);
+
+        // Returns true if we should render the value.
+        bool foldoutGeneric<Value>(ISet<Value> set, Value value, string name) {
+          var ret = EditorGUILayout.Foldout(set.Contains(value), name);
+          if (ret) set.Add(value);
+          else set.Remove(value);
           return ret;
         }
       }

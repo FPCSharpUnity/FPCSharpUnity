@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using FPCSharpUnity.core.collection;
-using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
 using FPCSharpUnity.unity.Data;
-using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Pools;
 using GenerationAttributes;
 using JetBrains.Annotations;
@@ -77,7 +75,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     }
 
     /// <summary> Layout part of <see cref="Init{A}"/>. </summary>
-    public interface ILayout<TData> where TData : IElement {
+    public interface ILayout<in TData> where TData : IElement {
       /// <inheritdoc cref="Init.calculateVisibleRectStatic"/>
       Rect calculateVisibleRect { get; }
 
@@ -164,7 +162,6 @@ namespace FPCSharpUnity.unity.Components.ui {
       public readonly float containerSizeInScrollableAxis;
     }  
 
-
     /// <summary>
     /// It's a callback when <see cref="Init{TData}.updateLayout"/> is called.
     /// <para/>
@@ -180,8 +177,8 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// is moved inside viewport, it can show a UI visual.
     /// </summary>
     public interface IElement {
-      /// <inheritdoc cref="ISizeProvider"/>
-      ISizeProvider sizeProvider { get; }
+      /// <inheritdoc cref="SizeProvider"/>
+      SizeProvider sizeProvider { get; }
     
       /// <summary>
       /// Will start showing item's visual if it supports it. Repeated calls to this method will result in refreshing
@@ -219,167 +216,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// <inheritdoc cref="DynamicLayout.ISizeProvider.sizeInScrollableAxis"/>
       float sizeInScrollableAxis(bool isHorizontal);
     }
-  
-    /// <summary> Layout part of <see cref="IElement"/>. It provides item's size when doing layout. </summary>
-    public interface ISizeProvider {
-      /// <summary>Height of an element in a vertical layout OR width in horizontal layout</summary>
-      float sizeInScrollableAxis(bool isHorizontal);
-    
-      /// <summary>Item width portion of vertical layout width OR height in horizontal layout.</summary>
-      Percentage sizeInSecondaryAxis { get; }
-    }
-    public static partial class SizeProvider {
-      /// <inheritdoc cref="FromTemplateStatic.fullRowOrColumn"/>
-      public static FromTemplateStatic fullRowOrColumnFromTemplate(Component template) => 
-        FromTemplateStatic.fullRowOrColumn(template);
-    
-      public static Static fullRowOrColumnStatic(float sizeInScrollableAxis) => 
-        Static.a(sizeInScrollableAxis, sizeInSecondaryAxis: new Percentage(1));
-    
-      /// <summary> Sample item's size from template object. This size will not change. </summary>
-      public class FromTemplateStatic : ISizeProvider {
-        /// <summary> Item's size. </summary>
-        readonly Rect rect;
-      
-        public Percentage sizeInSecondaryAxis { get; }
 
-        FromTemplateStatic(Component o, Percentage sizeInSecondaryAxis) {
-          this.sizeInSecondaryAxis = sizeInSecondaryAxis;
-          rect = ((RectTransform)o.transform).rect;
-        }
-
-        public static FromTemplateStatic a(Component o, Percentage sizeInSecondaryAxis) => cached[(o, sizeInSecondaryAxis)];
-      
-        /// <summary>
-        /// Sample <see cref="template"/>'s size for height/width, but put <see cref="sizeInSecondaryAxis"/> as full
-        /// row/column (100%).
-        /// </summary>
-        public static FromTemplateStatic fullRowOrColumn(Component template) => fullRowOrColumnCached[template];
-      
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void reset() {
-          fullRowOrColumnCached.clear();
-          cached.clear();
-        }
-
-        [LazyProperty] static Memo<Component, FromTemplateStatic> fullRowOrColumnCached => 
-          Memo.a<Component, FromTemplateStatic>(t => new(t, new Percentage(1)));
-        
-        [LazyProperty] static Memo<(Component, Percentage), FromTemplateStatic> cached => 
-          Memo.a<(Component, Percentage), FromTemplateStatic>(t => new(t.Item1, t.Item2));
-
-        float ISizeProvider.sizeInScrollableAxis(bool isHorizontal) =>
-          isHorizontal ? rect.width : rect.height;
-      }
-      
-      /// <summary> Define custom item's size. This size will not change. </summary>
-      public class Static : ISizeProvider {
-        readonly float sizeInScrollableAxis;
-        public Percentage sizeInSecondaryAxis { get; }
-
-        Static(float sizeInScrollableAxis, Percentage sizeInSecondaryAxis) {
-          this.sizeInScrollableAxis = sizeInScrollableAxis;
-          this.sizeInSecondaryAxis = sizeInSecondaryAxis;
-        }
-
-        public static Static a(float sizeInScrollableAxis, Percentage sizeInSecondaryAxis) => 
-          cached[(sizeInScrollableAxis, sizeInSecondaryAxis)];
-
-        [LazyProperty]
-        public static Memo<(float, Percentage), Static> cached => Memo.a<(float, Percentage), Static>(t =>
-          new Static(sizeInSecondaryAxis: t.Item2, sizeInScrollableAxis: t.Item1)
-        );
-
-        float ISizeProvider.sizeInScrollableAxis(bool isHorizontal) => sizeInScrollableAxis;
-      }
-
-      /// <summary> Like <see cref="Static"/>, but the <see cref="sizeInScrollableAxis"/> changes. </summary>
-      [GenConstructor] public partial class DynamicSizeInScrollableAxis : ISizeProvider {
-        public readonly Val<float> sizeInScrollableAxisVal;
-        public Percentage sizeInSecondaryAxis { get; }
-
-        public float sizeInScrollableAxis(bool isHorizontal) => sizeInScrollableAxisVal.value;
-      }
-    }
-  
-    /// <summary> Manages creation and disposal of item's visual. </summary>
-    /// <typeparam name="Obj">Visual's type.</typeparam>
-    public partial interface IViewProvider<Obj> {
-      /// <summary> Start showing the item's visuals. </summary>
-      /// <param name="parent">Where to place the new visual if it gets instantiated.</param>
-      ViewInstance createItem(RectTransform parent);
-    
-      /// <summary> Dispose of item's visual. </summary>
-      void destroyItem(Obj obj);
-    
-      /// <summary> View and it's <see cref="RectTransform"/>. </summary>
-      [Record] public readonly partial struct ViewInstance {
-        public readonly Obj view;
-        public readonly RectTransform rt;
-      }
-    }
-    public static partial class ViewProvider {
-      /// <inheritdoc cref="SingleInstance{Obj}"/>
-      public static SingleInstance<Obj> singleInstance<Obj>(
-        Obj instance, [CanBeNull] Action<bool, Obj> maybeCustomSetActiveCallback = null
-      ) where Obj : Component => new(instance: instance, maybeCustomSetActiveCallback: maybeCustomSetActiveCallback);
-    
-      public static Pooled<Obj> pooled<Obj>(GameObjectPool<Obj> pool) where Obj : Component => Pooled<Obj>.cached[pool];
-    
-      /// <summary>
-      /// Item visual is already placed inside scene/prefab and we reuse a single instance of this item visual.
-      /// </summary>
-      public class SingleInstance<Obj> : IViewProvider<Obj> where Obj : Component {
-        readonly Obj instance;
-        readonly Option<Action<bool, Obj>> maybeCustomSetActiveCallback;
-
-        public SingleInstance(Obj instance, [CanBeNull] Action<bool, Obj> maybeCustomSetActiveCallback = null) {
-          this.instance = instance;
-          this.maybeCustomSetActiveCallback = Option.a(maybeCustomSetActiveCallback);
-        }
-
-        public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {
-          setActive(true);
-          return new(instance, (RectTransform)instance.transform);
-        }
-
-        public void destroyItem(Obj obj) => setActive(false);
-
-        void setActive(bool flag) {
-          if (maybeCustomSetActiveCallback.valueOut(out var customCallback)) customCallback(flag, instance);
-          else instance.setActiveGO(flag);
-        }
-      }
-    
-      /// <summary> Items' visuals are created and released by <see cref="GameObjectPool"/>. </summary>
-      [GenConstructor] public partial class Pooled<Obj> : IViewProvider<Obj> where Obj : Component {
-        readonly GameObjectPool<Obj> pool;
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        static void reset() => cached.clear();
-      
-        [LazyProperty] public static Memo<GameObjectPool<Obj>, Pooled<Obj>> cached => 
-          Memo.a<GameObjectPool<Obj>, Pooled<Obj>>(t => new(t));
-
-        public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {
-          var v = pool.borrow();
-          return new(v, (RectTransform)v.transform);
-        }
-        public void destroyItem(Obj obj) => pool.release(obj);
-      }
-    
-      /// <summary> Items are only created/destroyed inside editor. Do not use this for playmode. </summary>
-      [GenConstructor] public partial class InstantiateAndDestroyEditor<Obj> : IViewProvider<Obj> where Obj : Component {
-        readonly Obj template;
-
-        public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {
-          var v = template.clone(parent: parent);
-          return new(v, (RectTransform)v.transform);
-        }
-        public void destroyItem(Obj obj) => DestroyImmediate(obj.gameObject);
-      }
-    }
-  
     /// <summary>
     /// It's useful when you don't want to pass enormous amount of setup data inside the item, and instead you pass setup
     /// action. This allows us to automatically capture all data needed for setup inside closure class.
@@ -388,7 +225,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       readonly Action<InnerData, View, ITracker> updateStateDelegate;
 
       protected ElementBaseWithSetupDelegate(
-        InnerData data, ISizeProvider sizeProvider, 
+        InnerData data, SizeProvider sizeProvider, 
         Action<InnerData, View, ITracker> updateStateDelegate,
         [CanBeNull] IViewProvider<View> maybeViewProvider = default, ILog log = default
       ) : base(data, sizeProvider, maybeViewProvider, log) {
@@ -401,10 +238,12 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// <summary> Item is already placed inside scene/prefab and we don't need to setup it. </summary>
     public abstract class ElementBaseForRectTransform : ElementBase<Unit, RectTransform> {
       protected ElementBaseForRectTransform(
-        RectTransform rectTransform, Percentage? noneHundredSizeInSecondaryAxis = default, [Implicit] ILog log = default
+        RectTransform rectTransform, 
+        Percentage? noneHundredSizeInSecondaryAxis = default,
+        [Implicit] ILog log = default
       ) : base(
         Unit._, 
-        sizeProvider: SizeProvider.FromTemplateStatic.a(
+        sizeProvider: new SizeProvider.FromTemplateStatic(
           rectTransform, sizeInSecondaryAxis: noneHundredSizeInSecondaryAxis ?? new Percentage(1)
         ), maybeViewProvider: ViewProvider.singleInstance(rectTransform), log) {}
 
@@ -413,7 +252,7 @@ namespace FPCSharpUnity.unity.Components.ui {
   
     /// <summary> An empty space, which doesn't need any data and no setup. </summary>
     public abstract class ElementBaseForSpacer : ElementBase<Unit, Unit> {
-      protected ElementBaseForSpacer(ISizeProvider sizeProvider, [Implicit] ILog log = default) 
+      protected ElementBaseForSpacer(SizeProvider sizeProvider, [Implicit] ILog log = default) 
         : base(Unit._, sizeProvider: sizeProvider, maybeViewProvider: null, log) {}
 
       protected override void updateState(Unit view, ITracker tracker){}
@@ -429,17 +268,17 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// </summary>
     public abstract class ElementBaseForPooledRow<InnerData, View> : ElementBase<InnerData, View> where View : Component {
       protected ElementBaseForPooledRow(
-        InnerData data, View template, GameObjectPool<View> pool, [Implicit] ILog log = default
+        InnerData data, View template, GameObjectPool<View> pool, 
+        [Implicit] ILog log = default
       ) : base(
         data, sizeProvider: SizeProvider.FromTemplateStatic.fullRowOrColumn(template), 
-        maybeViewProvider: ViewProvider.pooled(pool), log
+        maybeViewProvider: new ViewProvider.Pooled<View>(pool), log
       ) {}
     }
   
     /// <summary> Base class for all <see cref="IElement"/> implementations. </summary>
     /// <typeparam name="InnerData">See <see cref="data"/>.</typeparam>
     /// <typeparam name="View">Visual type. If item is visible, it will be Unity object.</typeparam>
-    [DelegateToInterface(delegatedInterface = typeof(ISizeProvider), delegateTo = nameof(sizeProvider))]
     public abstract partial class ElementBase<InnerData, View> : IElement {
       /// <summary> Tracks currently visible visual. </summary>
       readonly IDisposableTracker tracker;
@@ -456,7 +295,9 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </summary>
       protected Option<IViewProvider<View>> maybeViewProvider;
     
-      public ISizeProvider sizeProvider { get; }
+      public SizeProvider sizeProvider { get; }
+      public Percentage sizeInSecondaryAxis => sizeProvider.sizeInSecondaryAxis;
+      public float sizeInScrollableAxis(bool isHorizontal) => sizeProvider.sizeInScrollableAxis(isHorizontal);
 
       /// <summary>
       /// Mutable! Will be set to `Some(item's view)` if item is currently visible inside viewport.<br/>
@@ -471,7 +312,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public Option<RectTransform> visibleRt => visibleInstance.map(static _ => _.rt);
 
       protected ElementBase(
-        InnerData data, ISizeProvider sizeProvider,
+        InnerData data, SizeProvider sizeProvider,
         [CanBeNull] IViewProvider<View> maybeViewProvider = default, 
         [Implicit] ILog log = default
       ) {

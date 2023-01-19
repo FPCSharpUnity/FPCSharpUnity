@@ -4,11 +4,11 @@ namespace FPCSharpUnity.unity.Components.dispose {
   [CustomEditor(typeof(GameObjectDisposeTracker))]
   public class GameObjectDisposeTrackerEditor : UnityEditor.Editor {
     public override void OnInspectorGUI() {
-      var so = (GameObjectDisposeTracker) serializedObject.targetObject;
-      EditorGUILayout.LabelField("Tracked objects:", so.trackedCount.ToString());
+      var dt = (GameObjectDisposeTracker) serializedObject.targetObject;
+      EditorGUILayout.LabelField("Tracked objects:", dt.trackedCount.ToString());
       EditorGUILayout.Space();
 
-      foreach (var t in so.trackedDisposables) {
+      foreach (var t in dt.trackedDisposables) {
         EditorGUILayout.LabelField(t.asString());
       }
     }

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
@@ -34,19 +33,25 @@ namespace FPCSharpUnity.unity.Components.dispose {
       ASync.onUpdate.subscribe(NeverDisposeDisposableTracker.instance, _ => {
         // OnDestroy only gets called on a Component only if Awake was called first. This code ensures that Dispose gets
         // called when the GameObject is destroyed, even if Awake was never called.
-        for (var i = 0; i < trackersWaitingForAwake.Count; i++) {
-          var current = trackersWaitingForAwake[i];
-          if (!current) {
-            // Tracker Component was destroyed before Awake was called on it. So we need to call dispose here manually.
-            trackersWaitingForAwake.removeAtReplacingWithLast(i);
-            current.Dispose();
+        trackersWaitingForAwake.removeWhere(
+          replaceRemovedElementWithLast: true,
+          predicate: static current => {
+            if (!current) {
+              // Tracker Component was destroyed before Awake was called on it, thus `Dispose()` was not called, because
+              // `OnDestroy()` callback was not invoked. So we need to call `Dispose()` here manually.
+              current.Dispose();
+              return true;
+            }
+            else if (current.awakeCalled) {
+              // Awake was called. That means `OnDestroy()` will work on this tracker Component. Don't need to check it on
+              // update anymore.
+              return true;
+            }
+            else {
+              return false;
+            }
           }
-          else if (current.awakeCalled) {
-            // Awake was called. That means OnDestroy will work on this tracker Component. Don't need to check it on
-            // update anymore.
-            trackersWaitingForAwake.removeAtReplacingWithLast(i);
-          }
-        }
+        );
       });
     }
 
@@ -64,11 +69,11 @@ namespace FPCSharpUnity.unity.Components.dispose {
         if (!awakeCalled) trackersWaitingForAwake.Add(this);
         return new DisposableTracker(
           log,
-          // ReSharper disable ExplicitCallerInfoArgument
-          callerFilePath: Log.d.isDebug() ? gameObject.transform.debugPath() : gameObject.name,
-          callerMemberName: nameof(GameObjectDisposeTracker),
-          callerLineNumber: -1
-          // ReSharper restore ExplicitCallerInfoArgument
+          new CallerData(
+            filePath: Log.d.isDebug() ? gameObject.transform.debugPath() : gameObject.name,
+            memberName: nameof(GameObjectDisposeTracker),
+            lineNumber: -1
+          )
         );
       });
     }
@@ -85,16 +90,8 @@ namespace FPCSharpUnity.unity.Components.dispose {
     }
 
     public void track(
-      IDisposable a,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
-    ) => tracker.strict.track(
-      a,
-      // ReSharper disable ExplicitCallerInfoArgument
-      callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-      // ReSharper restore ExplicitCallerInfoArgument
-    );
+      IDisposable a, [Implicit] CallerData callerData = default
+    ) => tracker.strict.track(a, callerData);
 
     public void untrack(IDisposable a) => tracker.strict.untrack(a);
   }

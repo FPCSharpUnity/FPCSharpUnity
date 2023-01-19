@@ -1,16 +1,17 @@
 using System;
 using System.Collections;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.unity.Concurrent;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.reactive;
+using GenerationAttributes;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Reactive {
   [PublicAPI] public static class RxValU {
-    
     /// <summary>
     /// Calls <see cref="func"/> on update until it returns Some and stores the result in <see cref="RxVal"/>.
     /// </summary>
@@ -36,9 +37,11 @@ namespace FPCSharpUnity.unity.Reactive {
     /// <summary>
     /// Calls <see cref="getValue"/> every frame and updates the resulting <see cref="RxVal"/>.
     /// </summary>
-    public static IRxVal<A> everyFrame<A>(ITracker tracker, Func<A> getValue) {
+    public static IRxVal<A> everyFrame<A>(
+      ITracker tracker, Func<A> getValue, [Implicit] CallerData callerData = default
+    ) {
       var result = RxRef.a(getValue());
-      ASync.onUpdate.subscribe(tracker, _ => result.value = getValue());
+      ASync.onUpdate.subscribe(tracker, _ => result.value = getValue(), callerData);
       return result;
     }
 

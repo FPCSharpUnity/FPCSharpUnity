@@ -10,6 +10,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.utils;
+using FPCSharpUnity.unity.Dispose;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
 using Debug = UnityEngine.Debug;
@@ -20,7 +21,6 @@ namespace FPCSharpUnity.unity.Logger {
   /// </summary>
   [PublicAPI] public static class Log {
     // InitializeOnLoad is needed to set static variables on main thread.
-    // FKRs work without it, but on Gummy Bear repo tests fail
 #if UNITY_EDITOR
     [UnityEditor.InitializeOnLoadMethod]
 #endif
@@ -33,28 +33,29 @@ namespace FPCSharpUnity.unity.Logger {
 
     static readonly bool useConsoleLog = EditorUtils.inBatchMode;
 
-    /// <summary>Registers loggers to DConsole using the default registry.</summary>
-    public static void registerToDConsole(ITracker tracker) =>
-      registerToDConsole(tracker, () => registry.registered);
+    /// <summary>Registers loggers to <see cref="DConsole"/> using the default registry.</summary>
+    public static void registerToDConsole(ITracker tracker, DConsole dc) =>
+      registerToDConsole(tracker, dc, static () => registry.registered);
     
+    /// <summary>Registers loggers to <see cref="DConsole"/> using a function to get the loggers.</summary>
     public static void registerToDConsole(
-      ITracker tracker, Func<ImmutableDictionary<LogRegistryName, ILogProperties>> getRegistered
+      ITracker tracker, DConsole dc, Func<ImmutableDictionary<LogRegistryName, ILogProperties>> getRegistered
     ) {
       var levels = EnumUtils.GetValues<LogLevel>();
       
-      DConsole.instance.registerOnShow(tracker, console => {
-        var registered = getRegistered();
-
+      dc.registerOnShow(tracker, console => {
         {
-          var r = console.registrarFor("Loggers", tracker, persistent: false);
+          var r = console.registrarFor("Loggers");
           r.register("List all", () => 
-            registered.OrderBySafe(_ => s(_.Key)).Select(kv => $"{s(kv.Key)}: {kv.Value.level}").mkStringEnumNewLines()
+            getRegistered().OrderBySafe(_ => s(_.Key)).Select(kv => $"{s(kv.Key)}: {kv.Value.level}")
+              .mkStringEnumNewLines()
           );
         }
-
+        
         // Render other loggers
+        var registered = getRegistered();
         foreach (var (name, log) in registered) {
-          var r = console.registrarFor($"Log: {s(name)}", tracker, persistent: false);
+          var r = console.registrarFor($"Log: {s(name)}");
           r.registerEnum("Level", Ref.a(() => log.level, v => log.level = v), levels);
         }
       });
@@ -69,8 +70,16 @@ namespace FPCSharpUnity.unity.Logger {
           var register = registry.register;
           _default = useConsoleLog ? new ConsoleLog(Some.a(register)) : new UnityLog(Some.a(register));
           // First subscribe and only then register, because subscription listens to the registration.
-          LogLevelControl.subscribeToApplyOverridenLevels(registry, Some.a(_default));
-          register(new(_default, DEFAULT_LOGGER_NAME));
+          LogLevelControl.subscribeToApplyOverridenLevels(
+            registry,
+            // This registration is permanent.
+            NeverDisposeDisposableTracker.instance, 
+            Some.a(_default)
+          );
+          register(new(DEFAULT_LOGGER_NAME, _default));
+          
+          // Set the global log if it's not set yet.
+          GlobalLog.maybeLog |= Some.a(_default);
         }
         
         return _default;
