@@ -32,7 +32,7 @@ namespace FPCSharpUnity.unity.debug {
     /// </summary>
     void exposeDisposableTrackers() {
       var disposableTrackerRegistry = this / nameof(DisposableTrackerRegistry);
-      disposableTrackerRegistry.exposeStatic("Trackers", () => new EnumerableValue(
+      disposableTrackerRegistry.exposeStatic("Trackers", static () => new EnumerableValue(
         DisposableTrackerRegistry.instance.registered
           .OrderBySafe(_ => _.Key.ToString())
           .Select(kv => {

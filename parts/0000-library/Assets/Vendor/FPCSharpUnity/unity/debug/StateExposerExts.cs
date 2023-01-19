@@ -7,7 +7,7 @@ namespace FPCSharpUnity.unity.debug;
 
 [PublicAPI] public static class StateExposerExts {
   public static void exposeToInspector<A>(
-    this GameObject go, A reference, string name, Func<A, StateExposer.IRenderableValue> get
+    this GameObject go, A reference, string name, Func<A, StateExposer.RenderableValue> get
   ) where A : class {
     (StateExposer.instance / go).expose(reference, name, get);
   }

@@ -15,7 +15,7 @@ public partial class StateExposer {
   [Record] partial class InstanceData<A> : IData where A : class {
     readonly WeakReference<A> reference;
     readonly string name;
-    readonly Func<A, IRenderableValue> get;
+    readonly Func<A, RenderableValue> get;
 
     public bool isStatic => false;
 
@@ -28,7 +28,7 @@ public partial class StateExposer {
   /// <summary>Value that is available statically.</summary>
   [Record] partial class StaticData : IData {
     readonly string name;
-    readonly Func<IRenderableValue> get;
+    readonly Func<RenderableValue> get;
 
     public bool isStatic => true;
     public Option<ForRepresentation> representation => Some.a(new ForRepresentation(None._, name, get()));

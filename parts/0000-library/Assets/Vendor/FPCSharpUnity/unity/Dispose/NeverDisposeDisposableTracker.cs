@@ -34,7 +34,7 @@ namespace FPCSharpUnity.unity.Dispose {
         var exposer = StateExposer.instance / nameof(NeverDisposeDisposableTracker);
         exposer.expose(
           this, nameof(tracker.trackedDisposables), 
-          _ => new StateExposer.EnumerableValue( 
+          static _ => new StateExposer.EnumerableValue( 
             _.trackedDisposables.Select(d => new StateExposer.StringValue(d.asString())).ToArrayFast()
           )
         );
