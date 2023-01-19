@@ -55,15 +55,15 @@ public partial class StateExposer {
     /// Exposes a named value that is available via an object instance.
     /// </summary>
     /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
-    public void expose<A>(A reference, string name, Func<A, RenderableValue> get) where A : class => 
-      add(new InstanceData<A>(reference.weakRef(), name, get));
+    public void expose<A, Data>(A reference, string name, Data data, Render<A, Data> render) where A : class => 
+      add(new InstanceData<A, Data>(reference.weakRef(), name, data, render));
       
     /// <summary>
     /// Helper for exposing <see cref="Future{A}"/>. Does not do anything if the future is not async (because it's a
     /// struct then).
     /// </summary>
     public void expose<A>(Future<A> future, string name) {
-      if (future.asHeapFuture.valueOut(out var heapFuture)) expose(heapFuture, name, static _ => _.ToString());
+      if (future.asHeapFuture.valueOut(out var heapFuture)) expose(heapFuture, name, Unit._, static (f, _) => f.ToString());
     }
   }
 }
