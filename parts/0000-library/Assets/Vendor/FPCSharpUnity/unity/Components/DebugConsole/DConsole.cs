@@ -104,6 +104,10 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
             $"mode={GarbageCollector.GCMode}, incremental={GarbageCollector.isIncremental}, "
             + $"incremental slice={GarbageCollector.incrementalTimeSliceNanoseconds}ns"
           );
+          r.register(
+            "Memory stats", () => GCUtils.MemoryStats.get().asString(),
+            Ctrl+Alt+KeyCode.M
+          );
           r.register("Run GC", () => {
             var pre = GCUtils.MemoryStats.get();
             GCUtils.runGC();
@@ -125,6 +129,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
             clearVisibleLog();
           });
+        }
+      );
+
+      dConsole.registrarOnShow(
+        NeverDisposeDisposableTracker.instance, "Scenes in Build List",
+        (_, r) => {
+          var manager = SceneManagerBetter.instance;
+          foreach (var tpl in manager.scenesInBuildSettings.all) {
+            r.register($"Load [{s(tpl.buildIndex)}: {s(tpl.path.toSceneName)}]", () => manager.loadScene(tpl.buildIndex));
+          }
         }
       );
       
