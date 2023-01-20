@@ -9,6 +9,6 @@ public partial class StateExposer {
     /// <summary>None if this value is available statically.</summary>
     public readonly Option<object> objectReference;
     public readonly string name;
-    public readonly IRenderableValue value;
+    public readonly RenderableValue value;
   }
 }

@@ -6,6 +6,7 @@ using FPCSharpUnity.unity.debug;
 using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Dispose {
@@ -33,9 +34,9 @@ namespace FPCSharpUnity.unity.Dispose {
       if (Application.isPlaying) {
         var exposer = StateExposer.instance / nameof(NeverDisposeDisposableTracker);
         exposer.expose(
-          this, nameof(tracker.trackedDisposables), 
-          _ => new StateExposer.EnumerableValue( 
-            _.trackedDisposables.Select(d => new StateExposer.StringValue(d.asString())).ToArrayFast()
+          this, nameof(tracker.trackedDisposables), Unit._,
+          static (v, _) => new StateExposer.EnumerableValue( 
+            v.trackedDisposables.Select(d => new StateExposer.StringValue(d.asString())).ToArrayFast()
           )
         );
       }

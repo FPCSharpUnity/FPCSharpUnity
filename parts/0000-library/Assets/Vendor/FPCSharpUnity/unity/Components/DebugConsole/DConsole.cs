@@ -546,9 +546,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       void addMessagesToLayoutEveryFrame() {
         var cache = new List<string>();
+        var entriesToAdd = new List<DynamicVerticalLayoutLogElementData>();
         tracker.track(ASync.EveryFrame(() => {
           if (!addMessagesToLayoutEnabled) return true;
           
+          entriesToAdd.Clear();
           lock (messagesToAdd) {
             if (!messagesToAdd.IsEmpty) {
               var lineWidth = binding.lineWidth;
@@ -556,12 +558,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
               while (!messagesToAdd.IsEmpty && processedLines < BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW) {
                 var entry = messagesToAdd.RemoveFront();
                 foreach (var e in createEntries(entry, pool, cache, lineWidth)) {
-                  layout.appendDataIntoLayoutData(e);
+                  entriesToAdd.Add(e);
                   processedLines++;
                 }
               }
             }
           }
+          
+          layout.appendDataIntoLayoutData(entriesToAdd);
+          entriesToAdd.Clear();
           
           return true;
         }));
