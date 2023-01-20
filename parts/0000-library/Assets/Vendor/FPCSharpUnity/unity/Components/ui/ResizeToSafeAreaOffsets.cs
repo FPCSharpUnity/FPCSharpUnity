@@ -83,7 +83,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     }
 
     void applySafeArea(Rect safeArea, Vector2 screenSize, bool notchLeft, bool notchRight) {
-      var scale = parent.sizeDelta / screenSize;
+      var scale = parent.rect.size / screenSize;
 
       var min = safeArea.min * scale;
       var max = (screenSize - safeArea.max) * scale;
