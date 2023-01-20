@@ -205,8 +205,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       public DynamicLayoutElement(
         EditorTestEntry data) : base(
         data, sizeProvider: data._customSizeInScrollableAxis.valueOut(out var size) 
-          ? SizeProvider.Static.a(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
-          : SizeProvider.FromTemplateStatic.a(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
+          ? new SizeProvider.Static(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
+          : new SizeProvider.FromTemplateStatic(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
         maybeViewProvider: new ViewProvider.InstantiateAndDestroyEditor<RectTransform>(data._item), log
       ) {}
 

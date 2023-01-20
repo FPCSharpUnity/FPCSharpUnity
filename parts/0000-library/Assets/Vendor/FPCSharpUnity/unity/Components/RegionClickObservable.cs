@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.InputUtils;
@@ -7,6 +7,7 @@ using FPCSharpUnity.core.reactive;
 
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using GenerationAttributes;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components {
@@ -53,9 +54,7 @@ namespace FPCSharpUnity.unity.Components {
     /// </summary>
     public IRxObservable<Unit> sequenceWithinTimeframe(
       ITracker tracker, IList<int> sequence, float timeS,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      [Implicit] CallerData callerData = default
     ) {
       // Specific implementation to reduce garbage.
       var s = new Subject<Unit>();
@@ -69,11 +68,7 @@ namespace FPCSharpUnity.unity.Components {
         return true;
       }
       regionIndex.subscribe(
-        tracker, 
-        // ReSharper disable ExplicitCallerInfoArgument
-        callerMemberName: callerMemberName,
-        callerFilePath: callerFilePath,
-        callerLineNumber: callerLineNumber,
+        tracker, callerData: callerData,
         // ReSharper restore ExplicitCallerInfoArgument
         onEvent: region => {
           // Clear up one item if the queue is full.

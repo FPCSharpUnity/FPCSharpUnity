@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using ExhaustiveMatching;
 using FPCSharpUnity.unity.Collection;
 using FPCSharpUnity.unity.Components.dispose;
@@ -22,7 +21,9 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
+using UnityEngine.Scripting;
 using static FPCSharpUnity.core.typeclasses.Str;
 using static FPCSharpUnity.unity.Data.KeyModifier;
 using Debug = UnityEngine.Debug;
@@ -99,7 +100,20 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       dConsole.registrarOnShow(
         NeverDisposeDisposableTracker.instance, nameof(DConsole),
         (_, r) => {
-          r.register("Run GC", GC.Collect, Ctrl+Alt+KeyCode.G);
+          r.register("GC mode", () => 
+            $"mode={GarbageCollector.GCMode}, incremental={GarbageCollector.isIncremental}, "
+            + $"incremental slice={GarbageCollector.incrementalTimeSliceNanoseconds}ns"
+          );
+          r.register(
+            "Memory stats", () => GCUtils.MemoryStats.get().asString(),
+            Ctrl+Alt+KeyCode.M
+          );
+          r.register("Run GC", () => {
+            var pre = GCUtils.MemoryStats.get();
+            GCUtils.runGC();
+            var post = GCUtils.MemoryStats.get();
+            return pre.differenceString(post);
+          }, Ctrl+Alt+KeyCode.G);
           r.register("Unload Unused Assets", Resources.UnloadUnusedAssets, Ctrl+Alt+KeyCode.U);
           r.register("Self-test", () => "self-test");
           r.register("Future Self-test", () => 
@@ -115,6 +129,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
             clearVisibleLog();
           });
+        }
+      );
+
+      dConsole.registrarOnShow(
+        NeverDisposeDisposableTracker.instance, "Scenes in Build List",
+        (_, r) => {
+          var manager = SceneManagerBetter.instance;
+          foreach (var tpl in manager.scenesInBuildSettings.all) {
+            r.register($"Load [{s(tpl.buildIndex)}: {s(tpl.path.toSceneName)}]", () => manager.loadScene(tpl.buildIndex));
+          }
         }
       );
       
@@ -144,12 +168,17 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="action"><see cref="OnShow"/> with the created <see cref="DConsoleRegistrar"/>.</param>
     /// <returns>Dispose of me to unregister.</returns>
     public ISubscription registrarOnShow(
-      ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action
+      ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
+      [Implicit] CallerData callerData = default
     ) =>
-      registerOnShow(tracker, commands => {
-        var r = commands.registrarFor(prefix, tracker);
-        action(commands, r);
-      });
+      registerOnShow(
+        tracker, 
+        commands => {
+          var r = commands.registrarFor(prefix);
+          action(commands, r);
+        },
+        callerData
+      );
 
     /// <summary>
     /// Invokes the given <see cref="OnShow"/> callback when the <see cref="DConsole"/> is shown.
@@ -157,7 +186,9 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="tracker">When this is disposed the registration will be destroyed.</param>
     /// <param name="runOnShow"></param>
     /// <returns>Dispose of me to unregister.</returns>
-    public ISubscription registerOnShow(ITracker tracker, OnShow runOnShow) {
+    public ISubscription registerOnShow(
+      ITracker tracker, OnShow runOnShow, [Implicit] CallerData callerData = default
+    ) {
       if (!Application.isPlaying) {
         return Subscription.empty;
       }
@@ -170,7 +201,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         tracker.untrack(sub);
       });
       onShow.Add(runOnShow);
-      tracker.track(sub);
+      tracker.track(sub, callerData);
       return sub;
     }
 
@@ -183,24 +214,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       Option<DebugSequenceMouseData> mouseDataOpt = default,
       Option<DebugSequenceDirectionData> directionDataOpt = default, 
       Option<KeyCodeWithModifiers> keyboardShortcutOpt = default,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
+      [Implicit] CallerData callerData = default
     ) {
       timeContext ??= TimeContextU.DEFAULT;
 
       var mouseObs = mouseDataOpt.fold(
         Observable<DebugSequenceInvocationMethod>.empty, 
-        mouseData => new RegionClickObservable(mouseData.width, mouseData.height)
-          .sequenceWithinTimeframe(
-            tracker, mouseData.sequence, 3,
-            // ReSharper disable ExplicitCallerInfoArgument
-            callerMemberName: callerMemberName,
-            callerFilePath: callerFilePath,
-            callerLineNumber: callerLineNumber
-            // ReSharper restore ExplicitCallerInfoArgument
-          )
-          .map(_ => DebugSequenceInvocationMethod.Mouse)
+        mouseData => 
+          new RegionClickObservable(mouseData.width, mouseData.height)
+            .sequenceWithinTimeframe(tracker, mouseData.sequence, 3, callerData)
+            .map(_ => DebugSequenceInvocationMethod.Mouse)
       );
 
       var directionObs = directionDataOpt.fold(
@@ -266,9 +289,6 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       prefab = prefab ? prefab : Resources.Load<DebugConsoleBinding>("Debug Console Prefab");
 
       var commands = new Commands();
-
-      // Will get disposed of when the debug console is destroyed.
-      var tracker = new DisposableTracker();
       
       invokeOnShowCallbacks(commands);
 
@@ -276,6 +296,9 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       var selectedGroup = Option<SelectedGroup>.None;
       var view = prefab.clone();
       view.hideModals();
+
+      // Will get disposed of when the debug console is destroyed.
+      var tracker = view.gameObject.asDisposableTracker();
       
       var commandsList = setupList(
         None._, view.commands, clearFilterText: true,

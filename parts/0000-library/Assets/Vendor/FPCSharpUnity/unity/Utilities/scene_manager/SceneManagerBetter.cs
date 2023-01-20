@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
@@ -19,9 +21,35 @@ namespace FPCSharpUnity.unity.Utilities {
   [Record(ConstructorFlags.Constructor), NewTypeImplicitTo]
   public readonly partial struct LoadedSceneCount { public readonly int count; }
 
-  /// <inheritdoc cref="SceneManager.sceneCountInBuildSettings"/>
+  /// <summary>We could not complete the requested operation because the given scene is not loaded.</summary>
+  [Record] public readonly partial struct SceneNotLoaded {}
+  
+  /// <summary>
+  /// Allows getting scenes from the build settings.
+  /// </summary>
   [Record(ConstructorFlags.Constructor), NewTypeImplicitTo]
-  public readonly partial struct SceneCountInBuildSettings { public readonly int count; }
+  public readonly partial struct ScenesInBuildSettings {
+    public readonly int count;
+
+    /// <summary>Gets a scene by a build index.</summary>
+    /// <returns>`None` if index is out of bounds. `Some(Left())` if the scene is not currently loaded.</returns>
+    public Option<Either<SceneNotLoaded, Scene>> get(SceneBuildIndex idx) =>
+      idx.index.isValidIndex(count) 
+        ? Some.a(SceneManager.GetSceneByBuildIndex(idx).mapVal(static scene => 
+          scene.IsValid() ? Either<SceneNotLoaded, Scene>.Right(scene) : new SceneNotLoaded() 
+        ))
+        : None._;
+    
+    /// <summary>Returns all scenes in the build settings.</summary>
+    public IEnumerable<(ScenePath path, SceneBuildIndex buildIndex)> all {
+      get {
+        for (var idx = 0; idx < count; idx++) {
+          var scenePath = new ScenePath(SceneUtility.GetScenePathByBuildIndex(idx));
+          yield return (scenePath, new SceneBuildIndex(idx));
+        }
+      }
+    }
+  }
 
   /// <summary>Emitted when a scene is loaded.</summary>
   [Record(ConstructorFlags.Constructor)]
@@ -74,7 +102,9 @@ namespace FPCSharpUnity.unity.Utilities {
       );
 
     public LoadedSceneCount loadedSceneCount => new(SceneManager.sceneCount);
-    public SceneCountInBuildSettings sceneCountInBuildSettings => new(SceneManager.sceneCountInBuildSettings);
+    
+    /// <inheritdoc cref="ScenesInBuildSettings"/>
+    public ScenesInBuildSettings scenesInBuildSettings => new(SceneManager.sceneCountInBuildSettings);
   
     /// <inheritdoc cref="SceneManagerLoadedScenes"/>
     public SceneManagerLoadedScenes loadedScenes => new(loadedSceneCount);

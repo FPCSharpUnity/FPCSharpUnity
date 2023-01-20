@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.debug;
 using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
@@ -43,15 +43,8 @@ namespace FPCSharpUnity.unity.Dispose {
     }
 
     public void track(
-      IDisposable a,
-      [CallerMemberName] string callerMemberName = "",
-      [CallerFilePath] string callerFilePath = "",
-      [CallerLineNumber] int callerLineNumber = 0
-    ) => tracker.track(
-      // ReSharper disable ExplicitCallerInfoArgument
-      a, callerMemberName: callerMemberName, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber
-      // ReSharper restore ExplicitCallerInfoArgument
-    );
+      IDisposable a, [Implicit] CallerData callerData = default
+    ) => tracker.track(a, callerData);
 
     public void untrack(IDisposable a) => tracker.untrack(a);
   }
