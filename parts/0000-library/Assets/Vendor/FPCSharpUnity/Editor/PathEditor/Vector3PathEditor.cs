@@ -291,7 +291,7 @@ namespace FPCSharpUnity.unity.Tween.path {
       var handleSize = HandleUtility.GetHandleSize(currentNode) * behaviour.nodeHandleSize;
 
       var newPos = Handles.FreeMoveHandle(
-        currentNode, Quaternion.identity, handleSize, Vector3.zero, Handles.SphereHandleCap
+        currentNode, handleSize, Vector3.zero, Handles.SphereHandleCap
       );
       if (behaviour.showDirection)
         drawArrows(currentNode, idx, handleSize * 1.5f);
