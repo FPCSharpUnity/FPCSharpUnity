@@ -14,6 +14,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.core.utils;
 using UnityEngine;
+using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public readonly struct DConsoleRegistrar {
@@ -71,21 +72,21 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       string name, HasObjFunc<Obj> objOpt, Func<DConsoleCommandAPI, Obj, Future<A>> run, KeyCodeWithModifiers? shortcut = null,
       Func<bool> canShow = null
     ) {
-      var prefixedName = $"[DC|{commandGroup}]> {name}";
+      var prefixedName = $"[DC|{s(commandGroup)}]> {s(name)}";
       return console.register(new DConsole.Command(commandGroup, name, shortcut.toOption(), api => {
         var opt = objOpt();
         if (opt.valueOut(out var obj)) {
           var returnFuture = run(api, obj);
 
-          void onComplete(A t) => Debug.Log($"{prefixedName} done: {t}");
+          void onComplete(A t) => Debug.Log($"{s(prefixedName)} done: {t}");
           // Check perhaps it is completed immediately.
           if (returnFuture.value.valueOut(out var a)) onComplete(a);
           else {
-            Debug.Log($"{prefixedName} starting.");
+            Debug.Log($"{s(prefixedName)} starting.");
             returnFuture.onComplete(onComplete);
           }
         }
-        else Debug.Log($"{prefixedName} not running: {typeof(Obj)} is None.");
+        else Debug.Log($"{s(prefixedName)} not running: {typeof(Obj)} is None.");
       }, canShow ?? (() => true)));
     }
 
