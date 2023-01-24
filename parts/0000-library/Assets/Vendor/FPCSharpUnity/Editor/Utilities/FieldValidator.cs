@@ -68,8 +68,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
   // WIP
   public partial class FieldValidator {
-    [Record]
-    public partial struct CacheKey {
+    [Record] public readonly partial struct CacheKey {
       public readonly FieldInfo fi;
       public readonly bool isListElement;
     }
