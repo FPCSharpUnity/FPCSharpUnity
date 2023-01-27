@@ -119,14 +119,9 @@
             Replaces the invocation to the full class name of where the invocation is located.
             </summary>
             <example>
-            <code>
-            <![CDATA[
-            // When called from this place.
-            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            // It becomes
+            <code><![CDATA[
             SomeNamespace.SubNamespace.MacroTestsClass.NestedClassGeneric<A>
-            ]]>
-            </code>
+            ]]></code>
             </example>
         </member>
         <member name="P:GenerationAttributes.Macros.classNameShort">
@@ -134,14 +129,7 @@
             Replaces the invocation to the short class name of where the invocation is located.
             </summary>
             <example>
-            <code>
-            <![CDATA[
-            // When called from this place.
-            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            // It becomes
-            NestedClassGeneric
-            ]]>
-            </code>
+            <code>NestedClassGeneric</code>
             </example>
         </member>
         <member name="P:GenerationAttributes.Macros.classAndMethodName">
@@ -150,14 +138,9 @@
             (<see cref="P:GenerationAttributes.Macros.methodName"/>) of where the invocation is located.
             </summary>
             <example>
-            <code>
-            <![CDATA[
-            // When called from this place.
+            <code><![CDATA[
             SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            // It becomes
-            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            ]]>
-            </code>
+            ]]></code>
             </example>
         </member>
         <member name="P:GenerationAttributes.Macros.classAndMethodNameShort">
@@ -166,14 +149,7 @@
             (<see cref="P:GenerationAttributes.Macros.methodName"/>) of where the invocation is located.
             </summary>
             <example>
-            <code>
-            <![CDATA[
-            // When called from this place.
-            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            // It becomes
-            NestedClassGeneric.sampleMethod.localFunc.nestedLocalFunc
-            ]]>
-            </code>
+            <code>NestedClassGeneric.sampleMethod.localFunc.nestedLocalFunc</code>
             </example>
         </member>
         <member name="P:GenerationAttributes.Macros.methodName">
@@ -182,14 +158,7 @@
             function, then it also prints a full path starting from the method.
             </summary>
             <example>
-            <code>
-            <![CDATA[
-            // When called from this place.
-            SomeNamespace.SubNamespace.SomeClass.NestedClassGeneric<A>.sampleMethod.localFunc.nestedLocalFunc
-            // It becomes
-            sampleMethod.localFunc.nestedLocalFunc
-            ]]>
-            </code>
+            <code>sampleMethod.localFunc.nestedLocalFunc</code>
             </example>
         </member>
         <member name="T:GenerationAttributes.TypeInMacros">
