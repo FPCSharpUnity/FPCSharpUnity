@@ -44,6 +44,18 @@ public static partial class GCUtils {
     /// <inheritdoc cref="Profiler.GetAllocatedMemoryForGraphicsDriver"/>
     public readonly long graphicsDriver;
 
+    /// <summary>Renders a debug string.</summary>
+    public string asString() =>
+      $@"
+totalAllocatedMemory: {totalAllocatedMemory.toBytesReadable()}
+totalReservedMemory: {totalReservedMemory.toBytesReadable()}
+totalUnusedReservedMemory: {totalUnusedReservedMemory.toBytesReadable()}
+monoUsedSize: {monoUsedSize.toBytesReadable()}
+monoHeapSize: {monoHeapSize.toBytesReadable()}
+tempAllocator: {tempAllocator.toBytesReadable()}
+graphicsDriver: {graphicsDriver.toBytesReadable()}
+".Trim();
+
     /// <summary>Renders a debug string of memory difference.</summary>
     /// <param name="this">Memory before an action.</param>
     /// <param name="post">Memory stats after an action.</param>

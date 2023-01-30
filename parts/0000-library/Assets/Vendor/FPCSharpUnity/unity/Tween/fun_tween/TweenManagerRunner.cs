@@ -6,6 +6,7 @@ using FPCSharpUnity.core.log;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.macros;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -27,10 +28,19 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
       _instance = null;
     }
     
-    static TweenManagerRunner _instance;
+    /// <summary>
+    /// A weak reference to the runner, so that the managed shell could be garbage collected in case the underlying
+    /// GameObject is destroyed.
+    /// </summary>
+    static Option<WeakReference<TweenManagerRunner>> _instance;
     [PublicAPI] public static TweenManagerRunner instance {
       get {
-        return _instance ? _instance : _instance = create();
+        if (!_instance.valueOut(out var instanceWR) || !instanceWR.TryGetTarget(out var instance) || !instance) {
+          instance = create();
+          _instance = Some.a(instance.weakRef());
+        }
+        
+        return instance;
 
         static TweenManagerRunner create() {
           if (Application.isPlaying) {
@@ -45,7 +55,8 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
       }
     }
 
-    [PublicAPI] public static bool hasActiveInstance => _instance;
+    [PublicAPI] public static bool hasActiveInstance =>
+      _instance.valueOut(out var instanceWR) && instanceWR.TryGetTarget(out var instance) && instance;
 
     [PublicAPI] public UnityPhase phase { get; private set; }
     

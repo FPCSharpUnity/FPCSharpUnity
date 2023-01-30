@@ -7,7 +7,6 @@ using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Functional;
-using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
@@ -21,28 +20,16 @@ namespace FPCSharpUnity.unity.Concurrent {
   [PublicAPI] public static partial class ASync {
     static ASyncHelperBehaviourEmpty coroutineHelper(GameObject go) =>
       go.EnsureComponent<ASyncHelperBehaviourEmpty>();
-
-    static ASyncHelperBehaviour _behaviour;
+    
+    /// <summary>
+    /// A weak reference to the behaviour, so that the managed shell could be garbage collected in case the underlying
+    /// GameObject is destroyed.
+    /// </summary>
+    static Option<WeakReference<ASyncHelperBehaviour>> _behaviour;
 
     public static ASyncHelperBehaviour behaviour { get {
       if (
-#if !UNITY_EDITOR
-        // Cast to System.Object here, to avoid Unity overloaded UnityEngine.Object == operator
-        // which calls into native code to check whether objects are alive (which is a lot slower than
-        // managed reference check).
-        //
-        // The only case where this should be uninitialized is until we create a reference on first access
-        // in managed code.
-        //
-        // ReSharper disable once RedundantCast.0
-        (object)_behaviour == null
-#else
-        // However...
-        //
-        // Managed reference check fails when running in editor tests, because the behaviour gets destroyed
-        // for some reason, so we have to resort to unity checks in editor.
-        !_behaviour
-#endif
+        !_behaviour.valueOut(out var behaviourWr) || !behaviourWr.TryGetTarget(out var behaviour) || !behaviour
       ) {
         const string name = "ASync Helper";
         try {
@@ -50,16 +37,20 @@ namespace FPCSharpUnity.unity.Concurrent {
           // Notice that DontDestroyOnLoad can only be used in play mode and, as such, cannot
           // be part of an editor script.
           if (Application.isPlaying) UnityEngine.Object.DontDestroyOnLoad(go);
-          _behaviour = go.EnsureComponent<ASyncHelperBehaviour>();
+          behaviour = go.EnsureComponent<ASyncHelperBehaviour>();
+          _behaviour = Some.a(behaviour.weakRef());
+          return behaviour;
         }
         catch (Exception e) {
-          Log.d.error(
+          throw new Exception(
             $"Failed to create {name}! Make sure {nameof(ASync)} is initialized from main thread!",
             e
           );
         }
       }
-      return _behaviour;
+      else {
+        return behaviour;
+      }
     } }
 
     static ASync() { behaviour.forSideEffects(); }

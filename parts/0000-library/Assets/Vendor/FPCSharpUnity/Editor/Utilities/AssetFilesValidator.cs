@@ -53,12 +53,14 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
             var obj = AssetDatabase.LoadMainAssetAtPath(path);
             return obj is SceneAsset ? None._ : Some.a((path, obj));
           }).ToArray();
+          
           maybeProgress?.start("Checking prefab assets");
           badPrefabs = prefabPaths.collect((path, idx) => {
             maybeProgress?.progress(idx, prefabPaths.Count);
             var obj = AssetDatabase.LoadMainAssetAtPath(path);
             return obj is GameObject ? None._ : Some.a((path, obj));
           }).ToArray();
+          
           maybeProgress?.start("Checking material assets");
           badMaterials = materialPaths.collect((path, idx) => {
             maybeProgress?.progress(idx, prefabPaths.Count);

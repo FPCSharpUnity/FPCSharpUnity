@@ -138,11 +138,13 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     /// Collect all objects that are needed to create given roots. 
     /// </summary>
     [PublicAPI]
-    public static ImmutableArray<Object> collectDependencies(Object[] roots) => 
-      EditorUtility.CollectDependencies(roots)
-        .Where(o => o is GameObject or ScriptableObject)
-        .Distinct()
-        .ToImmutableArray();
+    public static ImmutableArray<Object> collectDependencies(Object[] roots) =>
+      roots.isEmpty() 
+        ? ImmutableArray<Object>.Empty 
+        : EditorUtility.CollectDependencies(roots)
+          .Where(o => o is GameObject or ScriptableObject)
+          .Distinct()
+          .ToImmutableArray();
 
     /// <summary>Invoked to report the progress.</summary>
     /// <returns>True if we should abort the validation.</returns>

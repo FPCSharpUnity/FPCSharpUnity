@@ -48,25 +48,22 @@ public partial class StateExposer {
     public static Scope operator /(Scope e, ScopeKey name) => e.withScope(name);
 
     /// <summary>Exposes a named value that is available statically (not via an object instance).</summary>
-    public void exposeStatic(string name, Func<IRenderableValue> get) => add(new StaticData(name, get));
-    public void exposeStatic(string name, Func<string> get) => exposeStatic(name, () => new StringValue(get()));
-    public void exposeStatic(string name, Func<float> get) => exposeStatic(name, () => new FloatValue(get()));
-    public void exposeStatic(string name, Func<bool> get) => exposeStatic(name, () => new BoolValue(get()));
-    public void exposeStatic(string name, Func<UnityEngine.Object> get) => exposeStatic(name, () => new ObjectValue(get()));
-    public void exposeStatic(string name, Func<Action> onClick) => exposeStatic(name, () => new ActionValue(onClick()));
-    /// <summary>Helper for exposing <see cref="Future{A}"/>.</summary>
-    public void exposeStatic<A>(string name, Func<Future<A>> get) => exposeStatic(name, () => get().ToString());
+    /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
+    public void exposeStatic(string name, Func<RenderableValue> get) => add(new StaticData(name, get));
       
-    /// <summary>Exposes a named value that is available via an object instance.</summary>
-    public void expose<A>(A reference, string name, Func<A, IRenderableValue> get) where A : class => 
-      add(new InstanceData<A>(reference.weakRef(), name, get));
+    /// <summary>
+    /// Exposes a named value that is available via an object instance.
+    /// </summary>
+    /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
+    public void expose<A, Data>(A reference, string name, Data data, Render<A, Data> render) where A : class => 
+      add(new InstanceData<A, Data>(reference.weakRef(), name, data, render));
       
     /// <summary>
     /// Helper for exposing <see cref="Future{A}"/>. Does not do anything if the future is not async (because it's a
     /// struct then).
     /// </summary>
     public void expose<A>(Future<A> future, string name) {
-      if (future.asHeapFuture.valueOut(out var heapFuture)) expose(heapFuture, name, _ => _.ToString());
+      if (future.asHeapFuture.valueOut(out var heapFuture)) expose(heapFuture, name, Unit._, static (f, _) => f.ToString());
     }
   }
 }

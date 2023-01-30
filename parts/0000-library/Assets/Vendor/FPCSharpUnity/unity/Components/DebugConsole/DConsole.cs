@@ -104,6 +104,10 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
             $"mode={GarbageCollector.GCMode}, incremental={GarbageCollector.isIncremental}, "
             + $"incremental slice={GarbageCollector.incrementalTimeSliceNanoseconds}ns"
           );
+          r.register(
+            "Memory stats", () => GCUtils.MemoryStats.get().asString(),
+            Ctrl+Alt+KeyCode.M
+          );
           r.register("Run GC", () => {
             var pre = GCUtils.MemoryStats.get();
             GCUtils.runGC();
@@ -125,6 +129,16 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
             clearVisibleLog();
           });
+        }
+      );
+
+      dConsole.registrarOnShow(
+        NeverDisposeDisposableTracker.instance, "Scenes in Build List",
+        (_, r) => {
+          var manager = SceneManagerBetter.instance;
+          foreach (var tpl in manager.scenesInBuildSettings.all) {
+            r.register($"Load [{s(tpl.buildIndex)}: {s(tpl.path.toSceneName)}]", () => manager.loadScene(tpl.buildIndex));
+          }
         }
       );
       
@@ -532,9 +546,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       void addMessagesToLayoutEveryFrame() {
         var cache = new List<string>();
+        var entriesToAdd = new List<DynamicVerticalLayoutLogElementData>();
         tracker.track(ASync.EveryFrame(() => {
           if (!addMessagesToLayoutEnabled) return true;
           
+          entriesToAdd.Clear();
           lock (messagesToAdd) {
             if (!messagesToAdd.IsEmpty) {
               var lineWidth = binding.lineWidth;
@@ -542,12 +558,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
               while (!messagesToAdd.IsEmpty && processedLines < BATCH_SIZE_FOR_ADDING_LINES_TO_VIEW) {
                 var entry = messagesToAdd.RemoveFront();
                 foreach (var e in createEntries(entry, pool, cache, lineWidth)) {
-                  layout.appendDataIntoLayoutData(e);
+                  entriesToAdd.Add(e);
                   processedLines++;
                 }
               }
             }
           }
+          
+          layout.appendDataIntoLayoutData(entriesToAdd);
+          entriesToAdd.Clear();
           
           return true;
         }));
