@@ -27,15 +27,71 @@
             Special enum used only here. Add more values when you need them.
             </summary>
         </member>
+        <member name="T:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet">
+            <param name="list">
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </param>
+        </member>
+        <member name="M:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet.#ctor(System.String[])">
+            <param name="list">
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </param>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet.list">
+            <summary>
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet.op_Implicit(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax)~IncrementalCompiler.CodeGeneration.TypeParameterListMagnet">
+            <summary>For backwards compatibility.</summary>
+        </member>
         <member name="T:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs">
             <summary>
             Information about the type that contains record fields.
             </summary>
+            <param name="identifier">Identifier without generic types, for example <![CDATA[`Foo`]]></param>
+            <param name="fullName">FQDN Identifier without generic types, for example <![CDATA[`foo.bar.baz.Foo`]]></param>
+            <param name="isGeneric">
+            true if the type or any of the parent types (if this is a nested type) are generic.
+            </param>
+            <param name="maybeTypeParameterList">
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </param>
         </member>
-        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax})">
+        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,IncrementalCompiler.CodeGeneration.TypeParameterListMagnet,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax})">
             <summary>
             Information about the type that contains record fields.
             </summary>
+            <param name="identifier">Identifier without generic types, for example <![CDATA[`Foo`]]></param>
+            <param name="fullName">FQDN Identifier without generic types, for example <![CDATA[`foo.bar.baz.Foo`]]></param>
+            <param name="isGeneric">
+            true if the type or any of the parent types (if this is a nested type) are generic.
+            </param>
+            <param name="maybeTypeParameterList">
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </param>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.identifier">
+            <summary>Identifier without generic types, for example <![CDATA[`Foo`]]></summary>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.fullName">
+            <summary>FQDN Identifier without generic types, for example <![CDATA[`foo.bar.baz.Foo`]]></summary>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.isGeneric">
+            <summary>
+            true if the type or any of the parent types (if this is a nested type) are generic.
+            </summary>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList">
+            <summary>
+            array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
+            </summary>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.filteredTypeParameterList">
+            <summary>As <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList"/> but returns null if the list has 0 elements.</summary>
+        </member>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.typeParameterListStr">
+            <summary>Rendered <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList"/>.</summary>
         </member>
         <member name="T:IncrementalCompiler.RegisterGeneratorsBase">
             <summary>
