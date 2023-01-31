@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.unity.Collection;
@@ -31,6 +32,8 @@ using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public partial class DConsole {
+    public const string DEFINE_ENABLE_DCONSOLE = "ENABLE_DCONSOLE";
+    
     /// <summary>
     /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in non-debug builds.
     /// </summary>
@@ -158,7 +161,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// Set of callbacks to invoke when a <see cref="DConsole"/> is shown.
     /// </summary>
     readonly HashSet<OnShow> onShow = new();
-    
+
     /// <summary>
     /// As <see cref="registerOnShow"/> but gives you <see cref="DConsoleRegistrar"/> for the given
     /// <see cref="prefix"/>.
@@ -166,11 +169,11 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="tracker">When this is disposed the registration will be destroyed.</param>
     /// <param name="prefix"><see cref="DConsoleRegistrar.commandGroup"/></param>
     /// <param name="action"><see cref="OnShow"/> with the created <see cref="DConsoleRegistrar"/>.</param>
-    /// <returns>Dispose of me to unregister.</returns>
-    public ISubscription registrarOnShow(
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
+    public void registrarOnShow(
       ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
-      [Implicit] CallerData callerData = default
-    ) =>
+      [Implicit] CallerData callerData = default  
+    ) => 
       registerOnShow(
         tracker, 
         commands => {
@@ -186,11 +189,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="tracker">When this is disposed the registration will be destroyed.</param>
     /// <param name="runOnShow"></param>
     /// <returns>Dispose of me to unregister.</returns>
-    public ISubscription registerOnShow(
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
+    public void registerOnShow(
       ITracker tracker, OnShow runOnShow, [Implicit] CallerData callerData = default
     ) {
       if (!Application.isPlaying) {
-        return Subscription.empty;
+        return;
       }
 
       ISubscription sub = null;
@@ -202,12 +206,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       });
       onShow.Add(runOnShow);
       tracker.track(sub, callerData);
-      return sub;
     }
 
     /// <summary>Will be `Some` if a view is currently instantiated.</summary>
     readonly IRxRef<Option<ViewInstance>> currentViewRx = RxRef.a<Option<ViewInstance>>(None._);
 
+#if ENABLE_DCONSOLE
     public static IRxObservable<DebugSequenceInvocationMethod> createDebugSequenceObservable(
       ITracker tracker,
       ITimeContextUnity timeContext = null,
@@ -256,6 +260,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       var obs = new [] {mouseObs, directionObs, keyboardShortcutObs}.joinAll();
       return obs;
     }
+#endif
     
     /// <summary>
     /// Show <see cref="DConsole"/> <see cref="instance"/> when <see cref="showObservable"/> emits an event.
@@ -264,6 +269,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="showObservable">Obtain it via <see cref="createDebugSequenceObservable"/>.</param>
     /// <param name="unlockCode"></param>
     /// <param name="binding"></param>
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
     public static void registerDebugSequence(
       ITracker tracker, 
       IRxObservable<DebugSequenceInvocationMethod> showObservable, Option<string> unlockCode, 
@@ -279,6 +285,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// If provided the command buttons are not visible until user enters the given unlock code.
     /// </param>
     /// <param name="prefab">Which prefab to use. Uses the default one from resources if not provided.</param>
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
     public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null) {
       // Just maximize it if we already have an instance. 
       {if (currentViewRx.value.valueOut(out var currentInstance)) {
