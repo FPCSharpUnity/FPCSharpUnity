@@ -187,6 +187,13 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         callerData
       );
     
+    /// <inheritdoc cref="registrarOnShowWithReturn"/>
+    // Creating an overload for registrarOnShowWithReturn with a void return type, required
+    // by the use of the 'Conditional' attribute.
+    //
+    // Retaining this overload with its original name, and renaming the original method to a different name
+    // to ensure that the method with the 'Conditional' attribute is called everywhere instead of the original one,
+    // without affecting other areas where the code is used.
     [Conditional("ENABLE_DCONSOLE")]
     public void registrarOnShow(
       ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
