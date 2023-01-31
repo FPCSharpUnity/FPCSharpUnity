@@ -18,8 +18,9 @@ namespace Code.Utils {
     public static PrefVal<bool> devForcedFastestQualitySetting =>
       PrefVal.player.boolean("forced-fastest-quality-setting", false);
 
-    public static ISubscription registerTextureConsole(ITracker tracker) =>
-      DConsole.instance.registrarOnShow(
+#if ENABLE_DCONSOLE
+    public static ISubscription registerTextureDConsole(ITracker tracker) =>
+      DConsole.instance.registrarOnShowWithReturn(
         tracker, "Textures",
         (dc, r) => {
           r.register("Texture format support", () =>
@@ -47,6 +48,8 @@ namespace Code.Utils {
             r.register($"{nameof(devForcedFastestQualitySetting)} to {b}", () => devForcedFastestQualitySetting.value = b);
         }
       );
+#endif
+
 
     public static float textureSizeInBytes(Texture2D tex) {
       var size = tex.width * tex.height * bitsPerPixelOnCurrentDevice(tex.format) / 8f;

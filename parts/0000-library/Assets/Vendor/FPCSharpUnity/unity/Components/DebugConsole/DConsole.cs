@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.unity.Collection;
@@ -65,11 +66,15 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// </summary>
     static bool dConsoleUnlocked;
     
+#if ENABLE_DCONSOLE
     /// <summary>Will be true if the view is currently instantiated and not minimized.</summary>
     [LazyProperty] public IRxVal<bool> isActiveAndMaximizedRx =>
       currentViewRx.flatMap(static maybeView => 
         maybeView.map(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
       );
+#else
+    public readonly IRxVal<bool> isActiveAndMaximizedRx = RxVal.staticallyCached(false);
+#endif
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
 
@@ -167,10 +172,24 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <param name="prefix"><see cref="DConsoleRegistrar.commandGroup"/></param>
     /// <param name="action"><see cref="OnShow"/> with the created <see cref="DConsoleRegistrar"/>.</param>
     /// <returns>Dispose of me to unregister.</returns>
-    public ISubscription registrarOnShow(
+    public ISubscription registrarOnShowWithReturn(
       ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
       [Implicit] CallerData callerData = default
     ) =>
+      registerOnShow(
+        tracker, 
+        commands => {
+          var r = commands.registrarFor(prefix);
+          action(commands, r);
+        },
+        callerData
+      );
+    
+    [Conditional("ENABLE_DCONSOLE")]
+    public void registrarOnShow(
+      ITracker tracker, string prefix, Action<Commands, DConsoleRegistrar> action,
+      [Implicit] CallerData callerData = default  
+    ) => 
       registerOnShow(
         tracker, 
         commands => {
@@ -279,6 +298,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// If provided the command buttons are not visible until user enters the given unlock code.
     /// </param>
     /// <param name="prefab">Which prefab to use. Uses the default one from resources if not provided.</param>
+    [Conditional("ENABLE_DCONSOLE")]
     public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null) {
       // Just maximize it if we already have an instance. 
       {if (currentViewRx.value.valueOut(out var currentInstance)) {
