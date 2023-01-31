@@ -32,6 +32,8 @@ using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public partial class DConsole {
+    public const string DEFINE_ENABLE_DCONSOLE = "ENABLE_DCONSOLE";
+    
     /// <summary>
     /// Maximum amount of entries to keep in <see cref="backgroundLogEntries"/> in non-debug builds.
     /// </summary>
