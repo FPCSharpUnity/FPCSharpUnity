@@ -18,7 +18,7 @@ namespace Code.Utils {
     public static PrefVal<bool> devForcedFastestQualitySetting =>
       PrefVal.player.boolean("forced-fastest-quality-setting", false);
 
-    public static ISubscription registerTextureConsole(ITracker tracker) =>
+    public static void registerTextureDConsole(ITracker tracker) =>
       DConsole.instance.registrarOnShow(
         tracker, "Textures",
         (dc, r) => {
