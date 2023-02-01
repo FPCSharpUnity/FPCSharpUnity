@@ -3,6 +3,8 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Logger;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +12,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
   /// <summary>
   /// Shows a modal editor window where a user can enter some text.
   /// </summary>
-  public class EditorInputDialog : EditorWindow, IMB_OnGUI {
+  public class EditorInputDialog : EditorWindow, IMB_OnGUI, IMB_OnDestroy {
     string dialogTitle, submitText, cancelText, currentValue = "";
     Option<string> helpText;
     Promise<Option<string>> promise;
@@ -42,12 +44,22 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       window.submitText = submitText;
       window.cancelText = cancelText;
       var resolution = Screen.currentResolution;
+
+      // Window.position is broken when 'Preferences/Ui scaling' is not 100%.
+      //
+      // For example if we try to put window at x=100 and y=100 with 150% scaling, the window gets placed at x=150 and
+      // y=150 instead.
+      // 
+      // We can fix this by dividing position by UI scale factor.
+      var pixelsPerUnit = EditorGUIUtility.pixelsPerPoint;
+      
       var displayWidth = resolution.width;
       var displayHeight = resolution.height;
-      var windowWidth = displayWidth * width;
-      var windowHeight = displayHeight * height;
-      var windowX = displayWidth * windowCenterXPosition - windowWidth / 2;
-      var windowY = displayHeight * windowCenterYPosition - windowHeight / 2;
+      var windowWidth = displayWidth * width / pixelsPerUnit;
+      var windowHeight = displayHeight * height / pixelsPerUnit;
+      var windowX = displayWidth * windowCenterXPosition / pixelsPerUnit - windowWidth / 2;
+      var windowY = displayHeight * windowCenterYPosition / pixelsPerUnit - windowHeight / 2;
+
       window.position = new Rect(windowX, windowY, windowWidth, windowHeight);
       window.ShowPopup();
       return future;
@@ -84,6 +96,10 @@ namespace FPCSharpUnity.unity.Editor.Utils {
         Close();
       }
       GUILayout.EndHorizontal();
+    }
+
+    public void OnDestroy() {
+      promise.tryComplete(None._);
     }
   }
 }
