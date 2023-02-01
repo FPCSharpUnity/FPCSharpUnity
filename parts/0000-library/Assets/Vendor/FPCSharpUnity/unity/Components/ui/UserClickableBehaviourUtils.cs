@@ -2,18 +2,15 @@
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Extensions;
-using FPCSharpUnity.unity.Utilities;
-using Sirenix.Utilities.Editor;
-using UnityEditor;
-using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui;
 
 /// <summary>
 /// Common code for clickable UI elements validation.
 /// </summary>
-public static class UserClickableBehaviourUtils {
+public static partial class UserClickableBehaviourUtils {
   /// <summary> Validates whether this button can be clicked by the user. </summary>
   /// <returns>Whether the component is valid.</returns>
   public static bool validateIfThisWillBeClickable<A>(
@@ -65,27 +62,7 @@ public static class UserClickableBehaviourUtils {
   /// <summary>
   /// Common code we use to display information message in inspector UI.
   /// </summary>
-  public static void showInInspector(GameObject gameObject) {
-#if UNITY_EDITOR
-    var withoutGraphicRaycaster = parentWithoutGraphicRaycaster(gameObject);
-    var hasRayCastedChildren = getHasRayCastedChildren(gameObject.transform);
-    var maybeErrorMsg = errorMessageIfSetupIsInvalid(gameObject.transform, withoutGraphicRaycaster, hasRayCastedChildren,
-      componentName: ""
-    );
-    if (maybeErrorMsg.valueOut(out var errorMsg)) {
-      SirenixEditorGUI.MessageBox(errorMsg, MessageType.Error);
+  public static void showInInspector(GameObject gameObject) => showInInspectorEditorPart(gameObject);
 
-      {if (withoutGraphicRaycaster.valueOut(out var go)) {
-        EditorGUILayout.ObjectField($"Canvas on: {go.name}", go.GetComponent<Canvas>(), typeof(Canvas));
-      }}
-      
-      if (withoutGraphicRaycaster.isSome && GUILayout.Button("Fix Graphic Raycasters")) {
-        foreach (var rt in withoutGraphicRaycaster) {
-          rt.gameObject.recordEditorChanges($"add {nameof(GraphicRaycaster)}");
-          rt.gameObject.AddComponent<GraphicRaycaster>();
-        }          
-      }
-    }
-#endif
-  }
+  static partial void showInInspectorEditorPart(GameObject gameObject);
 }
