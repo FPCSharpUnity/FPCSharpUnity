@@ -60,9 +60,13 @@ public static partial class UserClickableBehaviourUtils {
     );
   
   /// <summary>
-  /// Common code we use to display information message in inspector UI.
+  /// Common code we use to display information message in inspector UI for component that needs to be validated.
   /// </summary>
   public static void showInInspector(GameObject gameObject) => showInInspectorEditorPart(gameObject);
 
+  /// <summary>
+  /// Common code we use to display information message in inspector UI for component that needs to be validated.
+  /// It's implemented in partial file and has #if UNITY_EDITOR.
+  /// </summary>
   static partial void showInInspectorEditorPart(GameObject gameObject);
 }

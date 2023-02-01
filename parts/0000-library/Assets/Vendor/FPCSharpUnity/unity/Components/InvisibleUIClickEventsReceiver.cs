@@ -20,6 +20,7 @@ namespace FPCSharpUnity.unity.Components {
     // Do not generate mesh (do not call base).
     [Obsolete] protected override void OnFillVBO(List<UIVertex> vbo) {}
     
+    /// <inheritdoc cref="UserClickableBehaviourUtils.showInInspector"/>
     [OnInspectorGUI] void fixRayCastersGui() => UserClickableBehaviourUtils.showInInspector(gameObject);
 
 
