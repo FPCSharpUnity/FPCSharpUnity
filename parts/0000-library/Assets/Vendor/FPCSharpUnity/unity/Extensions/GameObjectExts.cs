@@ -147,6 +147,7 @@ namespace FPCSharpUnity.unity.Extensions {
       }
     }
 
-    public static void destroyGameObject(this GameObject go) => Object.Destroy(go);
+    /// <inheritdoc cref="UnityObjectExts.destroySafe"/>
+    public static void destroyGameObject(this GameObject go) => go.destroySafe();
   }
 }

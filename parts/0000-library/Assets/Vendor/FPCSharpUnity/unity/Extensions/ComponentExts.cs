@@ -40,8 +40,8 @@ namespace FPCSharpUnity.unity.Extensions {
     public static Option<A> GetComponentInChildrenOption<A>(this Component c) where A : Object =>
       F.opt(c.GetComponentInChildren<A>());
 
-    public static void destroyGameObject(this Component c) => Object.Destroy(c.gameObject);
-    public static void destroyComponent(this Component c) => Object.Destroy(c);
+    public static void destroyGameObject(this Component c) => c.gameObject.destroySafe();
+    public static void destroyComponent(this Component c) => c.destroySafe();
 
     /// <summary>
     /// This is made so that you could do:
