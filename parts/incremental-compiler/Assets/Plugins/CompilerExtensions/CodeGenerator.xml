@@ -145,6 +145,16 @@
             Converts <see cref="T:Microsoft.CodeAnalysis.Accessibility"/> to a visibility modifier that can be used in the code (like `public`).
             </summary>
         </member>
+        <member name="M:IncrementalCompiler.Extensions.TryAdd``2(System.Collections.Immutable.ImmutableDictionary{``0,``1}.Builder,``0,``1,``1@)">
+            <summary>
+            Tries to add the key/value pair to the builder, returns false and <see cref="!:existingValue"/> if that fails. 
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.TryAdd``2(System.Collections.Generic.IDictionary{``0,``1},``0,``1,``1@)">
+            <summary>
+            Tries to add the key/value pair to the dictionary, returns false and <see cref="!:existingValue"/> if that fails. 
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.GeneratorCtx">
             <summary>
             This class is instantiated per C# file.
