@@ -292,7 +292,7 @@ namespace FPCSharpUnity.unity.Tween.path {
 
       var newPos = Handles.FreeMoveHandle(
         currentNode,
-#if !UNITY_2022_OR_LATER
+#if !UNITY_2022_1_OR_NEWER
         rotation: Quaternion.identity,
 #endif
         handleSize,
