@@ -31,7 +31,7 @@ namespace FPCSharpUnity.unity.Extensions {
       var downAt = go.uiDown().map(downMapper);
       var upAt = go.uiUp().map(upMapper);
       return downAt
-        .zip(upAt, (downAt, up) =>
+        .zipObservable(upAt, (downAt, up) =>
           // We need to filter this to prevent an event firing in the case of UP -> DOWN event sequence. 
           up.at >= downAt ? Some.a(new UIDownUpResult(up.at - downAt, up.data)) : None._
         )

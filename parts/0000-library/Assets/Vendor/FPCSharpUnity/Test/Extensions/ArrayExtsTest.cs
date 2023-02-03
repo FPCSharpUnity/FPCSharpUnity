@@ -101,7 +101,7 @@ namespace FPCSharpUnity.unity.Extensions {
     public void shiftLeft() => describe(() => {
       when["shift argument is invalid"] = () => {
         var src = new int[0];
-        beforeEach += () => src = new[] {1, 2, 3};
+        addBeforeEach(() => src = new[] {1, 2, 3});
         
         it["should throw an exception"] = () => Assert.Throws(
           typeof(ArgumentException), () => src.shiftLeft((uint) src.Length)          
