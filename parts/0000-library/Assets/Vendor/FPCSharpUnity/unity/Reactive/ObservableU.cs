@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
@@ -23,7 +22,7 @@ namespace FPCSharpUnity.unity.Reactive {
     }
 
     public static IRxObservable<Unit> everyFrame =>
-      everyFrameInstance ??= new Observable<Unit>(observer => {
+      everyFrameInstance ??= new Observable<Unit>((observer, target) => {
         var cr = ASync.StartCoroutine(everyFrameCR(observer));
         return new Subscription(cr.stop);
       });
@@ -97,7 +96,7 @@ namespace FPCSharpUnity.unity.Reactive {
       Duration interval, Option<Duration> delay=default
     ) {
       Option.ensureValue(ref delay);
-      return new Observable<DateTime>(observer => {
+      return new Observable<DateTime>((observer, target) => {
         var cr = ASync.StartCoroutine(intervalEnum(observer, interval, delay));
         return new Subscription(cr.stop);
       });

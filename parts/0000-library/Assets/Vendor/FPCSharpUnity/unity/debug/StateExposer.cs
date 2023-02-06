@@ -2,6 +2,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.inspection;
 using FPCSharpUnity.core.macros;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
@@ -40,9 +41,10 @@ namespace FPCSharpUnity.unity.debug {
             return new HeaderValue(
               new StringValue($"{s(tracker.trackedCount)} tracked @ {s(key.ToShortString())}"),
               new EnumerableValue(
-                tracker.trackedDisposables
-                  .OrderBySafe(_ => _.asString())
-                  .Select(tracked => new StringValue(tracked.asString()))
+                tracker.getLinks()
+                  .Select(_ => _.createdAt.asString())
+                  .OrderBySafe(_ => _)
+                  .Select(tracked => new StringValue(tracked))
                   .ToArrayFast()
               )
             );

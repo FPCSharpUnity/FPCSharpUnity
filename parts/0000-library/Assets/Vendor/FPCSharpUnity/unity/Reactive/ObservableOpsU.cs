@@ -23,7 +23,7 @@ namespace FPCSharpUnity.unity.Reactive {
     public static IRxObservable<A> oncePerFrameShared<A>(
       this IRxObservable<A> o, Ref<int> frameNoRx
     ) =>
-      new Observable<A>(onEvent => o.subscribe(
+      new Observable<A>((onEvent, target) => o.subscribe(
         NoOpDisposableTracker.instance, 
         a => {
           var frameNo = Time.frameCount;
@@ -31,7 +31,8 @@ namespace FPCSharpUnity.unity.Reactive {
             frameNoRx.value = frameNo;
             onEvent(a);
           }
-        }
+        },
+        targetInspectable: target
       ));
   }
 }
