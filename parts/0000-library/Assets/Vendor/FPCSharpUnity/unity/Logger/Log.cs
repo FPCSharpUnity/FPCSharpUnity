@@ -50,6 +50,16 @@ namespace FPCSharpUnity.unity.Logger {
             getRegistered().OrderBySafe(_ => s(_.Key)).Select(kv => $"{s(kv.Key)}: {kv.Value.level}")
               .mkStringEnumNewLines()
           );
+          r.registerEnum("Level", Ref.a(
+            () => d.level,
+            v => {
+              // Note: we get current registered logs on button press, do not cache the result.
+              var registered = getRegistered();
+              foreach (var log in registered.Values) {
+                log.level = v;
+              }
+            }
+          ), levels);
         }
         
         // Render other loggers
