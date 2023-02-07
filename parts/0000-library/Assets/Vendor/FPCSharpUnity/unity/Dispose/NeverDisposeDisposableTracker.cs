@@ -45,8 +45,8 @@ namespace FPCSharpUnity.unity.Dispose {
     }
 
     public void track(
-      IDisposable a, [Implicit] CallerData callerData = default
-    ) => tracker.track(a, callerData);
+      IDisposable a, [Implicit] CallerData callerData = default, IInspectable inspectable = null
+    ) => tracker.track(a, callerData, inspectable);
 
     public void untrack(IDisposable a) => tracker.untrack(a);
 
