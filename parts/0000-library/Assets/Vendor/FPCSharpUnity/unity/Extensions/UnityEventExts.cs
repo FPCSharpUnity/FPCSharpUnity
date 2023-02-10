@@ -21,7 +21,7 @@ namespace FPCSharpUnity.unity.Extensions {
     }
 
     public static IRxObservable<A> toObservable<A>(this UnityEvent<A> evt) =>
-      new Observable<A>(push => {
+      new Observable<A>((push, target) => {
         var action = new UnityAction<A>(a => push(a));
         evt.AddListener(action);
         return new Subscription(() => evt.RemoveListener(action));

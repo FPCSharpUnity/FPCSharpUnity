@@ -68,7 +68,7 @@ namespace FPCSharpUnity.unity.Components {
         return true;
       }
       regionIndex.subscribe(
-        tracker, callerData: callerData,
+        tracker, subscribedFrom: callerData,
         // ReSharper restore ExplicitCallerInfoArgument
         onEvent: region => {
           // Clear up one item if the queue is full.

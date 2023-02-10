@@ -7,6 +7,7 @@ using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.inspection;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Dispose {
@@ -44,9 +45,12 @@ namespace FPCSharpUnity.unity.Dispose {
     }
 
     public void track(
-      IDisposable a, [Implicit] CallerData callerData = default
-    ) => tracker.track(a, callerData);
+      IDisposable a, [Implicit] CallerData callerData = default, IInspectable inspectable = null
+    ) => tracker.track(a, callerData, inspectable);
 
     public void untrack(IDisposable a) => tracker.untrack(a);
+
+    public CallerData createdAt => tracker.createdAt;
+    public void copyLinksTo(List<IInspectable> copyTo) => tracker.copyLinksTo(copyTo);
   }
 }

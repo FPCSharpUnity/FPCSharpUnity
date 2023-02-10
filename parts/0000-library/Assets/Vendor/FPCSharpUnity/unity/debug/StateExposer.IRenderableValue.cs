@@ -78,6 +78,7 @@ public partial class StateExposer {
   [Record] public sealed partial class EnumerableValue : RenderableValue {
     /// <summary>Should we render the element count?</summary>
     public readonly bool showCount;
+    
     public readonly IReadOnlyCollection<RenderableValue> values;
 
     public EnumerableValue(IReadOnlyCollection<RenderableValue> values) : this(showCount: true, values) {}

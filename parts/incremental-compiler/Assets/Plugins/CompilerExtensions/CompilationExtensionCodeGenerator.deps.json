@@ -240,11 +240,11 @@
           }
         }
       },
-      "JetBrains.Annotations/2020.1.0.0": {
+      "JetBrains.Annotations/2021.3.0.0": {
         "runtime": {
           "JetBrains.Annotations.dll": {
-            "assemblyVersion": "2020.1.0.0",
-            "fileVersion": "2020.1.0.0"
+            "assemblyVersion": "2021.3.0.0",
+            "fileVersion": "2021.3.0.0"
           }
         }
       }
@@ -370,7 +370,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "JetBrains.Annotations/2020.1.0.0": {
+    "JetBrains.Annotations/2021.3.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

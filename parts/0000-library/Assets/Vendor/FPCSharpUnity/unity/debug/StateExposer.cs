@@ -1,8 +1,12 @@
+using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.inspection;
 using FPCSharpUnity.core.macros;
+using FPCSharpUnity.core.reactive;
+using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
 
@@ -41,8 +45,30 @@ namespace FPCSharpUnity.unity.debug {
               new StringValue($"{s(tracker.trackedCount)} tracked @ {s(key.ToShortString())}"),
               new EnumerableValue(
                 tracker.trackedDisposables
-                  .OrderBySafe(_ => _.asString())
-                  .Select(tracked => new StringValue(tracked.asString()))
+                  .OrderBySafe(_ => _.createdAt.asShortString())
+                  .Select(tracked => {
+                    var values = new List<RenderableValue>{
+                      new StringValue(tracked.createdAt.asShortString()),
+                      new StringValue($"{tracked.createdAt.filePath}:{tracked.createdAt.lineNumber}"),
+                    };
+                    {if (tracked.inspectable.valueOut(out var inspectable)) {
+                      values.Add(new ActionValue("Copy reference tree to clipboard", () => {
+                        var str = inspectable switch {
+                          // A hardcoded cast for a known type.
+                          IRxObservable observable => 
+                            $"Tracked from: {tracked.createdAt.asString()}\n"
+                            + $"  {observable.renderObservableInspectionData().indentLines("  ", indentFirst: false)}",
+                          _ => 
+                            $"Tracked from: {tracked.createdAt.asString()}\n"
+                            + $"  Inspectable '{inspectable}' created from:\n"
+                            + $"  {inspectable.renderInspectable().indentLines("  ", indentFirst: false)}"
+                        };
+                        Clipboard.value = str;
+                      }));
+                    }}
+                    
+                    return new EnumerableValue(showCount: false, values);
+                  })
                   .ToArrayFast()
               )
             );

@@ -72,5 +72,17 @@ namespace FPCSharpUnity.unity.editor;
     if (pressed) currentState = !currentState;
     return pressed;
   }
+
+  /// <summary>
+  /// As <see cref="GUILayout.Button(string,UnityEngine.GUILayoutOption[])"/> but respects
+  /// <see cref="EditorGUI.indentLevel"/>.
+  /// </summary>
+  /// <note>
+  /// Courtesy of https://forum.unity.com/threads/indenting-guilayout-objects.113494/#post-3350520
+  /// </note>
+  public static bool Button(string text) {
+    var rect = EditorGUI.IndentedRect(EditorGUILayout.GetControlRect());
+    return GUI.Button(rect, text);
+  }
 }
 #endif

@@ -10,6 +10,7 @@ using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.editor;
 using FPCSharpUnity.unity.Utilities;
 using UnityEditor;
 using UnityEngine;
@@ -22,12 +23,14 @@ namespace FPCSharpUnity.unity.debug {
     public static void OpenWindow() => GetWindow<StateExposerEditorWindow>("State Exposer").Show();
     
     static readonly LazyVal<GUIStyle> 
-      multilineTextStyle = Lazy.a(() => new GUIStyle {
+      multilineTextStyle = Lazy.a(() => new GUIStyle(EditorStyles.label) {
         wordWrap = true, alignment = TextAnchor.UpperLeft, richText = false
       }),
-      scopeKeyTextStyle = Lazy.a(() => new GUIStyle { fontSize = 14, fontStyle = FontStyle.Bold }),
-      objectInstanceTextStyle = Lazy.a(() => new GUIStyle { fontStyle = FontStyle.Bold }),
-      longLabelTextStyle = Lazy.a(() => new GUIStyle { fontStyle = FontStyle.Bold });
+      scopeKeyTextStyle = Lazy.a(() => new GUIStyle(EditorStyles.largeLabel) {
+        fontSize = 14, fontStyle = FontStyle.Bold
+      }),
+      objectInstanceTextStyle = Lazy.a(() => new GUIStyle(EditorStyles.textField) { fontStyle = FontStyle.Bold }),
+      longLabelTextStyle = Lazy.a(() => new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold });
 
     readonly HashSet<StructuralEquals<ImmutableList<StateExposer.ScopeKey>>> 
       expandObjects = new(), expandInnerScopes = new();
@@ -122,7 +125,7 @@ namespace FPCSharpUnity.unity.debug {
               void render(StateExposer.RenderableValue renderableValue) {
                 switch (renderableValue) {
                   case StateExposer.ActionValue act:
-                    if (GUILayout.Button(act.label)) act.value();
+                    if (EditorGUILayout_.Button(act.label)) act.value();
                     break;
                   case StateExposer.BoolValue b:
                     EditorGUILayout.Toggle(b.value);

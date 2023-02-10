@@ -7,7 +7,9 @@ using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.inspection;
 using FPCSharpUnity.core.serialization;
+using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Data {
   // Should be class (not struct) because .write mutates object.
@@ -21,6 +23,8 @@ namespace FPCSharpUnity.unity.Data {
     // ReSharper disable once NotAccessedField.Local
     // To keep the subscription alive.
     readonly ISubscription persistSubscription;
+
+    public CallerData createdAt { get; }
 
     public A value {
       get => rxRef.value;
@@ -38,13 +42,14 @@ namespace FPCSharpUnity.unity.Data {
 
     public PrefValImpl(
       string key, IPrefValueRW<A> rw, A defaultVal,
-      IPrefValueBackend backend
+      IPrefValueBackend backend, [Implicit] CallerData createdAt = default
     ) {
       this.key = key;
       writer = rw;
       this.backend = backend;
       rxRef = RxRef.a(rw.read(backend, key, defaultVal));
       persistSubscription = rxRef.subscribe(NoOpDisposableTracker.instance, persist);
+      this.createdAt = createdAt;
     }
 
     public void save() => backend.save();
@@ -71,17 +76,22 @@ namespace FPCSharpUnity.unity.Data {
     #region IRxRef
 
     public int subscriberCount => rxRef.subscriberCount;
-    public void copySubscriptionsTo(IList<IRxObservableSub> subs) => rxRef.copySubscriptionsTo(subs);
+
+    public void copyLinksTo(List<IInspectable> copyTo) => rxRef.copyLinksTo(copyTo);
+
+    public Option<Delegate> maybeSubscribeToSource => rxRef.maybeSubscribeToSource;
 
     public void subscribe(
-      ITracker tracker, Action<A> onEvent, out ISubscription subscription, CallerData callerData
+      ITracker tracker, Action<A> onEvent, out ISubscription subscription, CallerData callerData,
+      IInspectable targetInspectable = null
     ) =>
-      rxRef.subscribe(tracker: tracker, onEvent: onEvent, subscription: out subscription, callerData);
+      rxRef.subscribe(tracker: tracker, onEvent: onEvent, subscription: out subscription, callerData, targetInspectable);
 
     public ISubscription subscribeWithoutEmit(
-      ITracker tracker, Action<A> onEvent, CallerData callerData
+      ITracker tracker, Action<A> onEvent, CallerData callerData,
+      IInspectable targetInspectable = null
     ) =>
-      rxRef.subscribeWithoutEmit(tracker: tracker, onEvent: onEvent, callerData);
+      rxRef.subscribeWithoutEmit(tracker: tracker, onEvent: onEvent, callerData, targetInspectable);
 
     #endregion
   }

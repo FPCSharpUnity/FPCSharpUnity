@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Extensions;
@@ -9,6 +11,7 @@ using GenerationAttributes;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.inspection;
 using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Dispose;
@@ -29,7 +32,7 @@ namespace FPCSharpUnity.unity.Components.dispose {
     static readonly List<GameObjectDisposeTracker> trackersWaitingForAwake = new();
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void init() {
+    static void initWorkaroundForDestroyNotBeingInvokedWithoutAwake() {
       ASync.onUpdate.subscribe(NeverDisposeDisposableTracker.instance, _ => {
         // OnDestroy only gets called on a Component only if Awake was called first. This code ensures that Dispose gets
         // called when the GameObject is destroyed, even if Awake was never called.
@@ -61,8 +64,9 @@ namespace FPCSharpUnity.unity.Components.dispose {
     bool awakeCalled;
 
     readonly LazyVal<DisposableTracker> tracker;
-    public int trackedCount => tracker.strict.trackedCount;
-    public IEnumerable<TrackedDisposable> trackedDisposables => tracker.strict.trackedDisposables;
+    public int trackedCount => tracker.value.fold(0, static _ => _.trackedCount);
+    public IEnumerable<TrackedDisposable> trackedDisposables => 
+      tracker.value.fold(ImmutableArrayC<TrackedDisposable>.empty, _ => _.trackedDisposables);
 
     public GameObjectDisposeTracker() {
       tracker = Lazy.a(() => {
@@ -90,10 +94,18 @@ namespace FPCSharpUnity.unity.Components.dispose {
     }
 
     public void track(
-      IDisposable a, [Implicit] CallerData callerData = default
-    ) => tracker.strict.track(a, callerData);
+      IDisposable a, [Implicit] CallerData callerData = default, IInspectable inspectable = null
+    ) => tracker.strict.track(a, callerData, inspectable);
 
-    public void untrack(IDisposable a) => tracker.strict.untrack(a);
+    public void untrack(IDisposable a) {
+      if (tracker.value.valueOut(out var t)) t.untrack(a);
+    }
+
+    public CallerData createdAt => new CallerData(memberName: gameObject.name, filePath: "GameObject", lineNumber: -1);
+
+    public void copyLinksTo(List<IInspectable> copyTo) {
+      if (tracker.valueOut(out var t)) t.copyLinksTo(copyTo);
+    }
   }
 
   public static class GameObjectDisposeTrackerOps {

@@ -1,5 +1,7 @@
-﻿using FPCSharpUnity.core.pools;
+﻿using FPCSharpUnity.core.inspection;
+using FPCSharpUnity.core.pools;
 using FPCSharpUnity.core.reactive;
+using FPCSharpUnity.unity.core.Utilities;
 using UnityEditor;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
@@ -20,12 +22,21 @@ namespace FPCSharpUnity.unity.Concurrent {
       void renderGroup(string groupTitle, ref bool toggle, IRxObservable observable) {
         toggle = EditorGUILayout.Foldout(toggle, $"{s(groupTitle)} subscribers: {s(observable.subscriberCount)}");
         if (toggle) {
-          using var listDisposable = ListPool<IRxObservableSub>.instance.BorrowDisposable();
+          if (GUILayout.Button("Copy subscriber tree to clipboard")) {
+            var str = $"### Sources:\n\n"
+                      + $"{observable.renderReflectedSources()}\n\n"
+                      + $"### Targets:\n\n"
+                      + $"{observable.renderInspectable()}";
+
+            Clipboard.value = str;
+          }
+          
+          using var listDisposable = ListPool<IInspectable>.instance.BorrowDisposable();
           var list = listDisposable.value;
           
-          observable.copySubscriptionsTo(list);
+          observable.copyLinksTo(list);
           foreach (var sub in list) {
-            EditorGUILayout.LabelField(s(sub.subscribedFrom));
+            EditorGUILayout.LabelField(s(sub.createdAt));
           }
         }
       }
