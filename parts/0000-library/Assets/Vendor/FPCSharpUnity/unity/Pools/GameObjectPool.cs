@@ -49,10 +49,10 @@ namespace FPCSharpUnity.unity.Pools {
 
       // Some: parent transform for GameObjectPool. (null = root)
       // None: no reparenting, gameobjects are only disabled on release.
-      public readonly Option<Transform> parent;
+      public readonly Option<Transform?> parent;
 
       Init(
-        string name, Func<T> create, Option<Transform> parent, SetActive<T>? setActive = null,
+        string name, Func<T> create, Option<Transform?> parent, SetActive<T>? setActive = null,
         Action<T>? wakeUp = null, Action<T>? sleep = null,
         bool dontDestroyOnLoad = true
       ) {
@@ -71,7 +71,7 @@ namespace FPCSharpUnity.unity.Pools {
         SetActive<T>? setActive = null, Action<T>? wakeUp = null, Action<T>? sleep = null,
         bool dontDestroyOnLoad = true, Transform? parent = null
       ) => new Init<T>(
-        name, create, Option.a(parent), setActive, wakeUp, sleep, dontDestroyOnLoad
+        name, create, Some.a(parent), setActive, wakeUp, sleep, dontDestroyOnLoad
       );
 
       [PublicAPI]
