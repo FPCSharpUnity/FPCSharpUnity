@@ -88,11 +88,13 @@ namespace FPCSharpUnity.unity.Pools {
       Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0, Option<int> maxSize = default,
       IProfiledScope? maybeProfiledScope = null
     ) => new GameObjectPool<T>(init, toGameObject, initialSize: initialSize, maybeProfiledScope: maybeProfiledScope);
-    
+
     public static GameObjectPool<GameObject> a(
-      Init<GameObject> init,
+      Init<GameObject> init, int initialSize = 0, Option<int> maxSize = default,
       IProfiledScope? maybeProfiledScope = null
-    ) => new GameObjectPool<GameObject>(init, _ => _, maybeProfiledScope: maybeProfiledScope);
+    ) => new GameObjectPool<GameObject>(
+      init, _ => _, initialSize: initialSize, maxSize: maxSize, maybeProfiledScope: maybeProfiledScope
+    );
 
     public static GameObjectPool<A> a<A>(
       Init<A> init, int initialSize = 0, Option<int> maxSize = default,
