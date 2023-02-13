@@ -159,6 +159,18 @@ namespace FPCSharpUnity.unity.Pools {
       }
     }
 
+    /// <summary>
+    /// Fill pool up to a specified <see cref="size"/> of elements.
+    /// </summary>
+    public void initialize(int size) {
+      var limitedSize = maybeMaxSize.valueOut(out var maxSize) ? Math.Min(maxSize, size) : size;
+      var toInitialize = Math.Max(limitedSize - values.Count, 0);
+      
+      for (var i = 0; i < toInitialize; i++) {
+        release(createAndInit());
+      }
+    }
+
     T createAndInit() {
       var result = create();
       var go = toGameObject(result);
