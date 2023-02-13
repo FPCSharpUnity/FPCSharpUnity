@@ -53,21 +53,34 @@ public partial class DynamicLayout {
         new(template, new Percentage(1));
     }
     
-    /// <summary> Sample item's size from template object. This size in secondary axis can change. </summary>
+    /// <summary> Sample item's size from template object. This size in secondary axis is calculated using formula:
+    /// itemWidth/viewportWidth %. </summary>
     public readonly struct FromTemplateWithCustomSizeInSecondaryAxis {
       /// <summary> Item's size. </summary>
       public readonly Rect rect;
-
+      
+      /// <summary> `True` - scroll happens in horizontal axis. `False` - scroll happens in vertical axis. </summary>
       readonly bool isHorizontal;
 
+      /// <summary>
+      /// Viewport size in non-scrollable axis. Is `Val{A}`, because user can resize window and the value will change.
+      /// If that happens we can just call `<see cref="Init{CommonDataType}.updateLayout"/>` without clearing/re-adding
+      /// and recalculating whole <see cref="IElement"/> data type for all items inside the list.
+      /// </summary>
       public readonly Val<float> viewportSizeVal;
+      
+      /// <summary>
+      /// How much Unity units do we need to leave between this item and next item in UI list.
+      /// </summary>
       readonly float spacingInSecondaryAxis;
 
+      /// <summary>Height of an element in a horizontal layout OR width in vertical layout.</summary>
       public Percentage sizeInSecondaryAxis { get {
         var itemWidth = isHorizontal ? rect.height : rect.width;
         return new Percentage((itemWidth + spacingInSecondaryAxis) / viewportSizeVal.value);
       } }
-
+      
+      /// <summary>Height of an element in a vertical layout OR width in horizontal layout.</summary>
       public float sizeInScrollableAxis => isHorizontal ? rect.width : rect.height;
 
       public FromTemplateWithCustomSizeInSecondaryAxis(
