@@ -30,7 +30,10 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         DuplicateUniqueValue,
         ValidatorBug,
         /// <summary>Unity failed to import the file.</summary>
-        AssetCorrupted
+        AssetCorrupted,
+        
+        /// <summary> There were merge conflict tags found inside `.meta` files. </summary>
+        MetaFileMergeConflicts
       }
 
       /// <summary>Location could not be determined.</summary>
