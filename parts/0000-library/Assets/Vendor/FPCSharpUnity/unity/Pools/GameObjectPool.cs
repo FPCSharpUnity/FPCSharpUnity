@@ -209,9 +209,9 @@ namespace FPCSharpUnity.unity.Pools {
           Object.Destroy(go);
         }
         else {
-          foreach (var root in rootOpt) {
+          {if (rootOpt.valueOut(out var root)) {
             go.transform.SetParent(root, false);
-          }
+          }}
 
           if (setActive != null) setActive(value, go, false); 
           else go.SetActive(false);
@@ -232,10 +232,10 @@ namespace FPCSharpUnity.unity.Pools {
         disposeFn(value);
       }
 
-      foreach (var root in rootOpt) {
+      {if (rootOpt.valueOut(out var root)) {
         Object.Destroy(root.gameObject);
-      }
-
+      }}
+      
       values.Clear();
     }
 
