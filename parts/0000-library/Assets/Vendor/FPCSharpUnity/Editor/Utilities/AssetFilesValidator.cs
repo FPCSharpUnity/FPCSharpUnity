@@ -42,7 +42,9 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         : EmptyArray<ObjectValidator.Error>._
       );
 
-    /// <summary> Finds all `.meta` files in Unity's `./Assets` which has merge conflict tags. </summary>
+    /// <summary>
+    /// Finds all `.meta` files recursively inside Unity's `./Assets` directory which have merge conflict tags.
+    /// </summary>
     static IEnumerable<ObjectValidator.Error> validateMetaFilesForMergeConflicts() {
       var errors = new ConcurrentBag<Func<ObjectValidator.Error>>();
       Directory.GetFiles(Application.dataPath, "*.meta", SearchOption.AllDirectories)
@@ -76,7 +78,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     /// <param name="showProgress">Should editor progress be shown?</param>
     public static IEnumerable<ObjectValidator.Error> validate(
       ICollection<AssetPath> scenePaths, ICollection<AssetPath> prefabPaths, ICollection<AssetPath> materialPaths, 
-      bool showProgress, bool validateMetaFiles = false
+      bool showProgress
     ) {
       (AssetPath path, Object obj)[] badScenes, badPrefabs, badMaterials;
       var materialsMissingShaders = new List<Material>();
