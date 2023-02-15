@@ -125,7 +125,7 @@ namespace FPCSharpUnity.unity.Pools {
     readonly Action<T>? sleep;
     
     readonly bool dontDestroyOnLoad;
-    readonly Option<int> maybeMaxSize;
+    public Option<int> maybeMaxSize;
     
     /// <summary> Profiled scope invoked on <see cref="borrow"/> and <see cref="release"/> operations. </summary>
     readonly IProfiledScope? maybeProfiledScope;
