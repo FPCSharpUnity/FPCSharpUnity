@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Logger;
@@ -11,15 +13,15 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Pools {
-  public static partial class GameObjectPool {
+  public static class GameObjectPool {
     [PublicAPI] public static class Init {
       /// <summary>
       /// Basically an apply method for <see cref="Init{T}.withReparenting"/>. 
       /// </summary>
       public static Init<T> withReparenting<T>(
         string name, Func<T> create,
-        SetActive<T> setActive = null, Action<T> wakeUp = null, Action<T> sleep = null,
-        bool dontDestroyOnLoad = true, Transform parent = null
+        SetActive<T>? setActive = null, Action<T>? wakeUp = null, Action<T>? sleep = null,
+        bool dontDestroyOnLoad = true, Transform? parent = null
       ) => Init<T>.withReparenting(name, create, setActive, wakeUp: wakeUp, sleep: sleep, dontDestroyOnLoad, parent);
 
       /// <summary>
@@ -27,36 +29,38 @@ namespace FPCSharpUnity.unity.Pools {
       /// </summary>
       public static Init<T> noReparenting<T>(
         string name, Func<T> create, bool dontDestroyOnLoad,
-        SetActive<T> setActive = null, Action<T> wakeUp = null, Action<T> sleep = null
-      ) => Init<T>.noReparenting(name, create, setActive, wakeUp: wakeUp, sleep: sleep, dontDestroyOnLoad);
+        SetActive<T>? setActive = null, Action<T>? wakeUp = null, Action<T>? sleep = null
+      ) => Init<T>.noReparenting(
+        name, create, setActive, wakeUp: wakeUp, sleep: sleep, dontDestroyOnLoad
+      );
     }
 
     public delegate void SetActive<in A>(A a, GameObject gameObject, bool active);
     
-    public readonly struct Init<T> {
+    public class Init<T> {
       public readonly string name;
       public readonly Func<T> create;
       /// <summary>
       /// If provided, invoked instead of a call to <see cref="GameObject.SetActive"/>.
       /// </summary>
-      public readonly Option<SetActive<T>> setActive;
-      public readonly Option<Action<T>> wakeUp, sleep;
+      public readonly SetActive<T>? setActive;
+      public readonly Action<T>? wakeUp, sleep;
       public readonly bool dontDestroyOnLoad;
 
       // Some: parent transform for GameObjectPool. (null = root)
       // None: no reparenting, gameobjects are only disabled on release.
-      public readonly Option<Transform> parent;
+      public readonly Option<Transform?> parent;
 
       Init(
-        string name, Func<T> create, Option<Transform> parent, SetActive<T> setActive = null,
-        Action<T> wakeUp = null, Action<T> sleep = null,
+        string name, Func<T> create, Option<Transform?> parent, SetActive<T>? setActive = null,
+        Action<T>? wakeUp = null, Action<T>? sleep = null,
         bool dontDestroyOnLoad = true
       ) {
         this.name = name;
         this.create = create;
-        this.setActive = setActive.opt();
-        this.wakeUp = wakeUp.opt();
-        this.sleep = sleep.opt();
+        this.setActive = setActive;
+        this.wakeUp = wakeUp;
+        this.sleep = sleep;
         this.dontDestroyOnLoad = dontDestroyOnLoad;
         this.parent = parent;
       }
@@ -64,16 +68,16 @@ namespace FPCSharpUnity.unity.Pools {
       [PublicAPI]
       public static Init<T> withReparenting(
         string name, Func<T> create,
-        SetActive<T> setActive = null, Action<T> wakeUp = null, Action<T> sleep = null,
-        bool dontDestroyOnLoad = true, Transform parent = null
+        SetActive<T>? setActive = null, Action<T>? wakeUp = null, Action<T>? sleep = null,
+        bool dontDestroyOnLoad = true, Transform? parent = null
       ) => new Init<T>(
-        name, create, parent.some(), setActive, wakeUp, sleep, dontDestroyOnLoad
+        name, create, Some.a(parent), setActive, wakeUp, sleep, dontDestroyOnLoad
       );
 
       [PublicAPI]
       public static Init<T> noReparenting(
         string name, Func<T> create,
-        SetActive<T> setActive = null, Action<T> wakeUp = null, Action<T> sleep = null,
+        SetActive<T>? setActive = null, Action<T>? wakeUp = null, Action<T>? sleep = null,
         bool dontDestroyOnLoad = true
       ) => new Init<T>(
         name, create, None._, setActive, wakeUp, sleep, dontDestroyOnLoad
@@ -81,22 +85,29 @@ namespace FPCSharpUnity.unity.Pools {
     }
 
     public static GameObjectPool<T> a<T>(
-      Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0, Option<int> maxSize = default
-    ) => new GameObjectPool<T>(init, toGameObject, initialSize: initialSize);
-    
+      Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0, Option<int> maxSize = default,
+      IProfiledScope? maybeProfiledScope = null
+    ) => new GameObjectPool<T>(init, toGameObject, initialSize: initialSize, maybeProfiledScope: maybeProfiledScope);
+
     public static GameObjectPool<GameObject> a(
-      Init<GameObject> init
-    ) => new GameObjectPool<GameObject>(init, _ => _);
+      Init<GameObject> init, int initialSize = 0, Option<int> maxSize = default,
+      IProfiledScope? maybeProfiledScope = null
+    ) => new GameObjectPool<GameObject>(
+      init, _ => _, initialSize: initialSize, maxSize: maxSize, maybeProfiledScope: maybeProfiledScope
+    );
 
     public static GameObjectPool<A> a<A>(
-      Init<A> init, int initialSize = 0, Option<int> maxSize = default
+      Init<A> init, int initialSize = 0, Option<int> maxSize = default,
+      IProfiledScope? maybeProfiledScope = null
     ) where A : Component =>
-      new GameObjectPool<A>(init, initialSize: initialSize, maxSize: maxSize, toGameObject: a => {
-        if (!a) Log.d.error(
-          $"Component {typeof(A)} is destroyed in {nameof(GameObjectPool)} '{init.name}'!"
-        ); 
-        return a.gameObject;
-      });
+      new GameObjectPool<A>(init, initialSize: initialSize, maxSize: maxSize, maybeProfiledScope: maybeProfiledScope, 
+        toGameObject: a => {
+          if (!a) Log.d.error(
+            $"Component {typeof(A)} is destroyed in {nameof(GameObjectPool)} '{init.name}'!"
+          ); 
+          return a.gameObject;
+        }
+      );
   }
 
   public class GameObjectPool<T> {
@@ -105,22 +116,25 @@ namespace FPCSharpUnity.unity.Pools {
 
     readonly Func<T, GameObject> toGameObject;
     readonly Func<T> create;
-    readonly Option<GameObjectPool.SetActive<T>> setActive;
+    readonly GameObjectPool.SetActive<T>? setActive;
     
     /// <summary>Invoked when the object is borrowed out of the pool.</summary>
-    readonly Option<Action<T>> wakeUp;
+    readonly Action<T>? wakeUp;
     
     /// <summary>Invoked when the object is released back to the pool.</summary>
-    readonly Option<Action<T>> sleep;
+    readonly Action<T>? sleep;
     
     readonly bool dontDestroyOnLoad;
     readonly Option<int> maybeMaxSize;
+    
+    /// <summary> Profiled scope invoked on <see cref="borrow"/> and <see cref="release"/> operations. </summary>
+    readonly IProfiledScope? maybeProfiledScope;
     
     [LazyProperty] static ILog log => Log.d.withScope(nameof(GameObjectPool));
 
     public GameObjectPool(
       GameObjectPool.Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0,
-      Option<int> maxSize = default
+      Option<int> maxSize = default, IProfiledScope? maybeProfiledScope = null
     ) {
       rootOpt = init.parent.map(parent => {
         var rootParent = new GameObject($"{nameof(GameObjectPool)}: {init.name}").transform;
@@ -136,10 +150,23 @@ namespace FPCSharpUnity.unity.Pools {
       sleep = init.sleep;
       maybeMaxSize = maxSize;
       dontDestroyOnLoad = init.dontDestroyOnLoad;
+      this.maybeProfiledScope = maybeProfiledScope;
       var limitedInitialSize = maxSize.fold(initialSize, maxSizeVal => Math.Min(maxSizeVal, initialSize));
       values = limitedInitialSize == 0 ? new Stack<T>() : new Stack<T>(limitedInitialSize);
 
       for (var i = 0; i < limitedInitialSize; i++) {
+        release(createAndInit());
+      }
+    }
+
+    /// <summary>
+    /// Fill pool up to a specified <see cref="size"/> of elements.
+    /// </summary>
+    public void initialize(int size) {
+      var limitedSize = maybeMaxSize.valueOut(out var maxSize) ? Math.Min(maxSize, size) : size;
+      var toInitialize = Math.Max(limitedSize - values.Count, 0);
+      
+      for (var i = 0; i < toInitialize; i++) {
         release(createAndInit());
       }
     }
@@ -156,33 +183,47 @@ namespace FPCSharpUnity.unity.Pools {
     public int pooledCount => values.Count;
 
     public T borrow() {
+      maybeProfiledScope?.begin();
+      
       var result = values.Count > 0 ? values.Pop() : createAndInit();
       var go = toGameObject(result);
       var t = go.transform;
       t.localPosition = Vector3.zero;
       t.rotation = Quaternion.identity;
-      {if (setActive.valueOut(out var action)) action(result, go, true); else go.SetActive(true);}
-      if (wakeUp.isSome) wakeUp.get(result);
+      
+      if (setActive != null) setActive(result, go, true);
+      else go.SetActive(true);
+      
+      wakeUp?.Invoke(result);
+      
+      maybeProfiledScope?.end();
       return result;
     }
 
     public void release(T value) {
       try {
-        if (sleep.isSome) sleep.get(value);
+        maybeProfiledScope?.begin();
+        sleep?.Invoke(value);
         var go = toGameObject(value);
         if (maybeMaxSize.valueOut(out var maxSize) && values.Count >= maxSize) {
           Object.Destroy(go);
         }
         else {
-          foreach (var root in rootOpt) {
+          {if (rootOpt.valueOut(out var root)) {
             go.transform.SetParent(root, false);
-          }
-          {if (setActive.valueOut(out var action)) action(value, go, false); else go.SetActive(false);}
+          }}
+
+          if (setActive != null) setActive(value, go, false); 
+          else go.SetActive(false);
+          
           values.Push(value);
         }
       }
       catch (Exception e) {
         log.error("Could not release object to the pool. You probably unloaded the scene.", e);
+      }
+      finally {
+        maybeProfiledScope?.end();
       }
     }
 
@@ -191,10 +232,10 @@ namespace FPCSharpUnity.unity.Pools {
         disposeFn(value);
       }
 
-      foreach (var root in rootOpt) {
+      {if (rootOpt.valueOut(out var root)) {
         Object.Destroy(root.gameObject);
-      }
-
+      }}
+      
       values.Clear();
     }
 

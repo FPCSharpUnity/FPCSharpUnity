@@ -18,11 +18,11 @@ namespace FPCSharpUnity.unity.Pools {
     [PublicAPI]
     public static DictionaryGameObjectPool<K, V> a<K, V>(
       Func<K, GameObjectPool<V>> createPool
-    ) => new DictionaryGameObjectPool<K, V>(createPool);
+    ) => new(createPool);
   }
   
   public class DictionaryGameObjectPool<K, V> {
-    readonly Dictionary<K, GameObjectPool<V>> dictionary = new Dictionary<K, GameObjectPool<V>>();
+    readonly Dictionary<K, GameObjectPool<V>> dictionary = new();
     readonly Func<K, GameObjectPool<V>> createPool;
 
     public DictionaryGameObjectPool(Func<K, GameObjectPool<V>> createPool) {

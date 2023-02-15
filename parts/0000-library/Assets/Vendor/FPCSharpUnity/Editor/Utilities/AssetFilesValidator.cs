@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Editor.Utils;
@@ -8,6 +11,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Utilities.Editor {
   /// <summary>
@@ -20,16 +24,50 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     /// <param name="validateScenes">Should we check scenes?</param>
     /// <param name="validatePrefabs">Should we check prefabs?</param>
     /// <param name="validateMaterials">Should we check materials?</param>
+    /// <param name="validateMetaFiles">
+    /// Checks for leftover merge conflicts in all meta files inside Unity Assets directory.
+    /// </param>
     /// <param name="showProgress">Should editor progress be shown?</param>
     public static IEnumerable<ObjectValidator.Error> validateAll(
-      bool validateScenes, bool validatePrefabs, bool validateMaterials, bool showProgress
+      bool validateScenes, bool validatePrefabs, bool validateMaterials, bool validateMetaFiles, bool showProgress
     ) =>
       validate(
         scenePaths: validateScenes ? AssetDatabaseUtils.allScenes.ToArray() : EmptyArray<AssetPath>._,
         prefabPaths: validatePrefabs ? AssetDatabaseUtils.allPrefabs.ToArray() : EmptyArray<AssetPath>._,
         materialPaths: validatePrefabs ? AssetDatabaseUtils.allMaterials.ToArray() : EmptyArray<AssetPath>._,
         showProgress: showProgress
+      ).Concat(
+        validateMetaFiles
+        ? validateMetaFilesForMergeConflicts()
+        : EmptyArray<ObjectValidator.Error>._
       );
+
+    /// <summary>
+    /// Finds all `.meta` files recursively inside Unity's `./Assets` directory which have merge conflict tags.
+    /// </summary>
+    static IEnumerable<ObjectValidator.Error> validateMetaFilesForMergeConflicts() {
+      var errors = new ConcurrentBag<Func<ObjectValidator.Error>>();
+      Directory.GetFiles(Application.dataPath, "*.meta", SearchOption.AllDirectories)
+        .AsParallel().ForAll(metaFilePath => {
+          try {
+            foreach (var readLine in File.ReadLines(metaFilePath)) {
+              if (readLine.Contains("<<<<<<<< HEAD:")) {
+                var message = $"File '{metaFilePath}' has merge conflicts!";
+                errors.Add(() => 
+                  new ObjectValidator.Error(ObjectValidator.Error.Type.MetaFileMergeConflicts, message, null)
+                );
+                break;
+              }
+            }
+          }
+          catch (Exception e) {
+            Debug.LogError("Exception in object validator");
+            Debug.LogException(e);
+            errors.Add(() => new ObjectValidator.Error(ObjectValidator.Error.Type.ValidatorBug, e.Message, null));
+          }
+        });
+      return errors.Select(func => func());
+    }
 
     /// <summary>
     /// Checks whether Unity has correctly imported scenes and prefabs at given paths. 
