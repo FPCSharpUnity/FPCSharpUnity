@@ -155,6 +155,12 @@
             Tries to add the key/value pair to the dictionary, returns false and <see cref="!:existingValue"/> if that fails. 
             </summary>
         </member>
+        <member name="M:IncrementalCompiler.Extensions.getHashCodeDeterministic(System.String)">
+            <summary>
+            GetHashCode on strings is different every time you restart the application. Use this to have identical hashcode
+            between runs.
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.GeneratorCtx">
             <summary>
             This class is instantiated per C# file.
