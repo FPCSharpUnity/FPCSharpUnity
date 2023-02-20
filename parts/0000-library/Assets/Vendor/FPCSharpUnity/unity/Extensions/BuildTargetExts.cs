@@ -92,6 +92,7 @@ namespace FPCSharpUnity.unity.Editor.Extensions {
         case BuildTarget.PSP2: return BuildTargetGroup.PSP2;
 #endif
         case BuildTarget.PS4: return BuildTargetGroup.PS4;
+        case BuildTarget.PS5: return BuildTargetGroup.PS5;
         case BuildTarget.XboxOne: return BuildTargetGroup.XboxOne;
         case BuildTarget.GameCoreXboxOne: return BuildTargetGroup.GameCoreXboxOne;
         case BuildTarget.GameCoreXboxSeries: return BuildTargetGroup.GameCoreXboxSeries;

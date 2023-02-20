@@ -12,6 +12,7 @@ using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -125,6 +126,26 @@ namespace FPCSharpUnity.unity.Concurrent {
       pr.init(action, afterFrames);
     }
 
+    /// <summary>
+    /// Allows you to turn the 'EveryX*' functions into an <see cref="IRxObservable{A}"/>.
+    /// </summary>
+    /// <param name="tracker">lifetime for the coroutine.</param>
+    /// <param name="createCoroutine">function that needs to be provided to 'EveryX*' functions.</param>
+    /// <example><code><![CDATA[
+    /// var every5SecondsRx = ASync.EveryXObservable(tracker, f => ASync.EveryXSeconds(5f, f));
+    /// ]]></code></example>
+    public static (IRxObservable<Unit> observable, ICoroutine coroutine) EveryXObservable(
+      ITracker tracker, Func<Func<bool>, ICoroutine> createCoroutine
+    ) {
+      var subject = new Subject<Unit>();
+      var coroutine = createCoroutine(() => {
+        subject.push(Unit._);
+        return true;
+      });
+      tracker.track(coroutine);
+      return (subject, coroutine);
+    }
+
     /// <summary>Do a thing every frame until <see cref="f"/> returns false.</summary>
     public static ICoroutine EveryFrame(Func<bool> f) => EveryFrame(behaviour, f);
 
@@ -152,11 +173,11 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// </summary>
     public static ICoroutine EveryXSeconds(float seconds, Func<bool> f) => EveryXSeconds(seconds, behaviour, f);
 
-    /* Do thing every X seconds until f returns false. */
+    /// <summary>Do thing every X seconds until f returns false.</summary>
     public static ICoroutine EveryXSeconds(float seconds, GameObject go, Func<bool> f) =>
       EveryXSeconds(seconds, coroutineHelper(go), f);
 
-    /* Do thing every X seconds until f returns false. */
+    /// <summary>Do thing every X seconds until f returns false.</summary>
     public static ICoroutine EveryXSeconds(float seconds, MonoBehaviour behaviour, Func<bool> f) {
       var enumerator = EveryWaitEnumerator(new WaitForSecondsRealtimeReusable(seconds), f);
       return new UnityCoroutine(behaviour, enumerator);
