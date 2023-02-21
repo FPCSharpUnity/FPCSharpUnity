@@ -18,6 +18,8 @@ namespace FPCSharpUnity.unity.unity_serialization {
   public abstract class UnityOption {
     [PublicAPI] public abstract bool isSome { get; }
     [PublicAPI] public bool isNone => !isSome;
+
+    public static UnityOption<A> some<A>(A value) => new(value);
   }
   
   /// You need to extend this class and mark it as <see cref="SerializableAttribute"/>
