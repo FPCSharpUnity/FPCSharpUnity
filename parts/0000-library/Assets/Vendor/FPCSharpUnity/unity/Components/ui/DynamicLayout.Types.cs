@@ -296,7 +296,14 @@ namespace FPCSharpUnity.unity.Components.ui {
       protected Option<IViewProvider<View>> maybeViewProvider;
     
       public SizeProvider sizeProvider { get; }
-      public Percentage sizeInSecondaryAxis => sizeProvider.sizeInSecondaryAxis;
+      
+      public Percentage sizeInSecondaryAxis => sizeProvider.fold(
+        onFromTemplateWithCustomSizeInSecondaryAxis: static a => a.sizeInSecondaryAxis,
+        onStatic: static a => a.sizeInSecondaryAxis,
+        onFromTemplateStatic: static a => a.sizeInSecondaryAxis,
+        onDynamicSizeInScrollableAxis: static a => a.sizeInSecondaryAxis
+      );
+      
       public float sizeInScrollableAxis(bool isHorizontal) => sizeProvider.sizeInScrollableAxis(isHorizontal);
 
       /// <summary>
