@@ -31,8 +31,8 @@ namespace FPCSharpUnity.unity.Extensions {
       return a;
     }
 
-    public static Option<A> GetComponentOption<A>(this Component c) where A : Object =>
-      F.opt(c.GetComponent<A>());
+    public static Option<A> GetComponentOption<A>(this Component c) where A : Object => 
+      c.TryGetComponent<A>(out var component) ? Some.a(component) : None._;
 
     public static Option<A> GetComponentInChildrenOption<A>(this GameObject o) where A : Object =>
       F.opt(o.GetComponentInChildren<A>());
