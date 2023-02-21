@@ -191,7 +191,7 @@
             Client class that handles communication to the server.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CommandLine.BuildClient.#ctor(Microsoft.CodeAnalysis.CommandLine.RequestLanguage,Microsoft.CodeAnalysis.CommandLine.CompileFunc,Microsoft.CodeAnalysis.CommandLine.CompileOnServerFunc)">
+        <member name="M:Microsoft.CodeAnalysis.CommandLine.BuildClient.#ctor(Microsoft.CodeAnalysis.CommandLine.ICompilerServerLogger,Microsoft.CodeAnalysis.CommandLine.RequestLanguage,Microsoft.CodeAnalysis.CommandLine.CompileFunc,Microsoft.CodeAnalysis.CommandLine.CompileOnServerFunc)">
             <summary>
             When set it overrides all timeout values in milliseconds when communicating with the server.
             </summary>

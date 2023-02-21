@@ -920,14 +920,14 @@ Microsoft.CodeAnalysis.VisualBasic
  Binding info for attribute syntax and expressions that are part of a attribute.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.AttributeSemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.AttributeBinder,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.AttributeSemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.AttributeBinder)">
  <summary>
  Creates an AttributeSemanticModel that allows asking semantic questions about an attribute node.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.AttributeSemanticModel.CreateSpeculative(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.AttributeSemanticModel.CreateSpeculative(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeSyntax,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32)">
  <summary>
- Creates a speculative AttributeSemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
+ Creates a speculative semantic model that allows asking semantic questions about an attribute node that did not appear in the original source code.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.BackstopBinder">
@@ -2199,29 +2199,29 @@ Figure out the set of best candidates in the following preference order:
  <summary>
  Given a result of binding of initial set of collection range variables, the source,
  bind the rest of the operators in the enumerator.
- 
+
  There is a special method to bind an operator of each kind, the common thing among them is that
- all of them take the result we have so far, the source, and return result of an application 
- of one or two following operators. 
+ all of them take the result we have so far, the source, and return result of an application
+ of one or two following operators.
  Some of the methods also take operators enumerator in order to be able to do a necessary look-ahead
  and in some cases even to advance the enumerator themselves.
- Join and From operators absorb following Select or Let, that is when the process of binding of 
- a single operator actually handles two and advances the enumerator. 
+ Join and From operators absorb following Select or Let, that is when the process of binding of
+ a single operator actually handles two and advances the enumerator.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindFromQueryExpression(Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryExpressionSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Bind query expression that starts with From keyword, as opposed to the one that starts with Aggregate.
- 
+
      From {collection range variables} [{other operators}]
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindAggregateQueryExpression(Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryExpressionSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Bind query expression that starts with Aggregate keyword, as opposed to the one that starts with From.
- 
+
      Aggregate {collection range variables} [{other operators}] Into {aggregation range variables}
- 
+
  If Into clause has one item, a single value is produced. If it has multiple items, values are
  combined into an instance of an Anonymous Type.
  </summary>
@@ -2229,9 +2229,9 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindAggregateClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.AggregateClauseSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Aggregate operator.
- 
+
      {Preceding query operators} Aggregate {collection range variables} [{other operators}] Into {aggregation range variables}
- 
+
  Depending on how many items we have in the INTO clause,
  we will interpret Aggregate operator as follows:
 
@@ -2248,10 +2248,10 @@ Figure out the set of best candidates in the following preference order:
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindFinalImplicitSelectClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
- Apply implicit Select operator at the end of the query to 
+ Apply implicit Select operator at the end of the query to
  ensure that at least one query operator is called.
- 
- Basically makes query like: 
+
+ Basically makes query like:
      From a In AA
  into:
      From a In AA Select a
@@ -2260,40 +2260,40 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindSelectClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.SelectClauseSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Select operator.
- 
+
      {Preceding query operators} Select {expression range variables}
- 
+
  From a In AA Select b  ==> AA.Select(Function(a) b)
- 
+
  From a In AA Select b, c  ==> AA.Select(Function(a) New With {b, c})
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindLetClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.LetClauseSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Boolean)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Let operator.
- 
+
      {Preceding query operators} Let {expression range variables}
- 
+
  Ex: From a In AA Let b  ==> AA.Select(Function(a) New With {a, b})
- 
+
  Ex: From a In AA Let b, c  ==> AA.Select(Function(a) New With {a, b}).Select(Function({a, b}) New With {a, b, c})
- 
+
  Note, that preceding Select operator can introduce unnamed range variable, which is dropped by the Let
- 
- Ex: From a In AA Select a + 1 Let b ==> AA.Select(Function(a) a + 1).Select(Function(unnamed) b)  
- 
+
+ Ex: From a In AA Select a + 1 Let b ==> AA.Select(Function(a) a + 1).Select(Function(unnamed) b)
+
  Also, depending on the amount of expression range variables declared by the Let, and the following query operators,
  translation can produce a nested, as opposed to flat, compound variable.
- 
+
  Ex: From a In AA Let b, c, d ==> AA.Select(Function(a) New With {a, b}).
                                      Select(Function({a, b}) New With {{a, b}, c}).
-                                     Select(Function({{a, b}, c}) New With {a, b, c, d})   
+                                     Select(Function({{a, b}, c}) New With {a, b, c, d})
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.MustProduceFlatCompoundVariable(Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator)">
  <summary>
  In some scenarios, it is safe to leave compound variable in nested form when there is an
- operator down the road that does its own projection (Select, Group By, ...). 
+ operator down the road that does its own projection (Select, Group By, ...).
  All following operators have to take an Anonymous Type in both cases and, since there is no way to
  restrict the shape of the Anonymous Type in method's declaration, the operators should be
  insensitive to the shape of the Anonymous Type.
@@ -2302,7 +2302,7 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.MustProduceFlatCompoundVariable(Microsoft.CodeAnalysis.VisualBasic.Syntax.JoinClauseSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator)">
  <summary>
  In some scenarios, it is safe to leave compound variable in nested form when there is an
- operator down the road that does its own projection (Select, Group By, ...). 
+ operator down the road that does its own projection (Select, Group By, ...).
  All following operators have to take an Anonymous Type in both cases and, since there is no way to
  restrict the shape of the Anonymous Type in method's declaration, the operators should be
  insensitive to the shape of the Anonymous Type.
@@ -2311,38 +2311,38 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindFromClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.FromClauseSyntax,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, if any, bind the following From operator.
- 
+
      [{Preceding query operators}] From {collection range variables}
- 
+
  Ex: From a In AA  ==> AA
- 
+
  Ex: From a In AA, b in BB  ==> AA.SelectMany(Function(a) BB, Function(a, b) New With {a, b})
- 
+
  Ex: {source with range variable 'd'} From a In AA, b in BB  ==> source.SelectMany(Function(d) AA, Function(d, a) New With {d, a}).
-                                                                        SelectMany(Function({d, a}) BB, 
+                                                                        SelectMany(Function({d, a}) BB,
                                                                                    Function({d, a}, b) New With {d, a, b})
- 
+
  Note, that preceding Select operator can introduce unnamed range variable, which is dropped by the From
- 
+
  Ex: From a In AA Select a + 1 From b in BB ==> AA.Select(Function(a) a + 1).
                                                    SelectMany(Function(unnamed) BB,
-                                                              Function(unnamed, b) b)  
- 
+                                                              Function(unnamed, b) b)
+
  Also, depending on the amount of collection range variables declared by the From, and the following query operators,
  translation can produce a nested, as opposed to flat, compound variable.
- 
+
  Ex: From a In AA From b In BB, c In CC, d In DD ==> AA.SelectMany(Function(a) BB, Function(a, b) New With {a, b}).
                                                         SelectMany(Function({a, b}) CC, Function({a, b}, c) New With {{a, b}, c}).
-                                                        SelectMany(Function({{a, b}, c}) DD, 
-                                                                   Function({{a, b}, c}, d) New With {a, b, c, d})   
- 
- If From operator translation results in a SelectMany call and the From is immediately followed by a Select or a Let operator, 
+                                                        SelectMany(Function({{a, b}, c}) DD,
+                                                                   Function({{a, b}, c}, d) New With {a, b, c, d})
+
+ If From operator translation results in a SelectMany call and the From is immediately followed by a Select or a Let operator,
  they are absorbed by the From translation. When this happens, operatorsEnumerator is advanced appropriately.
- 
+
  Ex: From a In AA From b In BB Select a + b ==> AA.SelectMany(Function(a) BB, Function(a, b) a + b)
- 
+
  Ex: From a In AA From b In BB Let c ==> AA.SelectMany(Function(a) BB, Function(a, b) new With {a, b, c})
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindCollectionRangeVariables(Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.SeparatedSyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax},Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
@@ -2353,24 +2353,24 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindInnerJoinClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.SimpleJoinClauseSyntax,System.Collections.Generic.HashSet{System.String},Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the outer, bind the following Join operator.
- 
-     [{Preceding query operators}] Join {collection range variable} 
-                                        [{additional joins}] 
+
+     [{Preceding query operators}] Join {collection range variable}
+                                        [{additional joins}]
                                    On {condition}
- 
- Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+
+ Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
                                                                     Function(a, b) New With {a, b})
- 
+
  Ex: From a In AA                       AA.Join(
      Join b in BB                               BB.Join(CC, Function(b) Key(b), Function(c) Key(c),
           Join c in CC             ==>                  Function(b, c) New With {b, c}),
           On Key(c) Equals Key(b)               Function(a) Key(a), Function({b, c}) Key(b),
      On Key(a) Equals Key(b)                    Function(a, {b, c}) New With {a, b, c})
-                                                                    
- 
+
+
  Also, depending on the amount of collection range variables in scope, and the following query operators,
  translation can produce a nested, as opposed to flat, compound variable.
- 
+
  Ex: From a In AA                       AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
      Join b in BB                               Function(a, b) New With {a, b}).
      On Key(a) Equals Key(b)               Join(CC, Function({a, b}) Key(a, b), Function(c) Key(c),
@@ -2378,55 +2378,55 @@ Figure out the set of best candidates in the following preference order:
      On Key(c) Equals Key(a, b)            Join(DD, Function({{a, b}, c}) Key(a, b, c), Function(d) Key(d),
      Join d in DD                               Function({{a, b}, c}, d) New With {a, b, c, d})
      On Key(a, b, c) Equals Key(d)
- 
- If Join is immediately followed by a Select or a Let operator, they are absorbed by the translation. 
+
+ If Join is immediately followed by a Select or a Let operator, they are absorbed by the translation.
  When this happens, operatorsEnumerator is advanced appropriately.
- 
- Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+
+ Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
      Select a + b                                                   Function(a, b) a + b)
- 
- Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b), 
+
+ Ex: From a In AA Join b in BB On Key(a) Equals Key(b)  ==> AA.Join(BB, Function(a) Key(a), Function(b) Key(b),
      Let c                                                   Function(a, b) New With {a, b, c})
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindGroupJoinClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupJoinClauseSyntax,System.Collections.Generic.HashSet{System.String},Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax}.Enumerator,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the outer, bind the following Group Join operator.
- 
-     [{Preceding query operators}] Group Join {collection range variable} 
-                                              [{additional joins}] 
+
+     [{Preceding query operators}] Group Join {collection range variable}
+                                              [{additional joins}]
                                    On {condition}
                                    Into {aggregation range variables}
- 
- Ex: From a In AA Group Join b in BB          AA.GroupJoin(BB, Function(a) Key(a), Function(b) Key(b), 
+
+ Ex: From a In AA Group Join b in BB          AA.GroupJoin(BB, Function(a) Key(a), Function(b) Key(b),
                   On Key(a) Equals Key(b) ==>              Function(a, group_b) New With {a, group_b.Count()})
                   Into Count()
- 
+
  Also, depending on the amount of collection range variables in scope, and the following query operators,
  translation can produce a nested, as opposed to flat, compound variable (see BindInnerJoinClause for an example).
- 
- Note, that type of the group must be inferred from the set of available GroupJoin operators in order to be able to 
- interpret the aggregation range variables. 
+
+ Note, that type of the group must be inferred from the set of available GroupJoin operators in order to be able to
+ interpret the aggregation range variables.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindGroupByClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupByClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Group By operator.
- 
-     [{Preceding query operators}] Group [{items expression range variables}] 
+
+     [{Preceding query operators}] Group [{items expression range variables}]
                                    By {keys expression range variables}
                                    Into {aggregation range variables}
- 
- Ex: From a In AA Group By Key(a)          AA.GroupBy(Function(a) Key(a), 
+
+ Ex: From a In AA Group By Key(a)          AA.GroupBy(Function(a) Key(a),
                   Into Count()     ==>                Function(key, group_a) New With {key, group_a.Count()})
-                  
- Ex: From a In AA Group Item(a)            AA.GroupBy(Function(a) Key(a), 
-                  By Key(a)        ==>                Function(a) Item(a), 
+
+ Ex: From a In AA Group Item(a)            AA.GroupBy(Function(a) Key(a),
+                  By Key(a)        ==>                Function(a) Item(a),
                   Into Count()                        Function(key, group_a) New With {key, group_a.Count()})
- 
- Note, that type of the group must be inferred from the set of available GroupBy operators in order to be able to 
- interpret the aggregation range variables. 
+
+ Note, that type of the group must be inferred from the set of available GroupBy operators in order to be able to
+ interpret the aggregation range variables.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindGroupByItems(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupByClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.Binder.QueryLambdaBinder@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol}@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
@@ -2437,59 +2437,59 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.InferGroupType(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupByClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BoundQueryLambda,Microsoft.CodeAnalysis.VisualBasic.BoundQueryLambda,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol},Microsoft.CodeAnalysis.VisualBasic.BoundMethodGroup@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Infer type of the group for a Group By operator from the set of available GroupBy methods.
- 
+
  In short, given already bound itemsLambda and keysLambda, this method performs overload
  resolution over the set of available GroupBy operator methods using fake Into lambda:
      Function(key, group As typeToBeInferred) New With {group}
- 
- If resolution succeeds, the type inferred for the best candidate is our result.  
+
+ If resolution succeeds, the type inferred for the best candidate is our result.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.InferGroupType(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.GroupJoinClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BoundQueryLambda,Microsoft.CodeAnalysis.VisualBasic.BoundQueryLambda,Microsoft.CodeAnalysis.VisualBasic.BoundMethodGroup@,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Infer type of the group for a Group Join operator from the set of available GroupJoin methods.
- 
+
  In short, given already bound inner source and the join key lambdas, this method performs overload
  resolution over the set of available GroupJoin operator methods using fake Into lambda:
      Function(outerVar, group As typeToBeInferred) New With {group}
- 
- If resolution succeeds, the type inferred for the best candidate is our result.  
+
+ If resolution succeeds, the type inferred for the best candidate is our result.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindIntoSelectorLambda(Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol},Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,System.Boolean,System.Collections.Generic.HashSet{System.String},Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol},Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,Microsoft.CodeAnalysis.SeparatedSyntaxList{Microsoft.CodeAnalysis.VisualBasic.Syntax.AggregationRangeVariableSyntax},System.Boolean,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,Microsoft.CodeAnalysis.VisualBasic.Binder.IntoClauseBinder@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol}@)">
  <summary>
- This is a helper method to create a BoundQueryLambda for an Into clause 
- of a Group By or a Group Join operator. 
+ This is a helper method to create a BoundQueryLambda for an Into clause
+ of a Group By or a Group Join operator.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindWhereClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.WhereClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Where operator.
- 
+
      {Preceding query operators} Where {expression}
- 
+
  Ex: From a In AA Where a > 0 ==> AA.Where(Function(a) a > b)
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindSkipWhileClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Skip While operator.
- 
+
      {Preceding query operators} Skip While {expression}
- 
+
  Ex: From a In AA Skip While a > 0 ==> AA.SkipWhile(Function(a) a > b)
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindTakeWhileClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionWhileClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Take While operator.
- 
+
      {Preceding query operators} Take While {expression}
- 
+
  Ex: From a In AA Skip While a > 0 ==> AA.TakeWhile(Function(a) a > b)
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindFilterQueryOperator(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.QueryClauseSyntax,System.String,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
@@ -2500,31 +2500,31 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindDistinctClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.DistinctClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Distinct operator.
- 
+
      {Preceding query operators} Distinct
- 
+
  Ex: From a In AA Distinct ==> AA.Distinct()
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindSkipClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Skip operator.
- 
+
      {Preceding query operators} Skip {expression}
- 
+
  Ex: From a In AA Skip 10 ==> AA.Skip(10)
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindTakeClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Take operator.
- 
+
      {Preceding query operators} Take {expression}
- 
+
  Ex: From a In AA Take 10 ==> AA.Take(10)
- 
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindPartitionClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.PartitionClauseSyntax,System.String,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
@@ -2535,13 +2535,13 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindOrderByClause(Microsoft.CodeAnalysis.VisualBasic.BoundQueryClauseBase,Microsoft.CodeAnalysis.VisualBasic.Syntax.OrderByClauseSyntax,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given result of binding preceding query operators, the source, bind the following Order By operator.
- 
+
      {Preceding query operators} Order By {orderings}
- 
+
  Ex: From a In AA Order By a ==> AA.OrderBy(Function(a) a)
- 
+
  Ex: From a In AA Order By a.Key1, a.Key2 Descending ==> AA.OrderBy(Function(a) a.Key1).ThenByDescending(Function(a) a.Key2)
- 
+
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Binder.QueryLambdaBinder">
@@ -2584,11 +2584,11 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.QueryLambdaBinder.BuildJoinSelector(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,System.Boolean,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,Microsoft.CodeAnalysis.VisualBasic.Symbols.RangeVariableSymbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression)">
  <summary>
  Bind Join/Let like and mixed selector in context of this binder.
- 
+
  Join like selector: Function(a, b) New With {a, b}
- 
+
  Let like selector: Function(a) New With {a, letExpressionRangeVariable}
- 
+
  Mixed selector: Function(a, b) New With {a, b, letExpressionRangeVariable}
  </summary>
 </member>
@@ -2610,9 +2610,9 @@ Figure out the set of best candidates in the following preference order:
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Binder.IntoClauseBinder">
  <summary>
  Knows how to bind FunctionAggregationSyntax and GroupAggregationSyntax
- within particular [Into] clause. 
- 
- Also implements Lookup/LookupNames methods to make sure that lookup without 
+ within particular [Into] clause.
+
+ Also implements Lookup/LookupNames methods to make sure that lookup without
  container type, uses type of the group as the container type.
  </summary>
 </member>
@@ -2633,7 +2633,7 @@ Figure out the set of best candidates in the following preference order:
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.BindCollectionRangeVariable(Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax,System.Boolean,System.Collections.Generic.HashSet{System.String},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
- Bind CollectionRangeVariableSyntax, applying AsQueryable/AsEnumerable/Cast(Of Object) calls and 
+ Bind CollectionRangeVariableSyntax, applying AsQueryable/AsEnumerable/Cast(Of Object) calls and
  Select with implicit type conversion as appropriate.
  </summary>
 </member>
@@ -2645,9 +2645,9 @@ Figure out the set of best candidates in the following preference order:
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.ConvertToQueryableType(Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol@)">
  <summary>
- Convert source expression to queryable type by inferring control variable type 
- and applying AsQueryable/AsEnumerable or Cast(Of Object) calls.   
- 
+ Convert source expression to queryable type by inferring control variable type
+ and applying AsQueryable/AsEnumerable or Cast(Of Object) calls.
+
  In case of success, returns possibly "converted" source and non-Nothing controlVariableType.
  In case of failure, returns passed in source and Nothing as controlVariableType.
  </summary>
@@ -2655,22 +2655,22 @@ Figure out the set of best candidates in the following preference order:
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.InferControlVariableType(Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
  Given query operator source, infer control variable type from available
- 'Select' methods. 
- 
+ 'Select' methods.
+
  Returns inferred type or Nothing.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.InferControlVariableType(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbol},System.Boolean@)">
  <summary>
- Given a set of 'Select' methods, infer control variable type. 
- 
+ Given a set of 'Select' methods, infer control variable type.
+
  Returns inferred type or Nothing.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Binder.InferControlVariableType(Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol)">
  <summary>
- Given a method, infer control variable type. 
- 
+ Given a method, infer control variable type.
+
  Returns inferred type or Nothing.
  </summary>
 </member>
@@ -4080,14 +4080,14 @@ Figure out the set of best candidates in the following preference order:
  must be grouped together. 
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.InitializerSemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.DeclarationInitializerBinder,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.InitializerSemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.DeclarationInitializerBinder)">
  <summary>
  Creates an InitializerSemanticModel that allows asking semantic questions about an initializer node.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.InitializerSemanticModel.CreateSpeculative(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.Syntax.EqualsValueSyntax,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32)">
  <summary>
- Creates a speculative InitializerSemanticModel that allows asking semantic questions about an initializer node that did not appear in the original source code.
+ Creates a speculative semantic model that allows asking semantic questions about an initializer node that did not appear in the original source code.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.LocalBinderBuilder">
@@ -4369,11 +4369,7 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel">
  <summary>
  Binding info for expressions and statements that are part of a member declaration.
- </summary>
-</member>
-<member name="F:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel._containingSemanticModelOpt">
- <summary>
- Field specific to non-speculative MemberSemanticModel
+ Instances of this class should not be exposed to external consumers.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.GetUpperBoundNode(Microsoft.CodeAnalysis.SyntaxNode)">
@@ -4415,10 +4411,10 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.IsStandaloneStatement(Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)">
  <summary>
  Return True if the statement can be bound by a Binder on its own.
- For example Catch statement cannot be bound on its own, only 
+ For example Catch statement cannot be bound on its own, only
  as part of Try block. Similarly, Next statement cannot be bound on its own,
  only as part of For statement.
- 
+
  Only handles statements that are in executable code.
  </summary>
 </member>
@@ -4529,13 +4525,13 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
  <param name="node">The for each syntax node.</param>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.SyntaxTree">
- <summary> 
+ <summary>
  The SyntaxTree that is bound
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.GetEnclosingBinderInternal(Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode,System.Int32)">
  <summary>
- Get the correct enclosing binder for the given position, taking into account  
+ Get the correct enclosing binder for the given position, taking into account
  block constructs and lambdas.
  </summary>
  <param name="memberBinder">Binder for the method body, lambda body, or field initializer. The
@@ -4571,7 +4567,7 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
  in case it's part of a CollectionInitializer (outer most or top level initializer).
  </summary>
  <param name="syntax">The syntax node to check.</param>
- <returns><c>True</c> if the syntax node represents an expression syntax, but it's not 
+ <returns><c>True</c> if the syntax node represents an expression syntax, but it's not
  an expression from the VB language point of view; otherwise <c>False</c>.</returns>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.GuardedIncrementalBind(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder)">
@@ -4592,15 +4588,15 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.IncrementalBinder">
  <summary>
  The incremental binder is used when binding statements. Whenever a statement
- is bound, it checks the bound node cache to see if that statement was bound, 
- and returns it instead of rebinding it. 
- 
+ is bound, it checks the bound node cache to see if that statement was bound,
+ and returns it instead of rebinding it.
+
  FOr example, we might have:
     While x > goo()
       y = y * x
       z = z + y
     End While
- 
+
  We might first get semantic info about "z", and thus bind just the statement
  "z = z + y". Later, we might bind the entire While block. While binding the while
  block, we can reuse the binding we did of "z = z + y".
@@ -4621,13 +4617,13 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel.SemanticModelMapsBuilder">
  <summary>
  Traverse a tree of bound nodes, and update the following maps inside the SemanticModel:
- 
+
      guardedNodeMap  - a map from syntax node to bound nodes. Bound nodes are added in the order they are bound
                        traversing the tree, so they will be in order from upper to lower node.
- 
+
      guardedQueryBindersMap - a map from query-specific syntax node to an array of binders used to
                               bind various children of the node.
- 
+
      guardedAnonymousTypeBinderMap - a map from Anonymous Type initializer's FieldInitializerSyntax to
                                      Binder.AnonymousTypeFieldInitializerBinder used to bind its expression.
 </summary>
@@ -4648,14 +4644,14 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
  Create binder for binding the body of a method. 
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodBodySemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.SubOrFunctionBodyBinder,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodBodySemanticModel.Create(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.SubOrFunctionBodyBinder)">
  <summary>
  Creates a MethodBodySemanticModel that allows asking semantic questions about an attribute node.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodBodySemanticModel.CreateSpeculative(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32)">
  <summary>
- Creates a speculative MethodBodySemanticModel that allows asking semantic questions about an attribute node that did not appear in the original source code.
+ Creates a speculative semantic model that allows asking semantic questions about an attribute node that did not appear in the original source code.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MethodTypeParametersBinder">
@@ -4754,7 +4750,7 @@ For more explanation of Kind, Symbol, Error - see LookupResult.
  Typically, an instance is obtained by a call to SemanticModel.TryGetSpeculativeSemanticModel. 
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.SpeculativeMemberSemanticModel.#ctor(Microsoft.CodeAnalysis.VisualBasic.SyntaxTreeSemanticModel,Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.SpeculativeMemberSemanticModel.#ctor(Microsoft.CodeAnalysis.VisualBasic.SpeculativeSemanticModelWithMemberModel,Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.VisualBasic.Binder)">
  <summary>
  Creates a speculative SemanticModel for a TypeSyntax or a RangeArgumentSyntax node at a position within an existing MemberSemanticModel.
  </summary>
@@ -5428,16 +5424,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  in source or metadata.
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.RefKind">
- <summary>
- Returns the RefKind of the field. 
- </summary>
-</member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.RefCustomModifiers">
- <summary>
- Custom modifiers associated with the ref modifier, or an empty array if there are none.
- </summary>
-</member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.Type">
  <summary>
  Gets the type of this variable.
@@ -5607,6 +5593,16 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  If this is a field representing a tuple element,
  returns the index of the element (zero-based).
  Otherwise returns -1
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.IFieldSymbol_RefKind">
+ <summary>
+ Returns the RefKind of the field. 
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.FieldSymbol.IFieldSymbol_RefCustomModifiers">
+ <summary>
+ Custom modifiers associated with the ref modifier, or an empty array if there are none.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.IsMetadataNewSlot(System.Boolean)">
@@ -6794,7 +6790,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Full type name possibly with generic name mangling.
  </param>
  <returns>
- Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+ Symbol for the type, or Nothing if the type isn't found.
  </returns>
  <remarks></remarks>
 </member>
@@ -7724,20 +7720,16 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.LookupTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.LookupDeclaredTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@)">
  <summary>
  Lookup a top level type referenced from metadata, names should be
  compared case-sensitively.
  </summary>
  <param name="emittedName">
- Full type name with generic name mangling.
+ Full type name, possibly with generic name mangling.
  </param>
- <param name="digThroughForwardedTypes">
- Take forwarded types into account.
- </param>
- <remarks></remarks>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.LookupTopLevelMetadataTypeWithCycleDetection(Microsoft.CodeAnalysis.MetadataTypeName@,Roslyn.Utilities.ConsList{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol},System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.LookupDeclaredOrForwardedTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@,Roslyn.Utilities.ConsList{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol})">
  <summary>
  Lookup a top level type referenced from metadata, names should be
  compared case-sensitively.  Detect cycles during lookup.
@@ -7747,9 +7739,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  </param>
  <param name="visitedAssemblies">
  List of assemblies lookup has already visited (since type forwarding can introduce cycles).
- </param>
- <param name="digThroughForwardedTypes">
- Take forwarded types into account.
  </param>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.ResolveForwardedType(System.String)">
@@ -7992,11 +7981,11 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  This override can handle non-PE types.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MemberRefMetadataDecoder.FindMember(System.Reflection.Metadata.MemberReferenceHandle,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MemberRefMetadataDecoder.FindMember(System.Reflection.Metadata.EntityHandle,System.Boolean)">
  <summary> 
  Search through the members of the <see cref="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MemberRefMetadataDecoder._containingType"/> type symbol to find the method that matches a particular signature. 
  </summary> 
- <param name="memberRef">A MemberRef handle that can be used to obtain the name and signature of the method</param> 
+ <param name="memberRefOrMethodDef">A MemberRef or a MethodDef handle that can be used to obtain the name and signature of the method</param> 
  <param name="methodsOnly">True to only return a method.</param> 
  <returns>The matching method symbol, or null if the inputs do not correspond to a valid method.</returns>
 </member>
@@ -8126,6 +8115,14 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEFieldSymbol">
  <summary>
  The class to represent all fields imported from a PE/module.
+ </summary>
+</member>
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEFieldSymbol._byRefPlaceholder">
+ <summary>
+ This symbol is used as a type for a "fake" required custom modifier added for ByRef fields.
+ This allows us to report use site errors for ByRef fields, and, at the same time, allows us
+ to accurately match them by signature (since this instance is unique and is not used for anything else)
+ without adding full support for RefKind and RefCustomModifiers
  </summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEFieldSymbol.DeclaringCompilation">
@@ -10071,7 +10068,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Full type name possibly with generic name mangling.
  </param>
  <returns>
- Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+ Symbol for the type, or Nothing if the type isn't found.
  </returns>
  <remarks></remarks>
 </member>
@@ -10358,7 +10355,16 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  GlobalNamespace of that module.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NonMissingAssemblySymbol.LookupTopLevelMetadataTypeWithCycleDetection(Microsoft.CodeAnalysis.MetadataTypeName@,Roslyn.Utilities.ConsList{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol},System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NonMissingAssemblySymbol.LookupDeclaredTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@)">
+ <summary>
+ Lookup a top level type referenced from metadata, names should be
+ compared case-sensitively.
+ </summary>
+ <param name="emittedName">
+ Full type name, possibly with generic name mangling.
+ </param>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NonMissingAssemblySymbol.LookupDeclaredOrForwardedTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@,Roslyn.Utilities.ConsList{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol})">
  <summary>
  Lookup a top level type referenced from metadata, names should be
  compared case-sensitively.  Detect cycles during lookup.
@@ -10368,9 +10374,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  </param>
  <param name="visitedAssemblies">
  List of assemblies lookup has already visited (since type forwarding can introduce cycles).
- </param>
- <param name="digThroughForwardedTypes">
- Take forwarded types into account.
  </param>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NonMissingAssemblySymbol.CachedTypeByEmittedName(System.String)">
@@ -10437,7 +10440,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Full type name, possibly with generic name mangling.
  </param>
  <returns>
- Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+ Symbol for the type, or Nothing if the type isn't found.
  </returns>
  <remarks></remarks>
 </member>
@@ -12804,7 +12807,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Try to parse the local (or parameter) name and return <paramref name="variableName"/> if successful.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.GeneratedNameParser.TryParseStateMachineHoistedUserVariableName(System.String,System.String@,System.Int32@)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.GeneratedNameParser.TryParseStateMachineHoistedUserVariableOrDisplayClassName(System.String,System.String@,System.Int32@)">
  <summary>
  Try to parse the local name and return <paramref name="variableName"/> and <paramref name="index"/> if successful.
  </summary>
@@ -13688,7 +13691,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.TupleTypeSymbol._lazyActualElementNames">
  <summary>
- Actual element names. 
+ Actual element names.
  Could be different from _providedElementNames because of case insensitivity.
  I.E. - it is not an error to provide "item1" name to the first element
         however its name must be "Item1", since it already has the name "Item1"
@@ -14022,7 +14025,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Type name.
  </param>
  <returns>
- Symbol for the type, or MissingMetadataSymbol if the type isn't found.
+ Symbol for the type, or Nothing if the type isn't found.
  </returns>
  <remarks></remarks>
 </member>
@@ -16080,23 +16083,23 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.GetCompileDiagnostics(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation,Microsoft.CodeAnalysis.VisualBasic.Symbols.NamespaceSymbol,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Boolean,System.Threading.CancellationToken)">
  <summary>
  Completes binding and performs analysis of bound trees for the purpose of obtaining diagnostics.
- 
- NOTE: This method does not perform lowering/rewriting/emit. 
-       Errors from those stages require complete compile, 
+
+ NOTE: This method does not perform lowering/rewriting/emit.
+       Errors from those stages require complete compile,
        but generally are not interesting during editing.
- 
+
  NOTE: the bound tree produced by this method are not stored anywhere
        and immediately lost after diagnostics of a particular tree is done.
-       
+
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.CompileMethodBodies(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation,Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder,System.Boolean,System.Boolean,System.Boolean,System.Predicate{Microsoft.CodeAnalysis.VisualBasic.Symbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Threading.CancellationToken)">
  <summary>
  Compiles given compilation into provided module.
- 
- NOTE: it is ok for moduleBeingBuiltOpt to be Nothing. 
+
+ NOTE: it is ok for moduleBeingBuiltOpt to be Nothing.
        In such case the only results of this method would be diagnostics for complete compile.
- 
+
  NOTE: the bound/lowered trees produced by this method are not stored anywhere and
        immediately lost after obtaining method bodies and diagnostics for a particular
        tree.
@@ -16104,9 +16107,9 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.DetectAndReportCyclesInConstructorCalls(System.Collections.Generic.Dictionary{Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol,Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag)">
  <summary>
- Detects cycles in constructor invocations based on the 'constructor-calls-constructor' 
+ Detects cycles in constructor invocations based on the 'constructor-calls-constructor'
  map provided in 'constructorCallMap', reports errors if found.
- 
+
  NOTE: 'constructorCallMap' is being mutated by this method
  </summary>
 </member>
@@ -16118,22 +16121,22 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Compiles the method.
  </summary>
  <param name="referencedConstructor">
- If the method being compiled is a constructor, CompileMethod returns in this parameter 
- the symbol of the constructor called from the one being compiled either explicitly or implicitly. 
+ If the method being compiled is a constructor, CompileMethod returns in this parameter
+ the symbol of the constructor called from the one being compiled either explicitly or implicitly.
  For structure constructors calling parameterless constructor returns the synthesized constructor symbol.
  </param>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.CreateSyntheticWithEventOverridesIfNeeded(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.HandledEvent},System.Int32@,System.Int32@,Microsoft.CodeAnalysis.VisualBasic.TypeCompilationState,Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,Microsoft.CodeAnalysis.VisualBasic.SynthesizedSubmissionFields)">
- <summary> 
+ <summary>
  If any of the "Handles" in the list have synthetic WithEvent override
- as a container, then this method will (if not done already) inject 
+ as a container, then this method will (if not done already) inject
  property/accessors symbol into the emit module and assign bodies to the accessors.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.TryGetMethodCalledInBoundExpressionStatement(Microsoft.CodeAnalysis.VisualBasic.BoundExpressionStatement)">
- <summary> 
- Assuming the statement is a constructor call wrapped in bound expression 
- statement, get the method symbol being called 
+ <summary>
+ Assuming the statement is a constructor call wrapped in bound expression
+ statement, get the method symbol being called
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MemberResolutionKind">
@@ -16207,6 +16210,13 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Returns the constant value associated with the symbol, if any.
  </summary>
  <remarks></remarks>
+</member>
+<member name="T:Microsoft.CodeAnalysis.VisualBasic.PublicSemanticModel">
+ <summary>
+ Instances of this <see cref="T:Microsoft.CodeAnalysis.SemanticModel"/> can be exposed to external consumers.
+ Other types of <see cref="T:Microsoft.CodeAnalysis.VisualBasic.VBSemanticModel"/> are not designed for direct exposure 
+ and their implementation might not be able to handle external requests properly.
+ </summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo.ToQueryableCollectionConversion">
  <summary>
@@ -17318,6 +17328,12 @@ End Class
  </summary>
  <value>True if Option Compare Text, False if Option Compare Binary.</value>
 </member>
+<member name="T:Microsoft.CodeAnalysis.VisualBasic.SpeculativeSemanticModelWithMemberModel">
+ <summary>
+ Instances of this type represent user-facing speculative semantic models that are backed by 
+ internal <see cref="T:Microsoft.CodeAnalysis.VisualBasic.MemberSemanticModel"/>.
+ </summary>
+</member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.SpeculativeSyntaxTreeSemanticModel">
  <summary>
  Allows asking semantic questions about a tree of syntax nodes that did not appear in the original source code.
@@ -17605,7 +17621,7 @@ End Class
  <summary>
  Represents the state of compilation of one particular type.
  This includes, for example, a collection of synthesized methods created during lowering.
- WARNING: Note that the underlying collection classes are not thread-safe and this will 
+ WARNING: Note that the underlying collection classes are not thread-safe and this will
  need to be revised if emit phase is changed to support multithreading when
  translating a particular type.
  </summary>
@@ -17622,14 +17638,14 @@ End Class
  </summary>
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.TypeCompilationState._methodWrappers">
- <summary> 
- Map of 'MyBase' or 'MyClass' call wrappers; actually each method symbol will 
- only need one wrapper to call it non-virtually; 
- 
- Indeed, if the type have a virtual method M1 overridden, MyBase.M1 will use 
+ <summary>
+ Map of 'MyBase' or 'MyClass' call wrappers; actually each method symbol will
+ only need one wrapper to call it non-virtually;
+
+ Indeed, if the type have a virtual method M1 overridden, MyBase.M1 will use
  a wrapper for base type's method and MyClass.M1 a wrapper for this type's method.
- 
- And if the type does not override a virtual method M1, both MyBase.M1 
+
+ And if the type does not override a virtual method M1, both MyBase.M1
  and MyClass.M1 will use a wrapper for base type's method.
  </summary>
 </member>
@@ -18332,7 +18348,7 @@ End Class
  no attributes.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.AddSynthesizedAttributes(Microsoft.CodeAnalysis.VisualBasic.ModuleCompilationState,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedAttributeData}@)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.AddSynthesizedAttributes(Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedAttributeData}@)">
  <summary>
  Build and add synthesized attributes for this symbol.
  </summary>
@@ -67537,8 +67553,8 @@ Parse the input for leading trivia.
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.AsyncMethodToClassRewriter._exitLabel">
  <summary>
- The exitLabel is used to label the final method body return at the end of the async state-machine 
- method. Is used in rewriting of return statements from Await expressions and a couple of other 
+ The exitLabel is used to label the final method body return at the end of the async state-machine
+ method. Is used in rewriting of return statements from Await expressions and a couple of other
  places where the return is not accompanied by return of the value.
  </summary>
 </member>
@@ -67689,6 +67705,12 @@ Parse the input for leading trivia.
  Get the name of the expression tree function for a particular unary operator
  </summary>
 </member>
+<member name="T:Microsoft.CodeAnalysis.VisualBasic.CodeCoverageInstrumenter">
+ <summary>
+ This type provides means for instrumenting compiled methods for dynamic analysis.
+ It can be combined with other <see cref= "T:Microsoft.CodeAnalysis.VisualBasic.Instrumenter"/>s.
+ </summary>
+</member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.CompoundInstrumenter">
  <summary>
  Utility class, provides a convenient way of combining various <see cref="T:Microsoft.CodeAnalysis.VisualBasic.Instrumenter"/>s in a chain,
@@ -67710,12 +67732,6 @@ Parse the input for leading trivia.
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.DebugInfoInjector.Singleton">
  <summary>
  A singleton object that performs only one type of instrumentation - addition of debugging sequence points. 
- </summary>
-</member>
-<member name="T:Microsoft.CodeAnalysis.VisualBasic.DynamicAnalysisInjector">
- <summary>
- This type provides means for instrumenting compiled methods for dynamic analysis.
- It can be combined with other <see cref= "T:Microsoft.CodeAnalysis.VisualBasic.Instrumenter"/>s.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Instrumenter">
@@ -67954,7 +67970,7 @@ Parse the input for leading trivia.
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.Analysis.containsLiftingLambda">
  <summary>
- Blocks that contain (recursively) a lambda that is lifting. 
+ Blocks that contain (recursively) a lambda that is lifting.
  Such blocks are considered as potentially needing closure initialization when doing jump verification.
  </summary>
 </member>
@@ -67964,7 +67980,7 @@ Parse the input for leading trivia.
  and a block that contains the lambda that lifts said variables.
  If such block itself requires a closure, then it must lift parent frame pointer into the closure
  in addition to whatever else needs to be lifted.
- 
+
  NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
  If someone only needs diagnostics or information about captures, this information is not necessary.
  ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
@@ -67972,12 +67988,12 @@ Parse the input for leading trivia.
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.Analysis.lambdaScopes">
  <summary>
- Optimized locations of lambdas. 
- 
+ Optimized locations of lambdas.
+
  Lambda does not need to be placed in a frame that corresponds to its lexical scope if lambda does not reference any local state in that scope.
  It is advantageous to place lambdas higher in the scope tree, ideally in the innermost scope of all scopes that contain variables captured by a given lambda.
  Doing so reduces indirections needed when captured local are accessed. For example locals from the innermost scope can be accessed with no indirection at all.
- 
+
  NOTE: This information is computed in addition to the regular analysis of the tree and only needed for rewriting.
  If someone only needs diagnostics or information about captures, this information is not necessary.
  ComputeLambdaScopesAndFrameCaptures needs to be called to compute this.
@@ -68030,7 +68046,7 @@ Parse the input for leading trivia.
  We mark all scopes from the current up to the one that declares lifted symbol as
  containing a lifting lambda.
  This is needed so that we could reject jumps that might jump over frame allocations.
- 
+
  NOTE: because of optimizations lambda _might_ be placed in a frame higher
        than its lexical scope and thus make a jump technically legal.
        However, we explicitly do not consider frame optimizations in this analysis.
@@ -68228,7 +68244,7 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.CacheToLocalIfNotConst(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbols.LocalSymbol},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.SynthesizedLocalKind,Microsoft.CodeAnalysis.VisualBasic.Syntax.StatementSyntax)">
  <summary>
  If value is const, returns the value unchanged.
- 
+
  In a case if value is not a const, a proxy temp is created and added to "locals"
  In addition to that, code that evaluates and stores the value is added to "expressions"
  The access expression to the proxy temp is returned.
@@ -68243,10 +68259,10 @@ Parse the input for leading trivia.
 
  If expr is of void type:
      BoundSequence { side-effects: { expr, se1, se2, se3 }, valueOpt: Nothing }
- 
+
  ElseIf expr is a constant:
      BoundSequence { side-effects: { se1, se2, se3 }, valueOpt: expr }
- 
+
  Else
      BoundSequence { side-effects: { tmp = expr, se1, se2, se3 }, valueOpt: tmp }
  </summary>
@@ -68806,10 +68822,10 @@ Parse the input for leading trivia.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MethodToClassRewriter`1">
- <summary> 
- A bound node rewriter that rewrites types properly (which in some cases the automatically-generated). 
+ <summary>
+ A bound node rewriter that rewrites types properly (which in some cases the automatically-generated).
  This is used in the lambda rewriter, the iterator rewriter, and the async rewriter.
- </summary>    
+ </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.MethodToClassRewriter`1.SynthesizedWrapperMethod">
  <summary>
@@ -68849,13 +68865,13 @@ Parse the input for leading trivia.
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.MethodToClassRewriter`1.LocalMap">
  <summary>
- A mapping from every local variable to its replacement local variable. Local variables 
+ A mapping from every local variable to its replacement local variable. Local variables
  are replaced when their types change due to being inside of a lambda within a generic method.
  </summary>
 </member>
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.MethodToClassRewriter`1.ParameterMap">
  <summary>
- A mapping from every parameter to its replacement parameter. Local variables 
+ A mapping from every parameter to its replacement parameter. Local variables
  are replaced when their types change due to being inside of a lambda.
  </summary>
 </member>
@@ -68866,7 +68882,7 @@ Parse the input for leading trivia.
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.MethodToClassRewriter`1.CurrentMethod">
  <summary>
- The method (e.g. lambda) which is currently being rewritten. If we are 
+ The method (e.g. lambda) which is currently being rewritten. If we are
  rewriting a lambda, currentMethod is the new generated method.
  </summary>
 </member>
@@ -68907,8 +68923,8 @@ Parse the input for leading trivia.
  <summary>
  </summary>
  <typeparam name="TProxy">
- Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as 
- well as iterator rewriter use simplified form of proxy as they only capture 
+ Type used by State Machine rewriter to represent symbol proxy. Lambda rewriter as
+ well as iterator rewriter use simplified form of proxy as they only capture
  locals as r-values in fields, async rewriter uses a different structure as a proxy
  because it has to capture l-values on stack as well
  </typeparam>
@@ -68936,7 +68952,7 @@ Parse the input for leading trivia.
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.StateMachineRewriter`1.StateMachineMethodToClassRewriter.FinalizerStateMap">
  <summary>
  A mapping from each state of the state machine to the new state that will be used to execute
- finally blocks in case the state machine is disposed.  The Dispose method computes the new 
+ finally blocks in case the state machine is disposed.  The Dispose method computes the new
  state and then runs MoveNext.
  </summary>
 </member>
@@ -69043,7 +69059,7 @@ Parse the input for leading trivia.
  <summary>
  If any required special/well-known type/member is not found or has use-site errors
  we should not continue with transformation because it may have unwanted consequences;
- e.g. we do return Nothing if well-known member symbol is not found. This method should 
+ e.g. we do return Nothing if well-known member symbol is not found. This method should
  check all required symbols and return False if any of them are missing or have use-site errors.
  We will also return True if signature is definitely bad - contains parameters that are ByRef or have error types
  </summary>
@@ -69906,7 +69922,7 @@ Parse the input for leading trivia.
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.Candidate.FixedTypeParameters">
  <summary>
  Extension method type parameters that were fixed during currying, if any.
- If none were fixed, BitArray.Null should be returned. 
+ If none were fixed, BitArray.Null should be returned.
  </summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.Candidate.ReceiverType">
@@ -69952,7 +69968,7 @@ Parse the input for leading trivia.
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.OverloadResolutionResult.RemainingCandidatesRequireNarrowingConversion">
  <summary>
- This might simplify error reporting. If not, consider getting rid of this property. 
+ This might simplify error reporting. If not, consider getting rid of this property.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.MethodOrPropertyInvocationOverloadResolution(Microsoft.CodeAnalysis.VisualBasic.BoundMethodOrPropertyGroup,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@,System.Boolean,System.Boolean)">
@@ -69974,26 +69990,26 @@ Parse the input for leading trivia.
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.PropertyInvocationOverloadResolution(Microsoft.CodeAnalysis.VisualBasic.BoundPropertyGroup,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@,System.Boolean)">
  <summary>
- Perform overload resolution on the given array of property symbols. 
+ Perform overload resolution on the given array of property symbols.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.ShouldConsiderExtensionMethods(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult})">
  <summary>
- Given instance method candidates gone through applicability analysis, 
+ Given instance method candidates gone through applicability analysis,
  figure out if we should consider extension methods, if any.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.EliminateLessApplicableToTheArguments(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,System.Boolean,Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@,System.Boolean)">
  <summary>
  §11.8.1 Overloaded Method Resolution
-      6.	Next, if, given any two members of the set, M and N, M is more applicable than N 
-         to the argument list, eliminate N from the set. If more than one member remains 
-         in the set and the remaining members are not equally applicable to the argument 
+      6.	Next, if, given any two members of the set, M and N, M is more applicable than N
+         to the argument list, eliminate N from the set. If more than one member remains
+         in the set and the remaining members are not equally applicable to the argument
          list, a compile-time error results.
       7.	Otherwise, given any two members of the set, M and N, apply the following tie-breaking rules, in order.
- 
+
  Returns amount of applicable candidates left.
- 
+
  Note that less applicable candidates are going to be eliminated if and only if there are most applicable
  candidates.
  </summary>
@@ -70006,7 +70022,7 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.FastFindMostApplicableCandidates(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Int32},Microsoft.CodeAnalysis.VisualBasic.Binder,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@)">
  <summary>
  Returns True if there are most applicable candidates.
- 
+
  indexesOfMostApplicableCandidates will contain indexes of equally applicable candidates, which are most applicable
  by comparison to the other (non-equal) candidates. The indexes will be in ascending order.
  </summary>
@@ -70027,8 +70043,8 @@ Parse the input for leading trivia.
  <summary>
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
-    7.10.	If the overload resolution is being done to resolve the target of a 
-             delegate-creation expression from an AddressOf expression and M is a 
+    7.10.	If the overload resolution is being done to resolve the target of a
+             delegate-creation expression from an AddressOf expression and M is a
              function, while N is a subroutine, eliminate N from the set.
  </summary>
 </member>
@@ -70036,9 +70052,9 @@ Parse the input for leading trivia.
  <summary>
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
- 7.8.	If one or more arguments are AddressOf or lambda expressions, and all of the corresponding 
+ 7.8.	If one or more arguments are AddressOf or lambda expressions, and all of the corresponding
          delegate types in M match exactly, but not all do in N, eliminate N from the set.
- 7.9.	If one or more arguments are AddressOf or lambda expressions, and all of the corresponding 
+ 7.9.	If one or more arguments are AddressOf or lambda expressions, and all of the corresponding
          delegate types in M are widening conversions, but not all are in N, eliminate N from the set.
  </summary>
 </member>
@@ -70046,20 +70062,20 @@ Parse the input for leading trivia.
  <summary>
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
- 7.9.	If M did not use any optional parameter defaults in place of explicit 
+ 7.9.	If M did not use any optional parameter defaults in place of explicit
          arguments, but N did, then eliminate N from the set.
- 
- !!!WARNING!!! The index (7.9) is based on "VB11 spec [draft 3]" version of documentation rather 
+
+ !!!WARNING!!! The index (7.9) is based on "VB11 spec [draft 3]" version of documentation rather
  than Dev10 documentation.
- TODO: Update indexes of other overload method resolution rules 
+ TODO: Update indexes of other overload method resolution rules
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.ShadowBasedOnInferenceLevel(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Boolean,Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Int32@,System.Int32@,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@)">
  <summary>
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
- 7.7.  If M and N both required type inference to produce type arguments, and M did not 
-       require determining the dominant type for any of its type arguments (i.e. each the 
+ 7.7.  If M and N both required type inference to produce type arguments, and M did not
+       require determining the dominant type for any of its type arguments (i.e. each the
        type arguments inferred to a single type), but N did, eliminate N from the set.
  </summary>
 </member>
@@ -70075,24 +70091,24 @@ Parse the input for leading trivia.
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.GroupEquallyApplicableCandidates(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.VisualBasic.Binder)">
  <summary>
- This method groups equally applicable (§11.8.1.1 Applicability) candidates into buckets. 
- 
- Returns an ArrayBuilder of buckets. Each bucket is represented by an ArrayBuilder(Of Integer), 
+ This method groups equally applicable (§11.8.1.1 Applicability) candidates into buckets.
+
+ Returns an ArrayBuilder of buckets. Each bucket is represented by an ArrayBuilder(Of Integer),
  which contains indexes of equally applicable candidates from input parameter 'candidates'.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.AnalyzeNarrowingCandidates(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,System.Boolean,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Boolean@,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@)">
  <summary>
  §11.8.1 Overloaded Method Resolution
-      3.	Next, eliminate all members from the set that require narrowing conversions 
-         to be applicable to the argument list, except for the case where the argument 
+      3.	Next, eliminate all members from the set that require narrowing conversions
+         to be applicable to the argument list, except for the case where the argument
          expression type is Object.
-      4.	Next, eliminate all remaining members from the set that require narrowing coercions 
-         to be applicable to the argument list. If the set is empty, the type containing the 
-         method group is not an interface, and strict semantics are not being used, the 
+      4.	Next, eliminate all remaining members from the set that require narrowing coercions
+         to be applicable to the argument list. If the set is empty, the type containing the
+         method group is not an interface, and strict semantics are not being used, the
          invocation target expression is reclassified as a late-bound method access.
          Otherwise, the normal rules apply.
- 
+
  Returns amount of applicable candidates left.
  </summary>
  <returns></returns>
@@ -70102,10 +70118,10 @@ Parse the input for leading trivia.
  <summary>
  §11.8.1 Overloaded Method Resolution
      2.	Next, eliminate all members from the set that are inaccessible or not applicable to the argument list.
- 
+
  Note, similar to Dev10 compiler this process will eliminate candidates requiring narrowing conversions
  if strict semantics is used, exception are candidates that require narrowing only from numeric constants.
- 
+
  Returns amount of applicable candidates left.
  </summary>
  <returns></returns>
@@ -70114,18 +70130,18 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.BuildParameterToArgumentMap(Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Int32}@,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{System.Int32}@)">
  <summary>
  Figure out corresponding arguments for parameters §11.8.2 Applicable Methods.
- 
+
  Note, this function mutates the candidate structure.
- 
+
  If non-Nothing ArrayBuilders are returned through parameterToArgumentMap and paramArrayItems
  parameters, the caller is responsible fo returning them into the pool.
- 
- Assumptions: 
+
+ Assumptions:
     1) This function is never called for a candidate that should be rejected due to parameter count.
     2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
     3) Omitted argument never has name.
     4) argumentNames contains Nothing for all positional arguments.
- 
+
  !!! Should keep this function in sync with Binder.PassArguments, which uses data this function populates.              !!!
  !!! Should keep this function in sync with Binder.ReportOverloadResolutionFailureForASingleCandidate.                  !!!
  !!! Everything we flag as an error here, Binder.ReportOverloadResolutionFailureForASingleCandidate should detect as well. !!!
@@ -70134,16 +70150,16 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.MatchArguments(Microsoft.CodeAnalysis.VisualBasic.BoundMethodOrPropertyGroup,Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CandidateAnalysisResult@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.VisualBasic.Binder,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.VisualBasic.BoundExpression}@,Microsoft.CodeAnalysis.SyntaxNode,System.Boolean,Microsoft.CodeAnalysis.CompoundUseSiteInfo{Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol}@)">
  <summary>
  Match candidate's parameters to arguments §11.8.2 Applicable Methods.
- 
+
  Note, similar to Dev10 compiler this process will eliminate candidate requiring narrowing conversions
  if strict semantics is used, exception are candidates that require narrowing only from numeric constants.
- 
- Assumptions: 
+
+ Assumptions:
     1) This function is never called for a candidate that should be rejected due to parameter count.
     2) Omitted arguments [ Call Goo(a, , b) ] are represented by OmittedArgumentExpression node in the arguments array.
     3) Omitted argument never has name.
     4) argumentNames contains Nothing for all positional arguments.
- 
+
  !!! Should keep this function in sync with Binder.PassArguments, which uses data this function populates.              !!!
  !!! Should keep this function in sync with Binder.ReportOverloadResolutionFailureForASingleCandidate.                  !!!
  !!! Should keep this function in sync with InferenceGraph.PopulateGraph.                                               !!!
@@ -70169,19 +70185,19 @@ Parse the input for leading trivia.
  3) Infers method's generic type arguments if needed.
  4) Substitutes method's generic type arguments.
  5) Eliminates candidates based on shadowing by signature.
-    This partially takes care of §11.8.1 Overloaded Method Resolution, section 7.1.	
-      If M is defined in a more derived type than N, eliminate N from the set. 
+    This partially takes care of §11.8.1 Overloaded Method Resolution, section 7.1.
+      If M is defined in a more derived type than N, eliminate N from the set.
  6) Eliminates candidates with identical virtual signatures by applying various shadowing and
-    tie-breaking rules from §11.8.1 Overloaded Method Resolution, section 7.0 
-     • If M has fewer parameters from an expanded paramarray than N, eliminate N from the set. 
+    tie-breaking rules from §11.8.1 Overloaded Method Resolution, section 7.0
+     • If M has fewer parameters from an expanded paramarray than N, eliminate N from the set.
  7) Takes care of unsupported overloading within the same type for instance methods/properties.
- 
+
  Assumptions:
  1) Shadowing by name has been already applied.
  2) group can include extension methods.
- 3) group contains original definitions, i.e. method type arguments have not been substituted yet. 
-    Exception are extension methods with type parameters substituted based on receiver type rather 
-    than based on type arguments supplied at the call site.    
+ 3) group contains original definitions, i.e. method type arguments have not been substituted yet.
+    Exception are extension methods with type parameters substituted based on receiver type rather
+    than based on type arguments supplied at the call site.
  4) group contains only accessible candidates.
  5) group doesn't contain members involved into unsupported overloading, i.e. differ by casing or custom modifiers only.
  6) group does not contain duplicates.
@@ -70221,7 +70237,7 @@ Parse the input for leading trivia.
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.OverloadResolution.CompareParameterTypeGenericDepth(Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol,System.Boolean@,System.Boolean@)">
  <summary>
- 
+
  </summary>
  <returns>False if node of candidates wins</returns>
 </member>
@@ -70229,9 +70245,9 @@ Parse the input for leading trivia.
  <summary>
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
-    7.3.	If M and N are extension methods and the target type of M has fewer type 
-         parameters than the target type of N, eliminate N from the set. 
-         !!! Note that spec talks about "fewer type parameters", but it is not really about count. 
+    7.3.	If M and N are extension methods and the target type of M has fewer type
+         parameters than the target type of N, eliminate N from the set.
+         !!! Note that spec talks about "fewer type parameters", but it is not really about count.
          !!! It is about one refers to a type parameter and the other one doesn't.
  </summary>
 </member>
@@ -70240,8 +70256,8 @@ Parse the input for leading trivia.
  Implements shadowing based on
  §11.8.1 Overloaded Method Resolution.
     7.1.	If M is defined in a more derived type than N, eliminate N from the set.
-         This rule also applies to the types that extension methods are defined on. 
-    7.2.	If M and N are extension methods and the target type of M is a class or 
+         This rule also applies to the types that extension methods are defined on.
+    7.2.	If M and N are extension methods and the target type of M is a class or
          structure and the target type of N is an interface, eliminate N from the set.
  </summary>
 </member>
@@ -74544,6 +74560,11 @@ Parse the input for leading trivia.
             Integer: Source position of the defining #Const directive.
  </summary>
 </member>
+<member name="T:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.DebuggerSyntaxTree">
+ <summary>
+ Use by Expression Evaluator.
+ </summary>
+</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.LazySyntaxTree.#ctor(Microsoft.CodeAnalysis.Text.SourceText,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions,System.String,System.Collections.Immutable.ImmutableDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic})">
  <summary>
  Used to create new tree incrementally.
@@ -74639,6 +74660,12 @@ Parse the input for leading trivia.
  Creates a new syntax tree from a syntax node.
  </summary>
  <param name="diagnosticOptions">An obsolete parameter. Diagnostic options should now be passed with <see cref="P:Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider"/></param>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.CreateForDebugger(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode,Microsoft.CodeAnalysis.Text.SourceText,Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions)">
+ <summary>
+ Creates a new syntax tree from a syntax node with text that should correspond to the syntax node.
+ </summary>
+ <remarks>This is used by the ExpressionEvaluator.</remarks>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxTree.CreateWithoutClone(Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxNode)">
  <summary>
@@ -81424,6 +81451,12 @@ Parse the input for leading trivia.
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_DoNotUseCompilerFeatureRequired">
  <summary>'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' is reserved for compiler usage only.</summary>
 </member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_DuplicateAnalyzerReference">
+ <summary>Analyzer reference '{0}' specified multiple times</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_DuplicateAnalyzerReference_Title">
+ <summary>Analyzer reference specified multiple times</summary>
+</member>
 <member name="T:Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer">
  <summary>
  DiagnosticAnalyzer for VB compiler's syntax/semantic/compilation diagnostics.
@@ -81487,6 +81520,9 @@ Parse the input for leading trivia.
  <param name="nodeOrToken">The source node or token.</param>
  <param name="kind">The syntax kind to test for.</param>
  <returns><see langword="true"/> if the node or token is of the specified kind; otherwise, <see langword="false"/>.</returns>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasicExtensions.ContainsDirective(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)">
+ <inheritdoc cref="M:Microsoft.CodeAnalysis.SyntaxNode.ContainsDirective(System.Int32)"/>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasicExtensions.IndexOf``1(Microsoft.CodeAnalysis.SyntaxList{``0},Microsoft.CodeAnalysis.VisualBasic.SyntaxKind)">
  <summary>
