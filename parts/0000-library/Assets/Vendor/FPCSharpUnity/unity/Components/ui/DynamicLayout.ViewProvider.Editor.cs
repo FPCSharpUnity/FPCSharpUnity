@@ -8,7 +8,7 @@ namespace FPCSharpUnity.unity.Components.ui;
 public partial class DynamicLayout {
   public static partial class ViewProvider {
     /// <summary> Items are only created/destroyed inside editor. Do not use this for playmode. </summary>
-    [GenConstructor] public partial class InstantiateAndDestroyEditor<Obj> : IViewProvider<Obj> where Obj : Component {
+    [Record] public partial class InstantiateAndDestroyEditor<Obj> : IViewProvider<Obj> where Obj : Component {
       readonly Obj template;
 
       public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {

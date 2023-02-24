@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
@@ -10,6 +11,7 @@ using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
+using Smooth.Collections;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui {
@@ -51,7 +53,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// </summary>
       void updateData(InnerData newData);
     }
-  
+
     /// <summary>
     /// Update items without resetting their visuals that are already visible by the user. It is useful when the data
     /// constantly changes and user wants to interact with items without them changing their order inside scrollView. Use
@@ -113,6 +115,87 @@ namespace FPCSharpUnity.unity.Components.ui {
       }}
     
       layout.updateLayout();
+    }
+    
+    /// <summary>
+    /// Updates <see cref="DynamicLayout"/> layout elements' list using provided <see cref="newItems"/> list. It will
+    /// try and match already present layout items inside <see cref="DynamicLayout"/> by matching same
+    /// <see cref="CommonInnerData"/>s together. If the new item is not present, it will be added by constructing it
+    /// using <see cref="toLayoutElement"/> callback. If item is present, it will not be updated, just placed into
+    /// correct position on screen. If item that was in layout list is not in <see cref="newItems"/>, it will be hidden
+    /// and disposed of.
+    /// <para/>
+    /// Use this if all <see cref="layout"/> elements' <see cref="CommonInnerData"/> can be expressed by the same one
+    /// type and each of <see cref="DynamicLayout.ElementWithInnerData{A}.data"/> can be distinguished from one another.
+    /// Example: use union type for <see cref="CommonInnerData"/>, which consists of all
+    /// <see cref="CommonDynamicElementType"/> inner datas.
+    /// <para/>
+    /// Use this method instead of using <see cref="DynamicLayout.Init{A}.clearLayoutData"/>+
+    /// <see cref="DynamicLayout.Init{A}.appendDataIntoLayoutData(A, bool)"/>+
+    /// <see cref="DynamicLayout.Init{A}.updateLayout"/> combo, as it puts all visible UI items back to pool and
+    /// takes them out again, and it is performance intensive to toggle UI components in Unity.
+    /// </summary>
+    /// <param name="layout">Layout to update.</param>
+    /// <param name="newItems">New list of items to put inside</param>
+    /// <param name="data">Extra type to prevent closures.</param>
+    /// <param name="toLayoutElement">Construct dynamic layout element from given data.</param>
+    /// <typeparam name="CommonDynamicElementType">A type for all `<see cref="layout"/>` items.</typeparam>
+    /// <typeparam name="CommonInnerData">
+    /// Combined union type which has inner datas for all `<see cref="CommonDynamicElementType"/>` types.
+    /// </typeparam>
+    /// <typeparam name="Data">Extra type to prevent closures.</typeparam>
+    public static void updateLayoutWithCommonInnerType<CommonDynamicElementType, CommonInnerData, Data>(
+      this DynamicLayout.IModifyElementsList<CommonDynamicElementType> layout,
+      IReadOnlyList<CommonInnerData> newItems, Data data, 
+      Func<CommonInnerData, Data, CommonDynamicElementType> toLayoutElement
+    )
+      where CommonDynamicElementType 
+      : DynamicLayout.ElementWithInnerData<CommonInnerData>, 
+        IEquatable<CommonDynamicElementType>, 
+        DynamicLayout.IElement
+      where CommonInnerData : IEquatable<CommonInnerData> 
+    {
+      using var previousItemsSet = 
+        DictionaryPool<CommonInnerData, Pool<List<CommonDynamicElementType>>.Disposable>.instance.BorrowDisposable();
+
+      foreach (var item in layout.items) {
+        addVisualToSet(item.data, item);
+      }
+      layout.items.Clear();
+      
+      foreach (var newInnerData in newItems) {
+        layout.items.Add(
+          removeVisualFromSetIfExists(newInnerData).valueOut(out var existingItem)
+          ? existingItem
+          : toLayoutElement(newInnerData, data)
+        );
+      }
+
+      foreach (var kvp in previousItemsSet.value) {
+        foreach (var element in kvp.Value.value) {
+          element.hide();
+        }
+        kvp.Value.Dispose();
+      }
+    
+      layout.updateLayout();
+
+      void addVisualToSet(CommonInnerData key, CommonDynamicElementType value) {
+        if (!previousItemsSet.value.TryGetValue(key, out var list)) {
+          previousItemsSet.value[key] = list = ListPool<CommonDynamicElementType>.instance.BorrowDisposable();
+        }
+        list.value.Add(value);
+      }
+      Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData key) {
+        var list = previousItemsSet.value.get(key).getOr_RETURN_NONE();
+        var value = list.value.last().getOr_RETURN_NONE();
+        list.value.RemoveLast();
+        if (list.value.isEmpty()) {
+          previousItemsSet.value.Remove(key);
+          list.Dispose();
+        }
+        return Some.a(value);
+      }
     }
   }
 

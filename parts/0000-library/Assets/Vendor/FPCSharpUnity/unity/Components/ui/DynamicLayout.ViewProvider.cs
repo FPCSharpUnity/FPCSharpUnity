@@ -42,7 +42,7 @@ public partial class DynamicLayout {
     /// <summary>
     /// Item visual is already placed inside scene/prefab and we reuse a single instance of this item visual.
     /// </summary>
-    public class SingleInstance<Obj> : IViewProvider<Obj> where Obj : Component {
+    [Record] public partial class SingleInstance<Obj> : IViewProvider<Obj> where Obj : Component {
       readonly Obj instance;
       readonly Option<Action<bool, Obj>> maybeCustomSetActiveCallback;
 
@@ -65,7 +65,7 @@ public partial class DynamicLayout {
     }
 
     /// <summary> Items' visuals are created and released by <see cref="GameObjectPool"/>. </summary>
-    [GenConstructor] public partial class Pooled<Obj> : IViewProvider<Obj> where Obj : Component {
+    [Record] public partial class Pooled<Obj> : IViewProvider<Obj> where Obj : Component {
       readonly GameObjectPool<Obj> pool;
 
       public IViewProvider<Obj>.ViewInstance createItem(RectTransform parent) {

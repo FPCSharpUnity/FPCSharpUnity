@@ -75,7 +75,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     }
 
     /// <summary> Layout part of <see cref="Init{A}"/>. </summary>
-    public interface ILayout<in TData> where TData : IElement {
+    [PublicAPI] public interface ILayout<in TData> where TData : IElement {
       /// <inheritdoc cref="Init.calculateVisibleRectStatic"/>
       Rect calculateVisibleRect { get; }
 
@@ -275,11 +275,18 @@ namespace FPCSharpUnity.unity.Components.ui {
         maybeViewProvider: new ViewProvider.Pooled<View>(pool), log
       ) {}
     }
+
+    /// <summary> DynamicLayout element which has a data field. </summary>
+    /// <typeparam name="InnerData">Data used for resolving Ui visual in <see cref="DynamicLayout"/>.</typeparam>
+    public interface ElementWithInnerData<out InnerData> {
+      /// <summary> Data used for resolving item's UI visual in <see cref="DynamicLayout"/>. </summary>
+      InnerData data { get; }
+    }
   
     /// <summary> Base class for all <see cref="IElement"/> implementations. </summary>
     /// <typeparam name="InnerData">See <see cref="data"/>.</typeparam>
     /// <typeparam name="View">Visual type. If item is visible, it will be Unity object.</typeparam>
-    public abstract partial class ElementBase<InnerData, View> : IElement {
+    public abstract partial class ElementBase<InnerData, View> : IElement, ElementWithInnerData<InnerData> {
       /// <summary> Tracks currently visible visual. </summary>
       readonly IDisposableTracker tracker;
     
