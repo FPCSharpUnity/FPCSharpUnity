@@ -3,27 +3,27 @@ using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.reactive;
 
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.macros;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Concurrent {
-  public class ASyncHelperBehaviour : MonoBehaviour,
-    IMB_OnApplicationPause, IMB_OnApplicationQuit, IMB_LateUpdate, IMB_Update
+  public partial class ASyncHelperBehaviour : MonoBehaviour,
+    IMB_OnApplicationPause, IMB_OnApplicationQuit, IMB_LateUpdate, IMB_Update, IMB_OnApplicationFocus
   {
-    readonly Subject<bool> _onPause = new();
-    public IRxObservable<bool> onPause => _onPause;
+    [PublicReadOnlyAccessor] readonly Subject<bool> _onPause = new();
     public void OnApplicationPause(bool paused) => _onPause.push(paused);
 
-    readonly Subject<Unit> _onQuit = new();
-    public IRxObservable<Unit> onQuit => _onQuit;
+    [PublicReadOnlyAccessor] readonly Subject<Unit> _onQuit = new();
     public void OnApplicationQuit() => _onQuit.push(F.unit);
 
-    readonly Subject<Unit> _onLateUpdate = new();
-    public IRxObservable<Unit> onLateUpdate => _onLateUpdate;
+    [PublicReadOnlyAccessor] readonly Subject<Unit> _onLateUpdate = new();
     public void LateUpdate() => _onLateUpdate.push(F.unit);
     
-    readonly Subject<Unit> _onUpdate = new();
-    public IRxObservable<Unit> onUpdate => _onLateUpdate;
+    [PublicReadOnlyAccessor] readonly Subject<Unit> _onUpdate = new();
     public void Update() => _onUpdate.push(F.unit);
+    
+    [PublicReadOnlyAccessor] readonly IRxRef<bool> _hasFocus = RxRef.a(true);
+    public void OnApplicationFocus(bool focus) => _hasFocus.value = focus;
   }
 
   // Don't implement unity interfaces if not used

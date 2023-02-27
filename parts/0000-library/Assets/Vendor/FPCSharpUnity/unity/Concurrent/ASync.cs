@@ -343,6 +343,8 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static IRxObservable<Unit> onLateUpdate => behaviour.onLateUpdate;
     
     public static IRxObservable<Unit> onUpdate => behaviour.onUpdate;
+    
+    public static IRxVal<bool> hasFocus => behaviour.hasFocus;
 
     /**
      * Takes a function that transforms an element into a future and
