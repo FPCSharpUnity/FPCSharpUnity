@@ -162,30 +162,28 @@ namespace FPCSharpUnity.unity.Components.ui {
         addVisualToSet(item.data, item);
       }
       layout.items.Clear();
-      
-      foreach (var newInnerData in newItems) {
+
+      // ReSharper disable once ForCanBeConvertedToForeach
+      // foreach loop would allocate here.
+      for (var idx = 0; idx < newItems.Count; idx++) {
+        var newInnerData = newItems[idx];
         layout.items.Add(
           removeVisualFromSetIfExists(newInnerData).valueOut(out var existingItem)
-          ? existingItem
-          : toLayoutElement(newInnerData, data)
+            ? existingItem
+            : toLayoutElement(newInnerData, data)
         );
       }
-
-      foreach (var kvp in previousItemsSet.value) {
-        foreach (var element in kvp.Value.value) {
-          element.hide();
-        }
-        kvp.Value.Dispose();
-      }
-    
+      
+      disposeRemainingElements();
       layout.updateLayout();
 
       void addVisualToSet(CommonInnerData key, CommonDynamicElementType value) {
-        if (!previousItemsSet.value.TryGetValue(key, out var list)) {
-          previousItemsSet.value[key] = list = ListPool<CommonDynamicElementType>.instance.BorrowDisposable();
-        }
+        var list = previousItemsSet.value.getOrUpdate(
+          key, static () => ListPool<CommonDynamicElementType>.instance.BorrowDisposable()
+        );
         list.value.Add(value);
       }
+      
       Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData key) {
         var list = previousItemsSet.value.get(key).getOr_RETURN_NONE();
         var value = list.value.last().getOr_RETURN_NONE();
@@ -195,6 +193,15 @@ namespace FPCSharpUnity.unity.Components.ui {
           list.Dispose();
         }
         return Some.a(value);
+      }
+      
+      void disposeRemainingElements() {
+        foreach (var kvp in previousItemsSet.value) {
+          foreach (var element in kvp.Value.value) {
+            element.hide();
+          }
+          kvp.Value.Dispose();
+        }
       }
     }
   }
