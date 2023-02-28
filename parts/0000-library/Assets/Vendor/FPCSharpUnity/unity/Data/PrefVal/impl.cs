@@ -61,7 +61,7 @@ namespace FPCSharpUnity.unity.Data {
     public bool cached => true;
     Option<Try<A>> ICachedBlob<A>.read() => Some.a(F.scs(value));
 
-    public Try<Unit> store(A data) {
+    Try<Unit> ICachedBlob<A>.store(A data) {
       value = data;
       return F.scs(F.unit);
     }
