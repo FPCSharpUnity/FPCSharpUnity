@@ -1,6 +1,9 @@
 ﻿using System;
+using FPCSharpUnity.core.config;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.json;
 using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
@@ -57,5 +60,9 @@ namespace FPCSharpUnity.unity.Data {
 
   public static class UrlExts {
     public static Url toUrl(this Uri uri) => new Url(uri.ToString());
+    
+    public static readonly Config.Parser<JsonValue, Url> parser = Config.stringParser.map(str => new Url(str));
+
+    public static readonly Config.Parser<JsonValue, Option<Url>> parserOpt = Config.opt(parser);
   }
 }
