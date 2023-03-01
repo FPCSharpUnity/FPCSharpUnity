@@ -55,7 +55,7 @@ public partial class DynamicLayout {
     
     /// <summary> Sample item's size from template object. This size in secondary axis is calculated using formula:
     /// itemWidth/viewportWidth %. </summary>
-    public readonly struct FromTemplateWithCustomSizeInSecondaryAxis {
+    [Record(ConstructorFlags.None)] public readonly partial struct FromTemplateWithCustomSizeInSecondaryAxis {
       /// <summary> Item's size. </summary>
       public readonly Rect rect;
       
