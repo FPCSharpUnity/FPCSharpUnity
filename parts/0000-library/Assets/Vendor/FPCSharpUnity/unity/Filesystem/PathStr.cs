@@ -72,9 +72,13 @@ namespace FPCSharpUnity.unity.Filesystem {
     public PathStr ensureBeginsWith(PathStr p) => path.StartsWithFast(p.path) ? this : p / path;
     public override string ToString() => asString();
     public readonly string asString() => _path;
+    
+    /// <summary>Path in UNIX format (with / slashes).</summary>
     public string unixString => ToString().Replace('\\', '/');
 
-    // Use this with Unity Resources, AssetDatabase and PrefabUtility methods
+    /// <summary>
+    /// Use this with Unity Resources, AssetDatabase and PrefabUtility methods
+    /// </summary>
     public string unityPath => Path.DirectorySeparatorChar == '/' ? path : path.Replace('\\' , '/');
     
     public PathStr toAbsolute => a(Path.GetFullPath(path));
