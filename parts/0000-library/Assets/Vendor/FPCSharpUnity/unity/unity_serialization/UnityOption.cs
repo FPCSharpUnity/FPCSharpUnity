@@ -97,10 +97,11 @@ namespace FPCSharpUnity.unity.unity_serialization {
       }
     }
 
+    static bool Equals(UnityOption<A> a1, UnityOption<A> a2) => 
+      ReferenceEquals(a1, a2) || !ReferenceEquals(null, a1) && !ReferenceEquals(null, a2) && a1.Equals(a2);
 
-    public static bool operator ==(UnityOption<A> left, UnityOption<A> right) => left.value == right.value;
-
-    public static bool operator !=(UnityOption<A> left, UnityOption<A> right) => left.value != right.value;
+    public static bool operator ==(UnityOption<A> left, UnityOption<A> right) => Equals(left, right);
+    public static bool operator !=(UnityOption<A> left, UnityOption<A> right) => !Equals(left, right);
 
     public string[] blacklistedFields() =>
       _isSome
@@ -110,9 +111,9 @@ namespace FPCSharpUnity.unity.unity_serialization {
     public override string ToString() => value.ToString();
     
     // Generated Equals and GetHashCode, because of compiler warning
-    protected bool Equals(UnityOption<A> other) {
-      return _isSome == other._isSome && EqualityComparer<A>.Default.Equals(_value, other._value);
-    }
+    protected bool Equals(UnityOption<A> other) => 
+      _isSome == other._isSome 
+      && (isNone || EqualityComparer<A>.Default.Equals(_value, other._value));
 
     public override bool Equals(object obj) {
       if (ReferenceEquals(null, obj)) return false;
@@ -121,11 +122,12 @@ namespace FPCSharpUnity.unity.unity_serialization {
       return Equals((UnityOption<A>) obj);
     }
 
-    public override int GetHashCode() {
-      unchecked {
-        return (_isSome.GetHashCode() * 397) ^ EqualityComparer<A>.Default.GetHashCode(_value);
-      }
-    }
+    public override int GetHashCode() { unchecked {
+      return 
+        _isSome
+        ? (_isSome.GetHashCode() * 397) ^ EqualityComparer<A>.Default.GetHashCode(_value)
+        : _isSome.GetHashCode();
+    } }
   }
 
   [Serializable, PublicAPI]
