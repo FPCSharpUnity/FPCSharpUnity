@@ -59,7 +59,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull, PublicAccessor] ScrollRect _scrollRect;
     [SerializeField, NotNull, PublicAccessor] RectTransform _container;
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
-    [SerializeField, NotNull, PublicAccessor] Padding _padding;
+    [SerializeField, NotNull] Padding _padding;
     [SerializeField, FormerlySerializedAs("_spacing"), PublicAccessor] float _spacingInScrollableAxis;
     [SerializeField, InfoBox(
       DynamicLayout_ExpandElementsRectSizeInSecondaryAxisExts.SUMMARY_EXPAND_ELEMENTS_RECT_SIZE_IN_SECONDARY_AXIS
@@ -67,15 +67,32 @@ namespace FPCSharpUnity.unity.Components.ui {
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
     #endregion
+    
+    public Padding padding { get => _padding; set => _padding = value; }
 
     public bool isHorizontal => scrollRect.horizontal;
 
-    [DelegateToInterface(delegatedInterface = typeof(IDynamicLayout), delegateTo = nameof(backing))]
-    public partial class Init<CommonDataType> : IModifyElementsList<CommonDataType>, IElements<CommonDataType>
+    public class Init<CommonDataType> : IModifyElementsList<CommonDataType>, IElements<CommonDataType>, IDynamicLayout
       where CommonDataType : IElement 
     {
       public readonly IDynamicLayout backing;
       public List<CommonDataType> items { get; } = new();
+
+      public bool isHorizontal => backing.isHorizontal;
+      public ScrollRect scrollRect => backing.scrollRect;
+      public RectTransform container => backing.container;
+      public RectTransform maskRect => backing.maskRect;
+
+      public Padding padding {
+        get => backing.padding;
+        set {
+          backing.padding = value;
+          updateLayout();
+        }
+      }
+
+      public float spacingInScrollableAxis => backing.spacingInScrollableAxis;
+      public ExpandElementsRectSizeInSecondaryAxis expandElements => backing.expandElements;
 
       /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
       readonly IRxRef<float> containerSizeInScrollableAxis = RxRef.a(0f);
