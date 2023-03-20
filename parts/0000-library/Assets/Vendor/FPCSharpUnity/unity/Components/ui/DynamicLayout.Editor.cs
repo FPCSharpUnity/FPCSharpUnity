@@ -82,13 +82,21 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   }
   
   [Button, HideInPlayMode, FoldoutGroup(EDITOR_TEST)] void editorTestPopulateListWithFullWidthEntries(int number = 999) {
+    var rect = _maskRect.rect.size;
     _editorTestEntries = _editorTestEntries.Concat(
       _container.children()
         .Where(tr => (tr.gameObject.hideFlags & HideFlags.DontSave) != HideFlags.DontSave)
         .Take(number)
-        .Select(tr => new EditorTestEntry(_item: (RectTransform)tr, _sizeInSecondaryAxis: Percentage.oneHundred,
-          _customSizeInScrollableAxis: new UnityOption<float>(None._)
-        ))  
+        .Select(tr => {
+            var rt = (RectTransform)tr;
+            return new EditorTestEntry(_item: rt,
+              _sizeInSecondaryAxis: new Percentage(
+                _scrollRect.horizontal ? rt.rect.height / rect.y : rt.rect.width / rect.x
+              ),
+              _customSizeInScrollableAxis: new UnityOption<float>(None._)
+            );
+          }
+        )  
     ).ToArray();
   }
   
