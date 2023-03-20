@@ -26,7 +26,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       RectTransform maskRect { get; }
     
       /// <inheritdoc cref="Padding"/>
-      Padding padding { get; }
+      Padding padding { get; set; }
     
       /// <summary> Space between each new line/column. </summary>
       float spacingInScrollableAxis { get; }
@@ -61,11 +61,11 @@ namespace FPCSharpUnity.unity.Components.ui {
     }
 
     /// <summary> Padding for items that gets placed inside <see cref="container"/>. </summary>
-    [Serializable] public partial class Padding {
+    [Serializable, Record(ConstructorFlags.Withers | ConstructorFlags.Copy)] public partial class Padding {
       #region Unity Serialized Fields
 #pragma warning disable 649
       // ReSharper disable NotNullMemberIsNotInitialized
-      [SerializeField, PublicAccessor] float _left, _right, _top, _bottom;
+      [SerializeField, PublicAccessor] public float _left, _right, _top, _bottom;
       // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
       #endregion
