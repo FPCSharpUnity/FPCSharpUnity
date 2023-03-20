@@ -36,6 +36,14 @@ namespace FPCSharpUnity.unity.Concurrent {
     public static Future<A> delayOneFrame<A>(ITracker tracker, A value) => delayFrames(tracker, 1, value);
     public static Future<A> delayOneFrame<A>(ITracker tracker, Func<A> createValue) => delayFrames(tracker, 1, createValue);
     public static Future<Unit> delayOneFrame(ITracker tracker) => delayOneFrame(tracker, Unit._);
+    
+    /// <summary> Completes the future at a given time. </summary>
+    public static Future<A> delay<A>(UnixTime until, A value) {
+      var duration = until - UnixTime.now;
+      return duration > TimeSpan.Zero 
+        ? Future.delay(duration, value, TimeContextU.realTime) 
+        : Future.successful(value);
+    }
       
     public static Future<bool> fromCoroutine(IEnumerator enumerator) =>
       Future.fromCoroutine(ASync.StartCoroutine(enumerator));
