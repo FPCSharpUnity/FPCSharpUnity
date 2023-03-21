@@ -25231,11 +25231,6 @@
               b) not setting this option will produce "int[][,]".
             </summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.UseValueTuple">
-            <summary>
-            Display `System.ValueTuple` instead of tuple syntax `(...)`.
-            </summary>
-        </member>
         <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.UseNativeIntegerUnderlyingType">
             <summary>
             Display `System.[U]IntPtr` instead of `n[u]int`.
@@ -26008,6 +26003,12 @@
             <summary>
             Insert a tuple into the display parts as a single part instead of multiple parts (similar
             to how anonymous types are inserted).
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayMiscellaneousOptions.ExpandValueTuple">
+            <summary>
+            Displays <see cref="T:System.ValueTuple"/> as a normal generic type, rather than with the special
+            parenthetical syntax (e.g. <code>ValueTuple&lt;int, string&gt;</code> instead of <code>(int, string)</code>)
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions">

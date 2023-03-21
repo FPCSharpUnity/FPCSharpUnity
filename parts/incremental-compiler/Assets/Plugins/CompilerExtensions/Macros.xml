@@ -25,10 +25,21 @@
             <ul>
               <li>${this} - pointer to self. Not replaced in static methods.</li>
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
-              <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
               <li>${returnType} - resolved return type of the invoked method.</li>
+              <li>${genericX} - resolved generic type of a generic argument named `X`.</li>
             </ul>
+        </member>
+        <member name="T:GenerationAttributes.SimpleMethodMacroScriban">
+            <summary>
+            Similar to <see cref="T:GenerationAttributes.SimpleMethodMacro"/>, but uses
+            <a href="https://github.com/scriban/scriban/tree/master/doc">Scriban</a> for template evaluation.
+            <para/>
+            Additional functions:
+            <ul>
+              <li>inline(string functionName, string[] args...) - inlines a lambda function from the argument named `functionName`.</li>
+            </ul>
+            </summary>
         </member>
         <member name="T:GenerationAttributes.StatementMethodMacro">
             <summary>
@@ -49,10 +60,21 @@
             <ul>
               <li>${this} - pointer to self. Not replaced in static methods.</li>
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
-              <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
               <li>${returnType} - resolved return type of the invoked method.</li>
+              <li>${genericX} - resolved generic type of a generic argument named `X`.</li>
             </ul>
+        </member>
+        <member name="T:GenerationAttributes.StatementMethodMacroScriban">
+            <summary>
+            Similar to <see cref="T:GenerationAttributes.StatementMethodMacro"/>, but uses
+            <a href="https://github.com/scriban/scriban/tree/master/doc">Scriban</a> for template evaluation.
+            <para/>
+            Additional functions:
+            <ul>
+              <li>inline(string functionName, string[] args...) - inlines a lambda function from the argument named `functionName`.</li>
+            </ul>
+            </summary>
         </member>
         <member name="T:GenerationAttributes.VarMethodMacro">
              <summary>
@@ -86,10 +108,21 @@
                <li>${varName} - name of x</li>
                <li>${this} - pointer to self. Not replaced in static methods.</li>
                <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
-               <li>${argN} - N starts at 0 and refers to in argument list argument with index N</li>
                <li>${argumentName} - refers to argument named 'argumentName'</li>
                <li>${returnType} - resolved return type of the invoked method.</li>
+               <li>${genericX} - resolved generic type of a generic argument named `X`.</li>
              </ul>
+        </member>
+        <member name="T:GenerationAttributes.VarMethodMacroScriban">
+            <summary>
+            Similar to <see cref="T:GenerationAttributes.VarMethodMacro"/>, but uses
+            <a href="https://github.com/scriban/scriban/tree/master/doc">Scriban</a> for template evaluation.
+            <para/>
+            Additional functions:
+            <ul>
+              <li>inline(string functionName, string[] args...) - inlines a lambda function from the argument named `functionName`.</li>
+            </ul>
+            </summary>
         </member>
         <member name="T:GenerationAttributes.CompilationErrorMethodMacroAttribute">
              <summary>
@@ -110,6 +143,11 @@
              In addition - no one will be able to define the `orElse` method with the same signature, because it is already
              defined, thus it will prevent them from thinking "I'll add it, because it's a great idea" :)
              </summary>
+        </member>
+        <member name="M:GenerationAttributes.LazyProperty.#ctor(System.Boolean)">
+            <param name="hasReset">
+            Generate a reset method for the property. The reset method will clear the cached value.
+            </param>
         </member>
         <member name="T:GenerationAttributes.TypesWithMacroAttributes">
             <summary> Used internally by compiler. </summary>

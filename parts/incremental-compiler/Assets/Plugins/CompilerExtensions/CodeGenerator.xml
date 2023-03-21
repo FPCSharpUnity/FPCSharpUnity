@@ -4,7 +4,7 @@
         <name>CodeGenerator</name>
     </assembly>
     <members>
-        <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Collections.Generic.List{Microsoft.CodeAnalysis.Diagnostic},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
+        <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Action{Microsoft.CodeAnalysis.Diagnostic},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
              <summary>
             
              </summary>
@@ -19,7 +19,7 @@
              If set, then the attribute (<see cref="!:attributeToCheck"/>) sits on a property.
              Otherwise it sits on a type (<see cref="!:typeSymbol"/>).
              </param>
-             <param name="diagnostic"></param>
+             <param name="addDiagnostic"></param>
              <returns>New class members as string if there are any.</returns>
         </member>
         <member name="T:IncrementalCompiler.CodeGeneration.FieldOrProp.FieldOrPropTypeKind">
@@ -58,7 +58,7 @@
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
             </param>
         </member>
-        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,IncrementalCompiler.CodeGeneration.TypeParameterListMagnet,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax})">
+        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,IncrementalCompiler.CodeGeneration.TypeParameterListMagnet,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},System.Boolean)">
             <summary>
             Information about the type that contains record fields.
             </summary>
@@ -124,6 +124,22 @@
         </member>
         <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addMemberTo(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)">
             <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberTo(System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)"/>
+        </member>
+        <member name="T:IncrementalCompiler.Stage">
+            <summary>
+            At which stage we should execute the code generation for a concrete attribute.
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.Stage.RunBefore">
+            <summary>
+            This will be run before the <see cref="F:IncrementalCompiler.Stage.Default"/> stage. Use this for codegen that generates types which need to
+            be used by other macros.
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.Stage.Default">
+            <summary>
+            Default stage, should be used for most attributes.
+            </summary>
         </member>
         <member name="M:IncrementalCompiler.Extensions.getAllMembers(Microsoft.CodeAnalysis.ITypeSymbol)">
             <summary>
@@ -254,6 +270,9 @@
             <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
             <param name="memberSyntax">Code that contains one or more class members.</param>
         </member>
+        <member name="F:IncrementalCompiler.MacroProcessor.ReplacementsScriptObject.replacementLamdas">
+            <summary> Key -> argument name </summary>
+        </member>
         <member name="T:IncrementalCompiler.MacroProcessorImplicits.StaticImplicitsDict">
             <summary>
             All accessible (public and internal) static fields and properties with an <see cref="T:GenerationAttributes.Implicit"/> attribute.
@@ -293,6 +312,17 @@
         <member name="F:IncrementalCompiler.MacroProcessorImplicits.ImplicitSymbolRef.isHidden">
             <summary>
             Hidden means it can't be referenced in the current context, because another local variable has the same name.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.MacroReplacer.visitExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)">
+            <summary>
+            Visit <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax"/> that is not part of a <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax"/> and return either a
+            modified <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax"/> or a <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax"/> that should replace the expression.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.MacroReplacer.visitExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax)">
+            <summary>
+            A wrapper to <see cref="M:IncrementalCompiler.MacroReplacer.visitExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)"/>, but for <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax"/>.
             </summary>
         </member>
         <member name="M:CodeGenerator.TypeInMacrosExts.toSymbol(GenerationAttributes.TypeInMacros)">
