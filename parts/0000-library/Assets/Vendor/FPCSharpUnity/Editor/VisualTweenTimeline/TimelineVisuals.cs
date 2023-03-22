@@ -541,7 +541,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         GUILayout.BeginVertical();
         GUI.enabled = !visualizationMode.value && GUI.enabled;
 
-        funNodes.find(elem => elem.element.element == null).map(_ => GUI.enabled = false);
+        funNodes.find(elem => elem.element.element == null).forEach(_ => GUI.enabled = false);
 
         if (GUILayout.Button("Add Tween (USE DRAG & DROP INSTEAD !!!)")) {
           onNewSettings(TimelineEditor.SettingsEvents.AddTween);
