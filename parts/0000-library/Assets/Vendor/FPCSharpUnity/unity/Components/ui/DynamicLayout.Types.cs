@@ -304,7 +304,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     
       public SizeProvider sizeProvider { get; }
       
-      public Percentage sizeInSecondaryAxis => sizeProvider.fold(
+      public Percentage sizeInSecondaryAxis => sizeProvider.foldM(
         onFromTemplateWithCustomSizeInSecondaryAxis: static a => a.sizeInSecondaryAxis,
         onStatic: static a => a.sizeInSecondaryAxis,
         onFromTemplateStatic: static a => a.sizeInSecondaryAxis,
