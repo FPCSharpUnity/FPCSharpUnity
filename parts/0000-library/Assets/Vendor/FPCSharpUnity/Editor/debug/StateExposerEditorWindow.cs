@@ -189,7 +189,7 @@ namespace FPCSharpUnity.unity.debug {
         void renderScopes() {
           foreach (var (key, innerScope) in scopes.OrderBySafe(_ => _.Key.name)) {
             EditorGUILayout.LabelField(key.name, scopeKeyTextStyle.strict);
-            {if (key.unityObject.flatMap(_ => _.Target()).valueOut(out var unityObject)) {
+            {if (key.unityObject.flatMapM(_ => _.Target()).valueOut(out var unityObject)) {
               using var _ = new EditorGUI.IndentLevelScope();
               EditorGUILayout.ObjectField(unityObject, typeof(Object), allowSceneObjects: true);
             }}

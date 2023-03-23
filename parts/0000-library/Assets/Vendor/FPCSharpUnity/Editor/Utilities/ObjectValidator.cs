@@ -710,7 +710,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         
         void validateShaderPropertyAttribute(ShaderPropertyAttribute attribute) {
           var maybeMethod = objectBeingValidated.GetType().GetMethodInHierarchy(attribute.rendererGetter);
-          var maybeValidationError = maybeMethod.flatMap(method => {
+          var maybeValidationError = maybeMethod.flatMapM(method => {
             if (method.GetParameters().Length == 0) {
               var invokeReturn = method.Invoke(objectBeingValidated, null);
               var maybeRenderer = invokeReturn.downcast(default(Renderer));

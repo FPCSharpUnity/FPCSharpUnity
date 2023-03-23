@@ -161,7 +161,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
 
         selectedFunTweenManager =
           ftmToSetOpt
-            .flatMap(ftmToSet => ftms.find(ftm => ftm == ftmToSet))
+            .flatMapM(ftmToSet => ftms.find(ftm => ftm == ftmToSet))
             || ftms.headOption();
           
         timelineVisuals = new TimelineVisuals(
@@ -175,7 +175,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
             ? ftms.IndexOf(selectedFunTweenManager.get)
             : 0;
 
-          return selectedFunTweenManager.flatMap(
+          return selectedFunTweenManager.flatMapM(
               ftm => backing.mappedSettings.get(ftm)
                 .mapM(settings => {
                   settings.selectedFTMindex = idx;
@@ -543,7 +543,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         );
 
       Option<TimelineNode> getLinkedRightNode(TimelineNode initialNode, TimelineNode node) =>
-        getRightNode(node).flatMap(rightNode => 
+        getRightNode(node).flatMapM(rightNode => 
           rightNode.linkedNode.fold(
             () => getLinkedRightNode(initialNode, rightNode),
             linkedNode => 

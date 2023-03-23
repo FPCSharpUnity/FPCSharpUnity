@@ -290,7 +290,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       ));
 
     public void release() {
-      { if (bHandleF.value.flatMap(_ => _.rightValue).flatMap(_ => _.toOption()).valueOut(out var h)) h.release(); }
+      { if (bHandleF.value.flatMapM(_ => _.rightValue).flatMapM(_ => _.toOption()).valueOut(out var h)) h.release(); }
       aHandle.release();
     }
   }

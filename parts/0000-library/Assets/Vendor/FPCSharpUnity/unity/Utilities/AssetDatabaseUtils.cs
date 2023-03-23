@@ -27,17 +27,17 @@ namespace FPCSharpUnity.unity.Utilities {
     
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
     public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
-      Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMap(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
+      Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
         .toRight(guid, static guid => $"Can't turn {guid} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GetAssetPath(Object)"/>.</summary>
     public static Either<string, AssetPath> GetAssetPath(Object obj) =>
-      Option.a(AssetDatabase.GetAssetPath(obj)).flatMap(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
+      Option.a(AssetDatabase.GetAssetPath(obj)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
         .toRight(obj, static obj => $"Can't turn {obj} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
     public static Either<string, AssetGuid> AssetPathToGUID(AssetPath path) =>
-      Option.a(AssetDatabase.AssetPathToGUID(path)).flatMap(_ => _.nonEmptyOpt()).mapM(guid => new AssetGuid(guid))
+      Option.a(AssetDatabase.AssetPathToGUID(path)).flatMapM(_ => _.nonEmptyOpt()).mapM(guid => new AssetGuid(guid))
         .toRight(path, static path => $"Can't turn {path} to asset guid: asset not found");
 
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>

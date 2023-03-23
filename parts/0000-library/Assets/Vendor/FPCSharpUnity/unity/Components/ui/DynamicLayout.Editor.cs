@@ -200,7 +200,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
 #pragma warning restore 649
 
     /// <summary> Optional. Will be set to not null if this item is visible is layout. </summary>
-    [ShowInInspector] public RectTransform visiblePreview => maybeVisibleEntry.flatMap(_ => _.visibleRt).getOrNull();
+    [ShowInInspector] public RectTransform visiblePreview => maybeVisibleEntry.flatMapM(_ => _.visibleRt).getOrNull();
     [RecordExclude] public Option<DynamicLayoutElement> maybeVisibleEntry { get; private set; }
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(EditorTestEntry));
