@@ -165,8 +165,8 @@ namespace FPCSharpUnity.unity.Functional {
     static char folder(int i) => i.ToString()[0];
     static char folder(string s) => s[0];
 
-    [Test] public void WhenLeft() => Either<int, string>.Left(3).fold(folder, folder).shouldEqual('3');
-    [Test] public void WhenRight() => Either<int, string>.Right("foo").fold(folder, folder).shouldEqual('f');
+    [Test] public void WhenLeft() => Either<int, string>.Left(3).foldM(folder, folder).shouldEqual('3');
+    [Test] public void WhenRight() => Either<int, string>.Right("foo").foldM(folder, folder).shouldEqual('f');
   }
 
   public class EitherTestVoidFold {
@@ -174,7 +174,7 @@ namespace FPCSharpUnity.unity.Functional {
       var result = Option<char>.None;
       void leftFolder(int i) => result = i.ToString()[0].some();
       void rightFolder(string s) => result = s[0].some();
-      e.voidFold(leftFolder, rightFolder);
+      e.voidFoldM(leftFolder, rightFolder);
       result.shouldBeSome(expected);
     }
 

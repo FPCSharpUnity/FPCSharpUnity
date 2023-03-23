@@ -26,7 +26,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
         ),
         rootPath => {
           if (askForConfirmation(addPragma, rootPath)) {
-            getFilePaths(rootPath, "*.cs").voidFold(
+            getFilePaths(rootPath, "*.cs").voidFoldM(
               err => EditorUtility.DisplayDialog("Error", err, "OK"),
               paths => {
                 processFiles(paths, addPragma);

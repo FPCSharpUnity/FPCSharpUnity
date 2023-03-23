@@ -86,7 +86,7 @@ namespace FPCSharpUnity.unity.Configuration {
       Tpl.a(
         urls,
         new WWW(urls.url.ToString()).toFuture().asNonCancellable().map(wwwE => {
-          var www = wwwE.fold(err => err.www, _ => _);
+          var www = wwwE.foldM(err => err.www, _ => _);
           var headers = www.headers();
           return wwwE
             .mapLeft(err => (ConfigFetchError)new ConfigWWWError(urls, headers))
@@ -109,7 +109,7 @@ namespace FPCSharpUnity.unity.Configuration {
       string headerName, string expectedValue
     ) => tpl.map2((urls, future) =>
       future.map(wwwE => {
-        var headersOpt = wwwE.fold(
+        var headersOpt = wwwE.foldM(
           err => F.opt(err as ConfigWWWError).mapM(_ => _.wwwWithHeaders),
           _ => _.some()
         );

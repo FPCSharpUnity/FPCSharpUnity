@@ -158,7 +158,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       this IAsyncOperationHandle<A> handle
     ) => handle.asFuture.value.foldM(
       IAsyncOperationHandleStatus.InProgress,
-      static either => either.fold(
+      static either => either.foldM(
         IAsyncOperationHandleStatus.Cancelled, 
         static @try => @try.isSuccess ? IAsyncOperationHandleStatus.Succeeded : IAsyncOperationHandleStatus.Failed
       )
@@ -169,7 +169,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <see cref="IAsyncOperationHandleCancelled"/> is expressed as an <see cref="Exception"/>. 
     /// </summary>
     public static Future<Try<A>> asFutureSimple<A>(this IAsyncOperationHandle<A> handle) =>
-      handle.asFuture.map(either => either.getOrElse(cancelled => Try<A>.failed(new Exception(
+      handle.asFuture.map(either => either.getOrElseM(cancelled => Try<A>.failed(new Exception(
         $"{nameof(IAsyncOperationHandle<A>)} was cancelled: {cancelled}"
       ))));
     
@@ -200,7 +200,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     
     public static Try<A> toTry<A>(this IAsyncOperationHandle<A> handle) => 
       handle.asFuture.value.valueOut(out var either) 
-        ? either.getOrElse(() => Try<A>.failed(new Exception("Operation was cancelled."))) 
+        ? either.getOrElseM(() => Try<A>.failed(new Exception("Operation was cancelled."))) 
         : Try<A>.failed(new Exception("Handle is not completed!"));
 
     /// <summary>
@@ -265,7 +265,7 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     public float percentComplete => 
       bHandleF.value.valueOut(out var bEither) 
-        ? aHandleProgressPercentage + bEither.fold(
+        ? aHandleProgressPercentage + bEither.foldM(
           cancelled => cancelled.percentComplete,
           b => b.fold(h => h.percentComplete, _ => 1)
         ) * bHandleProgressPercentage
@@ -274,14 +274,14 @@ namespace FPCSharpUnity.unity.Concurrent {
     public DownloadStatus downloadStatus =>
       aHandle.downloadStatus + bHandleF.value.foldM(
         static () => DownloadStatus.zero(false),
-        static bEither => bEither.fold(
+        static bEither => bEither.foldM(
           static cancelled => cancelled.downloadStatus,
           static b => b.fold(h => h.downloadStatus, _ => DownloadStatus.zero(false))
         )
       );
 
     [LazyProperty] public Future<Either<IAsyncOperationHandleCancelled, Try<B>>> asFuture => 
-      bHandleF.flatMap(either => either.fold(
+      bHandleF.flatMap(either => either.foldM(
         cancelled => Future.successful(Either<IAsyncOperationHandleCancelled, Try<B>>.Left(cancelled)),
         @try => @try.fold(
           handle => handle.asFuture,
@@ -456,7 +456,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       handle.asFuture.onComplete(try_ => {
         if (state == State.Released) return;
         
-        try_.voidFold(
+        try_.voidFoldM(
           // Success!
           a => {
             state = State.Finished;
