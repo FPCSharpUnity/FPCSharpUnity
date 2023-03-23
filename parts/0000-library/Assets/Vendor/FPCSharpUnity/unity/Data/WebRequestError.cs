@@ -59,7 +59,7 @@ namespace FPCSharpUnity.unity.Data {
       message,
       extras: 
         headers.Select(kv => KV.a($"header:{kv.Key}", kv.Value))
-          .Concat(responseText.map(text => KV.a("response-text", text)).asEnumerable())
+          .Concat(responseText.mapM(text => KV.a("response-text", text)).asEnumerable())
           .toImmutableArrayC()
     );
   }

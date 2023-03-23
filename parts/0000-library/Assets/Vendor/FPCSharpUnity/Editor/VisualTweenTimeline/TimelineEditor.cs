@@ -177,7 +177,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
 
           return selectedFunTweenManager.flatMap(
               ftm => backing.mappedSettings.get(ftm)
-                .map(settings => {
+                .mapM(settings => {
                   settings.selectedFTMindex = idx;
                   return settings;
               })
@@ -563,7 +563,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         ));
 
         void snap(TimelineNode nodeToSnapTo) {
-          nodeSnappedToOpt = getSnapType(nodeToSnapTo).map(
+          nodeSnappedToOpt = getSnapType(nodeToSnapTo).mapM(
             snapType => {
               switch (snapType) {
                 case SnapType.StartWithStart:
@@ -733,14 +733,14 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       Option<TimelineNode> getLeftNode(TimelineNode selectedNode) =>
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.startTime < selectedNode.startTime
-        ).ToList().toNonEmpty().map(
+        ).ToList().toNonEmpty().mapM(
           channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).Last()
         );
 
       Option<TimelineNode> getRightNode(TimelineNode selectedNode) =>
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.getEnd() > selectedNode.getEnd()
-        ).ToList().toNonEmpty().map(
+        ).ToList().toNonEmpty().mapM(
           channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).First()
         );
 

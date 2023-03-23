@@ -13,7 +13,7 @@ namespace FPCSharpUnity.unity.caching {
 
     public bool cached => blob.isSome;
 
-    public Option<Try<A>> read() => blob.map(F.scs);
+    public Option<Try<A>> read() => blob.mapM(F.scs);
 
     public Try<Unit> store(A data) {
       blob = data.some();

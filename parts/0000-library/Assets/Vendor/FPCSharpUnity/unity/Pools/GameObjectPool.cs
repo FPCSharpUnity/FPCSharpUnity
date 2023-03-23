@@ -136,7 +136,7 @@ namespace FPCSharpUnity.unity.Pools {
       GameObjectPool.Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0,
       Option<int> maxSize = default, IProfiledScope? maybeProfiledScope = null
     ) {
-      rootOpt = init.parent.map(parent => {
+      rootOpt = init.parent.mapM(parent => {
         var rootParent = new GameObject($"{nameof(GameObjectPool)}: {init.name}").transform;
         rootParent.parent = parent;
         if (init.dontDestroyOnLoad) Object.DontDestroyOnLoad(rootParent.gameObject);

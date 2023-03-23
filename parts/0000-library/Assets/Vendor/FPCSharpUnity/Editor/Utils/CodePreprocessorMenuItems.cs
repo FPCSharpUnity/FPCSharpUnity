@@ -42,7 +42,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     }
 
     static Option<PathStr> selectedPath =>
-      AssetDatabase.GetAssetPath(Selection.activeObject).nonEmptyOpt().map(PathStr.a);
+      AssetDatabase.GetAssetPath(Selection.activeObject).nonEmptyOpt().mapM(PathStr.a);
 
     static void processFiles(IEnumerable<PathStr> paths, bool addPragma) {
       foreach (var path in paths) CodePreprocessor.processFile(path, addPragma);

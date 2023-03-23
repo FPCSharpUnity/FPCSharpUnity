@@ -110,7 +110,7 @@ namespace FPCSharpUnity.unity.Configuration {
     ) => tpl.map2((urls, future) =>
       future.map(wwwE => {
         var headersOpt = wwwE.fold(
-          err => F.opt(err as ConfigWWWError).map(_ => _.wwwWithHeaders),
+          err => F.opt(err as ConfigWWWError).mapM(_ => _.wwwWithHeaders),
           _ => _.some()
         );
         return headersOpt.fold(

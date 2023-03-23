@@ -323,7 +323,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     
       public bool isVisible => visibleInstance.isSome;
     
-      public Option<RectTransform> visibleRt => visibleInstance.map(static _ => _.rt);
+      public Option<RectTransform> visibleRt => visibleInstance.mapM(static _ => _.rt);
 
       protected ElementBase(
         InnerData data, SizeProvider sizeProvider,

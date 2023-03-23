@@ -71,7 +71,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <summary>Will be true if the view is currently instantiated and not minimized.</summary>
     [LazyProperty] public IRxVal<bool> isActiveAndMaximizedRx =>
       currentViewRx.flatMap(static maybeView => 
-        maybeView.map(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
+        maybeView.mapM(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
       );
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
@@ -368,7 +368,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
 
       void rerender() {
-        var maybeSelectedGroupName = selectedGroup.map(_ => _.groupButton.text.text);
+        var maybeSelectedGroupName = selectedGroup.mapM(_ => _.groupButton.text.text);
         log.mInfo($"Re-rendering DConsole, currently selected group = {maybeSelectedGroupName}.");
 
         cleanupExistingGroups();

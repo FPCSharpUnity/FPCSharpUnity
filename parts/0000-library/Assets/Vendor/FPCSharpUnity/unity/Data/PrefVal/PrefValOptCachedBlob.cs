@@ -10,7 +10,7 @@ namespace FPCSharpUnity.unity.Data {
     readonly PrefVal<Option<A>> backing;
 
     public bool cached => backing.value.isSome;
-    public Option<Try<A>> read() => backing.value.map(F.scs);
+    public Option<Try<A>> read() => backing.value.mapM(F.scs);
     public Try<Unit> store(A data) => backing.store(data.some());
     public Try<Unit> clear() => backing.store(None._);
   }
