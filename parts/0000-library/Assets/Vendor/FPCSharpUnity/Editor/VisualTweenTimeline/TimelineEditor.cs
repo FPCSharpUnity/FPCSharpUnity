@@ -184,7 +184,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
           ).getOrElse(new TimelineVisuals.TimelineVisualsSettings(idx));
         } 
         
-        selectedFunTweenManager.voidFold(
+        selectedFunTweenManager.voidFoldM(
           () => funNodes.Clear(),
           manager => {
             tweenPlaybackController = new TweenPlaybackController(manager, visualizationMode).some();
@@ -255,7 +255,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       // Selects or deselects node
       void manageSelectedNode(TimelineNode nodeToAdd, Event currentEvent) {
         if (!selectedNodesList.isEmpty()) {
-          selectedNodesList.find(selectedNode => selectedNode == nodeToAdd).voidFold(
+          selectedNodesList.find(selectedNode => selectedNode == nodeToAdd).voidFoldM(
             () => {
               if (currentEvent.control) {
                 selectedNodesList.Add(nodeToAdd);
@@ -466,7 +466,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
                 }
   
                 void updateLinkedNodeChannels(TimelineNode node, Action<TimelineNode> changeChannel) {
-                  getLinkedRightNode(node, node).voidFold(
+                  getLinkedRightNode(node, node).voidFoldM(
                     () => { },
                     rightNode => { updateLinkedNodeChannels(rightNode, changeChannel); }
                   );
@@ -531,7 +531,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       }
 
       void updateLinkedNodeStartTimes(TimelineNode node) =>
-        getLinkedRightNode(node, node).voidFold(
+        getLinkedRightNode(node, node).voidFoldM(
           () => { },
           rightNode => {
             if (rightNode.linkedNode.valueOut(out var nodeLinkedTo) && nodeLinkedTo == node) {
@@ -557,7 +557,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       void snapDrag(TimelineNode rootNode, List<TimelineNode> selectedNodes) {
         var nonSelectedNodes = funNodes.Except(selectedNodes).ToList();
 
-        nonSelectedNodes.ForEach(earlierNode => nodeSnappedToOpt.voidFold(
+        nonSelectedNodes.ForEach(earlierNode => nodeSnappedToOpt.voidFoldM(
           () => snap(earlierNode),
           nodeSnapped => snap(nodeSnapped.node)
         ));
@@ -622,7 +622,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
           .Except(selectedNodesList)
           .Where(node => cmpr(selectedNodePoint, nodePoint(node)))
           .ToList()
-          .ForEach(earlierNode => nodeSnappedToOpt.voidFold(
+          .ForEach(earlierNode => nodeSnappedToOpt.voidFoldM(
             () => snap(earlierNode),
             nodeSnapped => snap(nodeSnapped.node)
           ));

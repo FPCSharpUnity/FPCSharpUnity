@@ -18,7 +18,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     static void removePragmas() => enablePragmas(true);
 
     static void enablePragmas(bool addPragma) {
-      selectedPath.voidFold(
+      selectedPath.voidFoldM(
         () => EditorUtility.DisplayDialog(
           "Error",
           "Not a valid path.\nYou shouldn't do this in the project window's file tree, use the right panel.",

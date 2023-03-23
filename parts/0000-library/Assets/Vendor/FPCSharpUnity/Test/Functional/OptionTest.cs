@@ -111,12 +111,12 @@ namespace FPCSharpUnity.unity.Functional {
   public class OptionTestGetOrElseFunction {
     [Test]
     public void WhenSome() {
-      new Option<bool>(true).getOrElse(() => false).shouldBeTrue();
+      new Option<bool>(true).getOrElseM(() => false).shouldBeTrue();
     }
 
     [Test]
     public void WhenNone() {
-      Option<bool>.None.getOrElse(() => false).shouldBeFalse();
+      Option<bool>.None.getOrElseM(() => false).shouldBeFalse();
     }
   }
 

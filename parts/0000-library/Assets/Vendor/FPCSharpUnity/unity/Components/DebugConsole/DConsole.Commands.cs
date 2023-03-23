@@ -50,7 +50,7 @@ public partial class DConsole {
         foreach (var (groupName, groupCommands) in dictionary) {
           foreach (var otherCommand in groupCommands) {
             if (
-              otherCommand.shortcut.filter(s1 => s1.wouldTriggerOn(shortcut) || shortcut.wouldTriggerOn(s1))
+              otherCommand.shortcut.filterM(s1 => s1.wouldTriggerOn(shortcut) || shortcut.wouldTriggerOn(s1))
               .valueOut(out var conflictingShortcut)
             ) {
               log.error(

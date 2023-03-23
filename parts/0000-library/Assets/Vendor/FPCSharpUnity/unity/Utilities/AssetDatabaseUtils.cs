@@ -28,17 +28,17 @@ namespace FPCSharpUnity.unity.Utilities {
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
     public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
       Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
-        .toRight(guid, static guid => $"Can't turn {guid} to asset path: asset not found");
+        .toRightM(() => $"Can't turn {guid} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GetAssetPath(Object)"/>.</summary>
     public static Either<string, AssetPath> GetAssetPath(Object obj) =>
       Option.a(AssetDatabase.GetAssetPath(obj)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
-        .toRight(obj, static obj => $"Can't turn {obj} to asset path: asset not found");
+        .toRightM(() => $"Can't turn {obj} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
     public static Either<string, AssetGuid> AssetPathToGUID(AssetPath path) =>
       Option.a(AssetDatabase.AssetPathToGUID(path)).flatMapM(_ => _.nonEmptyOpt()).mapM(guid => new AssetGuid(guid))
-        .toRight(path, static path => $"Can't turn {path} to asset guid: asset not found");
+        .toRightM(() => $"Can't turn {path} to asset guid: asset not found");
 
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
     public static Either<string, AssetGuid> GUIDFromAssetPath(AssetPath path) =>
@@ -47,7 +47,7 @@ namespace FPCSharpUnity.unity.Utilities {
 
     /// <summary>Safe version of <see cref="AssetDatabase.LoadAssetAtPath{T}"/>.</summary>
     public static Either<string, A> LoadAssetAtPath<A>(AssetPath assetPath) where A : Object => 
-      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRight(assetPath, static assetPath => 
+      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRightM(() => 
         $"Can't load asset of type {typeof(A).FullName} from {assetPath}: asset not found or has a different type"
       );
 

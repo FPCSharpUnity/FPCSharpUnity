@@ -56,7 +56,7 @@ namespace FPCSharpUnity.unity.Editor.extensions {
     [UsedImplicitly, MenuItem("Assets/FP C# Unity/Debug/Debug info")]
     public static void editorUtility() {
       var obj = F.opt(Selection.activeObject);
-      obj.voidFold(
+      obj.voidFoldM(
         () => EditorUtils.userInfo("No object selected!", "Please select an object!"),
         o => EditorUtils.userInfo($"Debug info for {o}", o.debugInfo().ToString())
       );
