@@ -544,7 +544,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
 
       Option<TimelineNode> getLinkedRightNode(TimelineNode initialNode, TimelineNode node) =>
         getRightNode(node).flatMapM(rightNode => 
-          rightNode.linkedNode.fold(
+          rightNode.linkedNode.foldM(
             () => getLinkedRightNode(initialNode, rightNode),
             linkedNode => 
               linkedNode == initialNode
@@ -949,7 +949,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       }
 
       static ImmutableArray<FunTweenManagerV2> getFunTweenManagers(Option<GameObject> gameObjectOpt) =>
-        gameObjectOpt.fold(
+        gameObjectOpt.foldM(
           () => ImmutableArray<FunTweenManagerV2>.Empty,
           gameObject => gameObject.GetComponents<FunTweenManagerV2>().ToImmutableArray()
         );

@@ -90,7 +90,7 @@ namespace FPCSharpUnity.unity.debug {
             var maybeInstance = grouping.Key;
             
             EditorGUILayout.LabelField(
-              maybeInstance.fold("Static", obj => $"instance: {obj} ({obj.GetHashCode()})"),
+              maybeInstance.foldM("Static", obj => $"instance: {obj} ({obj.GetHashCode()})"),
               objectInstanceTextStyle.strict
             );
             foreach (var data in grouping) {

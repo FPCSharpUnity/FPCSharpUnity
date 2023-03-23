@@ -38,7 +38,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2>> and<A, P1, P2>(
       return Either<ImmutableList<A>, Tpl<P1, P2>>.Right(Tpl.a(b, c));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2>>.Left(arr);
 
@@ -53,7 +53,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2>> and<A, P1, P2>(
       return Either<ImmutableList<A>, Tpl<P1, P2>>.Right(Tpl.a(b, c));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2>>.Left(arr);
@@ -71,7 +71,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3>> and<A, P1, P2, P3>(
       return Either<ImmutableList<A>, Tpl<P1, P2, P3>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3>>.Left(arr);
 
@@ -87,7 +87,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3>> and<A, P1, P2, P3>(
       return Either<ImmutableList<A>, Tpl<P1, P2, P3>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3>>.Left(arr);
@@ -105,7 +105,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>> and<A, P1, P2, P3, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>>.Left(arr);
 
@@ -121,7 +121,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>> and<A, P1, P2, P3, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4>>.Left(arr);
@@ -139,7 +139,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>> and<A, P1, P2, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>>.Left(arr);
 
@@ -155,7 +155,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>> and<A, P1, P2, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5>>.Left(arr);
@@ -173,7 +173,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>> and<A, P1, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>>.Left(arr);
 
@@ -189,7 +189,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>> and<A, P1, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6>>.Left(arr);
@@ -207,7 +207,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>> and<A, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>>.Left(arr);
 
@@ -223,7 +223,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>> and<A, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7>>.Left(arr);
@@ -241,7 +241,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>> and<
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>>.Left(arr);
 
@@ -257,7 +257,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>> and<
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8>>.Left(arr);
@@ -275,7 +275,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>> 
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>>.Left(arr);
 
@@ -291,7 +291,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>> 
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9>>.Left(arr);
@@ -309,7 +309,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>>.Left(arr);
 
@@ -325,7 +325,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10>>.Left(arr);
@@ -343,7 +343,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11>>.Left(arr);
 
@@ -359,7 +359,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11>>.Left(arr);
@@ -377,7 +377,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12>>.Left(arr);
 
@@ -393,7 +393,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12>>.Left(arr);
@@ -411,7 +411,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13>>.Left(arr);
 
@@ -427,7 +427,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13>>.Left(arr);
@@ -445,7 +445,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14>>.Left(arr);
 
@@ -461,7 +461,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14>>.Left(arr);
@@ -479,7 +479,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15>>.Left(arr);
 
@@ -495,7 +495,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15>>.Left(arr);
@@ -513,7 +513,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16>>.Left(arr);
 
@@ -529,7 +529,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16>>.Left(arr);
@@ -547,7 +547,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17>>.Left(arr);
 
@@ -563,7 +563,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17>>.Left(arr);
@@ -581,7 +581,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18>>.Left(arr);
 
@@ -597,7 +597,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18>>.Left(arr);
@@ -615,7 +615,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19>>.Left(arr);
 
@@ -631,7 +631,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19>>.Left(arr);
@@ -649,7 +649,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20>>.Left(arr);
 
@@ -665,7 +665,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20>>.Left(arr);
@@ -683,7 +683,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21>>.Left(arr);
 
@@ -699,7 +699,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21>>.Left(arr);
@@ -717,7 +717,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21, P22>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var a in e2.leftValue) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21, P22>>.Left(arr);
 
@@ -733,7 +733,7 @@ public static Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P
       return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21, P22>>.Right(tpl.add(value));
 
   
-  var arr = e1.leftValue.fold(ImmutableList<A>.Empty, _ => _);
+  var arr = e1.leftValue.foldM(ImmutableList<A>.Empty, _ => _);
   foreach (var arr2 in e2.leftValue)
     foreach (var a in arr2) arr = arr.Add(a);
   return Either<ImmutableList<A>, Tpl<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16, P17, P18, P19, P20, P21, P22>>.Left(arr);

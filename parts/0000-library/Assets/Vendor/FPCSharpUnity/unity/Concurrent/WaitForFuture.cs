@@ -39,6 +39,6 @@ namespace FPCSharpUnity.unity.Concurrent {
     }
 
     public override bool keepWaiting =>
-      future.value.isNone && maxWait.fold(true, _ => _.keepWaiting);
+      future.value.isNone && maxWait.foldM(true, _ => _.keepWaiting);
   }
 }

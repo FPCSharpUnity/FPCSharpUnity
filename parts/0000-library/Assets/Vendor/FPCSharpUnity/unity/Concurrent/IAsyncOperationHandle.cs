@@ -156,7 +156,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     /// <summary>See <see cref="IAsyncOperationHandleStatus"/>.</summary>
     public static IAsyncOperationHandleStatus status<A>(
       this IAsyncOperationHandle<A> handle
-    ) => handle.asFuture.value.fold(
+    ) => handle.asFuture.value.foldM(
       IAsyncOperationHandleStatus.InProgress,
       static either => either.fold(
         IAsyncOperationHandleStatus.Cancelled, 
@@ -272,7 +272,7 @@ namespace FPCSharpUnity.unity.Concurrent {
         : aHandle.percentComplete * aHandleProgressPercentage;
 
     public DownloadStatus downloadStatus =>
-      aHandle.downloadStatus + bHandleF.value.fold(
+      aHandle.downloadStatus + bHandleF.value.foldM(
         static () => DownloadStatus.zero(false),
         static bEither => bEither.fold(
           static cancelled => cancelled.downloadStatus,

@@ -151,7 +151,7 @@ namespace FPCSharpUnity.unity.Pools {
       maybeMaxSize = maxSize;
       dontDestroyOnLoad = init.dontDestroyOnLoad;
       this.maybeProfiledScope = maybeProfiledScope;
-      var limitedInitialSize = maxSize.fold(initialSize, maxSizeVal => Math.Min(maxSizeVal, initialSize));
+      var limitedInitialSize = maxSize.foldM(initialSize, maxSizeVal => Math.Min(maxSizeVal, initialSize));
       values = limitedInitialSize == 0 ? new Stack<T>() : new Stack<T>(limitedInitialSize);
 
       for (var i = 0; i < limitedInitialSize; i++) {

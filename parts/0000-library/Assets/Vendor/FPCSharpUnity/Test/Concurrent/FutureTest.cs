@@ -74,7 +74,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     public void WhenSuccessful() {
       var f = Future.successful(1);
       var result = 0;
-      f.nowAndOnComplete(iOpt => result += iOpt.fold(-1, _ => _));
+      f.nowAndOnComplete(iOpt => result += iOpt.foldM(-1, _ => _));
       result.shouldEqual(1, "it should run the function once");
     }
 
@@ -82,7 +82,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     public void WhenUnfulfilled() {
       var f = Future<int>.unfulfilled;
       var result = 0;
-      f.nowAndOnComplete(iOpt => result += iOpt.fold(-1, _ => _));
+      f.nowAndOnComplete(iOpt => result += iOpt.foldM(-1, _ => _));
       result.shouldEqual(-1, "it should run the function once");
     }
 
@@ -91,7 +91,7 @@ namespace FPCSharpUnity.unity.Concurrent {
       var f = Future.async<int>(out var p);
 
       var result = 0;
-      f.nowAndOnComplete(iOpt => result += iOpt.fold(-1, _ => _));
+      f.nowAndOnComplete(iOpt => result += iOpt.foldM(-1, _ => _));
       result.shouldEqual(-1, "it should run the function immediately");
       p.complete(2);
       result.shouldEqual(1, "it run the function after completion again");

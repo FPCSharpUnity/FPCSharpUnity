@@ -39,7 +39,7 @@ public partial class DConsole {
 
       // Drops the shortcut it conflicts are detected.
       Command clearShortcutIfItConflicts() =>
-        command.shortcut.fold(
+        command.shortcut.foldM(
           command,
           shortcut => checkShortcutForDuplication(shortcut) ? command.withShortcut(None._) : command
         );

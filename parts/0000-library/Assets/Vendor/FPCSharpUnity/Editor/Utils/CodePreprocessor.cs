@@ -40,9 +40,9 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       Func<int, int, ImmutableList<string>> onPragmaExists,
       Func<ImmutableList<string>> onNoDirectives
     ) =>
-      getLastDirectiveIndex(lines).fold(
+      getLastDirectiveIndex(lines).foldM(
         onNoDirectives,
-        lastDirectiveIdx => pragmaLineNumber(lines.GetRange(0, lastDirectiveIdx + 1)).fold(
+        lastDirectiveIdx => pragmaLineNumber(lines.GetRange(0, lastDirectiveIdx + 1)).foldM(
           () => onNoPragma(lastDirectiveIdx),
           pragmaLineIdx => onPragmaExists(pragmaLineIdx, lastDirectiveIdx)
         )

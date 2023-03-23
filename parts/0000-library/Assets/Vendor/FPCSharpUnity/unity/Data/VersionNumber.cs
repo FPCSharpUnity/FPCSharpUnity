@@ -94,6 +94,6 @@ namespace FPCSharpUnity.unity.Data {
     }
 
     static Either<string, uint> getIdx(IReadOnlyList<string> parts, int idx) =>
-      parts.get(idx).fold(0u, _ => _.parseUInt());
+      parts.get(idx).foldM(0u, _ => _.parseUInt());
   }
 }

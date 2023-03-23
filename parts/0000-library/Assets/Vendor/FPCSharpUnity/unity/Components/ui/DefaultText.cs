@@ -50,7 +50,7 @@ namespace FPCSharpUnity.unity.Components.ui.DefaultValuesText {
         
         var bodyMsg = 
           differencesOpt  
-          .fold(
+          .foldM(
             "Nothing will be changed as everything is already at default values.",
             _ => "These settings will be overwritten:\n" + _.mkStringEnum("", "", "")
           );

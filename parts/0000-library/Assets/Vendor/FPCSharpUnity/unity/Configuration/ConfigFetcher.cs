@@ -113,7 +113,7 @@ namespace FPCSharpUnity.unity.Configuration {
           err => F.opt(err as ConfigWWWError).mapM(_ => _.wwwWithHeaders),
           _ => _.some()
         );
-        return headersOpt.fold(
+        return headersOpt.foldM(
           wwwE,
           headers => {
             var actual = headers[headerName];

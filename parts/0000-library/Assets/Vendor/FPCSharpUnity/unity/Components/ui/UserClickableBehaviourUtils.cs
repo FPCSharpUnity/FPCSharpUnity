@@ -30,7 +30,7 @@ public static partial class UserClickableBehaviourUtils {
     Transform transform, Option<GameObject> parentWithoutGraphicRaycaster, bool hasRayCastedChildren,
     string componentName
   ) => 
-    parentWithoutGraphicRaycaster.fold(
+    parentWithoutGraphicRaycaster.foldM(
       () => hasRayCastedChildren 
         ? None._
         : Some.a($"<b>{componentName}{transform.debugPath()}</b> will not be clickable, because it "

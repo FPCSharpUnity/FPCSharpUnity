@@ -66,21 +66,21 @@ namespace FPCSharpUnity.unity.Functional {
     [Test]
     public void WhenSomeGood() {
       new Option<string>("this is a set option").
-        fold(() => false, op => op == "this is a set option").
+        foldM(() => false, op => op == "this is a set option").
         shouldBeTrue();
     }
 
     [Test]
     public void WhenNone() {
       Option<string>.None.
-        fold(() => false, op => op == "this is a set option").
+        foldM(() => false, op => op == "this is a set option").
         shouldBeFalse();
     }
 
     [Test]
     public void WhenSomeDiffer() {
       new Option<string>("This is").
-        fold(() => false, op => op == "this is a set option").
+        foldM(() => false, op => op == "this is a set option").
         shouldBeFalse();
     }
   }
@@ -89,21 +89,21 @@ namespace FPCSharpUnity.unity.Functional {
     [Test]
     public void WhenSomeGood() {
       new Option<string>("this is a set option").
-        fold(false, op => op == "this is a set option").
+        foldM(false, op => op == "this is a set option").
         shouldBeTrue();
     }
 
     [Test]
     public void WhenNone() {
       Option<string>.None.
-        fold(false, op => op == "this is a set option").
+        foldM(false, op => op == "this is a set option").
         shouldBeFalse();
     }
 
     [Test]
     public void WhenSomeDiffer() {
       new Option<string>("This is").
-        fold(false, op => op == "this is a set option").
+        foldM(false, op => op == "this is a set option").
         shouldBeFalse();
     }
   }
