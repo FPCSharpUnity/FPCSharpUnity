@@ -19,7 +19,7 @@ namespace FPCSharpUnity.unity.Extensions {
       : F.left<WWWError, WWW>(new WWWError(www));
 
     public static Either<WWWError, Texture2D> asTexture(this Either<WWWError, WWW> either) =>
-      either.flatMapRight(www => {
+      either.flatMapRightM(www => {
         // NonReadable textures take 2x less ram
         var tex = www.textureNonReadable;
         return tex

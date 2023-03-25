@@ -64,7 +64,7 @@ namespace FPCSharpUnity.unity.Utilities {
 
     /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
     public static Either<string, A> LoadMainAssetAtPath<A>(AssetPath path) where A : Object => 
-      LoadMainAssetAtPath(path).flatMapRight(obj => obj.cast().toE<A>());
+      LoadMainAssetAtPath(path).flatMapRightM(obj => obj.cast().toE<A>());
 
     public static IEnumerable<A> getPrefabsOfType<A>() {
       var prefabGuids = AssetDatabase.FindAssets("t:prefab");

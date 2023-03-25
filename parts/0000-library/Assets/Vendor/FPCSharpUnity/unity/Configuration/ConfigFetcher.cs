@@ -89,8 +89,8 @@ namespace FPCSharpUnity.unity.Configuration {
           var www = wwwE.foldM(err => err.www, _ => _);
           var headers = www.headers();
           return wwwE
-            .mapLeft(err => (ConfigFetchError)new ConfigWWWError(urls, headers))
-            .mapRight(_ => headers);
+            .mapLeftM(err => (ConfigFetchError)new ConfigWWWError(urls, headers))
+            .mapRightM(_ => headers);
         })
       );
 
@@ -101,7 +101,7 @@ namespace FPCSharpUnity.unity.Configuration {
       tpl.map2((urls, future) =>
         future
           .timeout(timeout, () => (ConfigFetchError) new ConfigTimeoutError(urls, timeout), timeContext)
-          .map(e => e.flatMapRight(_ => _))
+          .map(e => e.flatMapRightM(_ => _))
       );
 
     public static Tpl<UrlWithContext, Future<Either<ConfigFetchError, WWWWithHeaders>>> checkingServerHeader(
@@ -131,7 +131,7 @@ namespace FPCSharpUnity.unity.Configuration {
       this Tpl<UrlWithContext, Future<Either<ConfigFetchError, WWWWithHeaders>>> tpl,
       string expectedContentType = "application/json"
     ) => tpl.map2((urls, future) =>
-      future.map(wwwE => wwwE.flatMapRight(headers => {
+      future.map(wwwE => wwwE.flatMapRightM(headers => {
         var contentType = headers["CONTENT-TYPE"].getOrElse("undefined");
         // Sometimes we get redirected to internet paygate, which returns HTML
         // instead of our content.
@@ -146,6 +146,6 @@ namespace FPCSharpUnity.unity.Configuration {
 
     public static Future<Either<ConfigFetchError, string>> content(
       this Future<Either<ConfigFetchError, WWWWithHeaders>> future
-    ) => future.map(e => e.mapRight(t => t.www.text));
+    ) => future.map(e => e.mapRightM(t => t.www.text));
   }
 }

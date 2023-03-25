@@ -12,7 +12,7 @@ namespace FPCSharpUnity.unity.Functional {
 
 public static Either<ImmutableList<A>, B> asValidation<A, B>(
   this Either<A, B> e1
-) { return e1.mapLeft(ImmutableList.Create); }
+) { return e1.mapLeftM(ImmutableList.Create); }
       
 
 public static Either<ImmutableList<A>, Tpl<P1, P2>> validateAnd<A, P1, P2>(

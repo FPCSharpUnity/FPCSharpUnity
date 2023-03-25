@@ -30,7 +30,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     [PublicAPI]
     public static Cancellable<Future<Either<Cancelled, Either<WWWError, Texture2D>>>> asTexture(
       this Cancellable<Future<Either<Cancelled, Either<WWWError, WWW>>>> cancellable
-    ) => cancellable.map(f => f.map(e => e.mapRight(_ => _.asTexture())));
+    ) => cancellable.map(f => f.map(e => e.mapRightM(_ => _.asTexture())));
 
     public static IEnumerator WWWEnumerator(WWW www) { yield return www; }
 

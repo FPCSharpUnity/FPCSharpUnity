@@ -85,7 +85,7 @@ namespace FPCSharpUnity.unity.Net {
       yield return www;
       promise.complete(
         string.IsNullOrEmpty(www.error)
-          ? WWWExts.asTexture(www).mapRight(t => UsageCountedDisposable.a(t, onDispose))
+          ? WWWExts.asTexture(www).mapRightM(t => UsageCountedDisposable.a(t, onDispose))
           : new WWWError(www, www.error)
       );
     }

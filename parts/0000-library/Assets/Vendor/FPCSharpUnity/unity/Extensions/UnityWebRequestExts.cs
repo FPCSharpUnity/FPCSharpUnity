@@ -32,7 +32,7 @@ namespace FPCSharpUnity.unity.Extensions {
     [PublicAPI]
     public static Future<Either<LogEntry, byte[]>> downloadToRamSimpleError(
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
-    ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeft(err => err.simplify));
+    ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeftM(err => err.simplify));
 
     [PublicAPI]
     public static Future<Either<WebRequestError, Texture2D>> downloadTextureToRam(

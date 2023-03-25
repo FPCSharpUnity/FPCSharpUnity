@@ -384,7 +384,7 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     [LazyProperty] public Future<Either<IAsyncOperationHandleCancelled, Try<ImmutableArrayC<Try<A>>>>> asFuture =>
       handles.Select(h => h.asFuture).parallel().map(eithers =>
-        eithers.sequence().mapRight(arr => Try.value(ImmutableArrayC.move(arr)))
+        eithers.sequence().mapRightM(arr => Try.value(ImmutableArrayC.move(arr)))
       );
     
     public void release() { foreach (var handle in handles) handle.release(); }
@@ -404,7 +404,7 @@ namespace FPCSharpUnity.unity.Concurrent {
 
     [LazyProperty] public Future<Either<IAsyncOperationHandleCancelled, Try<ImmutableArrayC<A>>>> asFuture =>
       handles.Select(h => h.asFuture).parallel().map(eithers =>
-        eithers.sequence().mapRight(arr => arr.sequence().map(_ => _.toImmutableArrayC()))
+        eithers.sequence().mapRightM(arr => arr.sequence().map(_ => _.toImmutableArrayC()))
       );
     
     public void release() { foreach (var handle in handles) handle.release(); }
