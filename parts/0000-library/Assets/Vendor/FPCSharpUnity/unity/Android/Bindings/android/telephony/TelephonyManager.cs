@@ -15,7 +15,7 @@ namespace FPCSharpUnity.unity.Android.Bindings.android.telephony {
     public TelephonyManager(AndroidJavaObject java) : base(java) {}
 
     public static Option<string> jStringToCountryCode(string jString) =>
-      F.opt(jString).filter(s => s.Length == 2).map(s => s.ToLower());
+      F.opt(jString).filterM(s => s.Length == 2).mapM(s => s.ToLower());
 
     Option<string> countryIso(string method) {
       try {
