@@ -4,6 +4,20 @@
         <name>CodeGenerator</name>
     </assembly>
     <members>
+        <member name="T:IncrementalCompiler.TreeAnalyzer.TreeWithOriginalPath">
+            <summary>
+            For input source code, path is taken from the tree.
+            <para/>
+            If the tree is generated, path is taken from the original tree.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.TreeAnalyzer.TreeWithOriginalPath.#ctor(Microsoft.CodeAnalysis.SyntaxTree,System.String)">
+            <summary>
+            For input source code, path is taken from the tree.
+            <para/>
+            If the tree is generated, path is taken from the original tree.
+            </summary>
+        </member>
         <member name="M:IncrementalCompiler.CodeGeneration.tryProcessAttributeMacro(Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.AttributeData,Microsoft.CodeAnalysis.INamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Syntax.BaseTypeDeclarationSyntax,Microsoft.CodeAnalysis.IFieldSymbol,Microsoft.CodeAnalysis.IPropertySymbol,System.Action{Microsoft.CodeAnalysis.Diagnostic},IncrementalCompiler.GenerationSettings,Microsoft.CodeAnalysis.SemanticModel)">
              <summary>
             
