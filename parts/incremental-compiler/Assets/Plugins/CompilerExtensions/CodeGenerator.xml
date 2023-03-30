@@ -339,6 +339,11 @@
             A wrapper to <see cref="M:IncrementalCompiler.MacroReplacer.visitExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)"/>, but for <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax"/>.
             </summary>
         </member>
+        <member name="T:CodeGenerator.ScribanWrapper">
+            <summary>
+            Parsed Scriban template with some additional data.
+            </summary>
+        </member>
         <member name="M:CodeGenerator.TypeInMacrosExts.toSymbol(GenerationAttributes.TypeInMacros)">
             <summary>
             This cast should always succeed. See <see cref="T:GenerationAttributes.TypeInMacros"/>.
