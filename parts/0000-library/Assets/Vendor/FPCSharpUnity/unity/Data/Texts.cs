@@ -25,7 +25,11 @@ namespace FPCSharpUnity.unity.Data {
     ] string _text = "";
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
-    
+
+    public TextAreaString([NotNull] string text) {
+      _text = text;
+    }
+
     public static implicit operator string(TextAreaString v) => v._text; 
   }
 
@@ -42,7 +46,11 @@ namespace FPCSharpUnity.unity.Data {
     ] string _text = "";
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
-    
+
+    public TextAreaStringNonEmpty([NotNull] string text) {
+      _text = text;
+    }
+
     public static implicit operator string(TextAreaStringNonEmpty v) => v._text; 
   }
 }
