@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.pools;
 using FPCSharpUnity.unity.Extensions;
 using UnityEngine.UI;
 using UnityEngine;
@@ -19,7 +20,8 @@ public static partial class UserClickableBehaviourUtils {
     var maybeErrMsg = errorMessageIfSetupIsInvalid(
       transform, parentWithoutGraphicRaycaster(transform.gameObject),
       hasRayCastedChildren: getHasRayCastedChildren(transform),
-      componentName: typeof(A).Name
+      componentName: typeof(A).Name,
+      canvasGroupThatDisablesClicks: canvasGroupThatDisablesClicks(transform.gameObject)
     );
     errorMsg = maybeErrMsg.getOrElse("");
     return maybeErrMsg.isNone;
@@ -28,16 +30,21 @@ public static partial class UserClickableBehaviourUtils {
   /// <summary> Validates and returns a reason text why the given component is not valid. </summary>
   static Option<string> errorMessageIfSetupIsInvalid(
     Transform transform, Option<GameObject> parentWithoutGraphicRaycaster, bool hasRayCastedChildren,
-    string componentName
+    string componentName, Option<CanvasGroup> canvasGroupThatDisablesClicks
   ) => 
-    parentWithoutGraphicRaycaster.fold(
-      () => hasRayCastedChildren 
-        ? None._
-        : Some.a($"<b>{componentName}{transform.debugPath()}</b> will not be clickable, because it "
-          + $"doesn't have any <b>{nameof(Graphic)}</b> components that are ray casted!"),
-      go => Some.a($"<b>{transform.debugPath()}</b> will not be clickable, because it "
-              + $"has <b>{nameof(Canvas)}</b> component placed on without <b>{nameof(GraphicRaycaster)}</b> on "
-              + $"it:\n<b>{go.transform.debugPath()}</b>") 
+    canvasGroupThatDisablesClicks.fold(
+      () => parentWithoutGraphicRaycaster.fold(
+        () => hasRayCastedChildren 
+          ? None._
+          : Some.a($"<b>{componentName}{transform.debugPath()}</b> will not be clickable, because it "
+                   + $"doesn't have any <b>{nameof(Graphic)}</b> components that are ray casted!"),
+        go => Some.a($"<b>{transform.debugPath()}</b> will not be clickable, because it "
+                     + $"has <b>{nameof(Canvas)}</b> component placed on without <b>{nameof(GraphicRaycaster)}</b> on "
+                     + $"it:\n<b>{go.transform.debugPath()}</b>") 
+      ),
+      canvasGroup => Some.a($"<b>{transform.debugPath()}</b> will not be clickable, because it "
+                            + $"has <b>{nameof(CanvasGroup)}</b> component that disables clicks:\n"
+                            + $"<b>{canvasGroup.transform.debugPath()}</b>")
     );
 
   /// <summary> Checks if <see cref="transform"/>'s game object can be raycasted. </summary>
@@ -58,6 +65,56 @@ public static partial class UserClickableBehaviourUtils {
         ? Some.a(canvas.gameObject)
         : None._
     );
+  
+  /// <summary>
+  /// This method is a bit complicated, but it's because of the way Unity handles CanvasGroup.
+  /// If you have a parent CanvasGroup that has blocksRaycasts=false all children UI will not be raycasted.
+  /// this method finds these CanvasGroups and returns the first one that has blocksRaycasts=false.
+  /// <para/>
+  /// All possible states example:
+  /// <code><![CDATA[
+  /// Parent state.
+  ///    Child state.  -> Result
+  ///.
+  /// blocksRaycasts=true 
+  ///    blocksRaycasts=true, ignoreParentGroups = false   ->  OK
+  ///.
+  /// blocksRaycasts=true
+  ///    blocksRaycasts=true, ignoreParentGroups = true   ->  OK
+  ///.
+  /// blocksRaycasts=true
+  ///    blocksRaycasts=false, ignoreParentGroups = true   ->  BAD
+  ///.
+  /// blocksRaycasts=true
+  ///    blocksRaycasts=false, ignoreParentGroups = false   ->  OK
+  ///.
+  ///.
+  /// blocksRaycasts=false 
+  ///    blocksRaycasts=true, ignoreParentGroups = false   ->  OK
+  ///.
+  /// blocksRaycasts=false
+  ///    blocksRaycasts=true, ignoreParentGroups = true   ->  OK
+  ///.
+  /// blocksRaycasts=false
+  ///    blocksRaycasts=false, ignoreParentGroups = true   ->  BAD
+  ///.
+  /// blocksRaycasts=false
+  ///    blocksRaycasts=false, ignoreParentGroups = false   ->  BAD
+  /// ]]></code>
+  /// </summary>
+  static Option<CanvasGroup> canvasGroupThatDisablesClicks(GameObject gameObject) {
+    var tr = gameObject.transform;
+    var prevCanvasGroup = Option<CanvasGroup>.None;
+    while (tr != null) {
+      if (tr.TryGetComponent<CanvasGroup>(out var canvasGroup)) {
+        if (canvasGroup.blocksRaycasts) return None._;
+        if (canvasGroup.ignoreParentGroups) return Some.a(canvasGroup);
+        prevCanvasGroup = Some.a(canvasGroup);
+      }
+      tr = tr.parent;
+    }
+    return prevCanvasGroup;
+  }
   
   /// <summary>
   /// Common code we use to display information message in inspector UI for component that needs to be validated.
