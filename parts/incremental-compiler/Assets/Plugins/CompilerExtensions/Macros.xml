@@ -152,6 +152,12 @@
         <member name="T:GenerationAttributes.TypesWithMacroAttributes">
             <summary> Used internally by compiler. </summary>
         </member>
+        <member name="T:GenerationAttributes.GenerateMacroLinkingAttribute">
+            <summary>
+            Marks method that should get a macro linking generated for it by
+            <see cref="T:GenerationAttributes.GenerateMacroLinkingOfAssemblyAttribute"/>
+            </summary>
+        </member>
         <member name="P:GenerationAttributes.Macros.className">
             <summary>
             Replaces the invocation to the full class name of where the invocation is located.
