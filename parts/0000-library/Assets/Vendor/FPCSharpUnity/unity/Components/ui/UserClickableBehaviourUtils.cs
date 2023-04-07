@@ -15,8 +15,13 @@ public static partial class UserClickableBehaviourUtils {
   /// <summary> Validates whether this button can be clicked by the user. </summary>
   /// <returns>Whether the component is valid.</returns>
   public static bool validateIfThisWillBeClickable<A>(
-    this A component, out string errorMsg, Transform transform
+    this A component, bool raycastTarget, out string errorMsg
   ) where A : Component {
+    if (!raycastTarget) {
+      errorMsg = "";
+      return true;
+    }
+    var transform = component.transform;
     var maybeErrMsg = errorMessageIfSetupIsInvalid(
       transform, parentWithoutGraphicRaycaster(transform.gameObject),
       hasRayCastedChildren: getHasRayCastedChildren(transform),
@@ -32,8 +37,8 @@ public static partial class UserClickableBehaviourUtils {
     Transform transform, Option<GameObject> parentWithoutGraphicRaycaster, bool hasRayCastedChildren,
     string componentName, Option<CanvasGroup> canvasGroupThatDisablesClicks
   ) => 
-    canvasGroupThatDisablesClicks.fold(
-      () => parentWithoutGraphicRaycaster.fold(
+    canvasGroupThatDisablesClicks.foldM(
+      () => parentWithoutGraphicRaycaster.foldM(
         () => hasRayCastedChildren 
           ? None._
           : Some.a($"<b>{componentName}{transform.debugPath()}</b> will not be clickable, because it "
@@ -119,11 +124,17 @@ public static partial class UserClickableBehaviourUtils {
   /// <summary>
   /// Common code we use to display information message in inspector UI for component that needs to be validated.
   /// </summary>
-  public static void showInInspector(GameObject gameObject) => showInInspectorEditorPart(gameObject);
+  public static void showInInspector(GameObject gameObject) => showInInspectorEditorPart(gameObject, raycastTarget: true);
+  
+  /// <summary>
+  /// Common code we use to display information message in inspector UI for component that needs to be validated.
+  /// </summary>
+  public static void showInInspector(Graphic graphic) => 
+    showInInspectorEditorPart(graphic.gameObject, graphic.raycastTarget);
 
   /// <summary>
   /// Common code we use to display information message in inspector UI for component that needs to be validated.
   /// It's implemented in partial file and has #if UNITY_EDITOR.
   /// </summary>
-  static partial void showInInspectorEditorPart(GameObject gameObject);
+  static partial void showInInspectorEditorPart(GameObject gameObject, bool raycastTarget);
 }

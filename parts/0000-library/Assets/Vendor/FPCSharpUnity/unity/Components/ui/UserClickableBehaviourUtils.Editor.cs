@@ -10,11 +10,13 @@ using UnityEngine.UI;
 namespace FPCSharpUnity.unity.Components.ui; 
 
 public static partial class UserClickableBehaviourUtils {
-  static partial void showInInspectorEditorPart(GameObject gameObject) {
+  static partial void showInInspectorEditorPart(GameObject gameObject, bool raycastTarget) {
+    if (!raycastTarget) return;
     var withoutGraphicRaycaster = parentWithoutGraphicRaycaster(gameObject);
     var hasRayCastedChildren = getHasRayCastedChildren(gameObject.transform);
     var canvasGroupThatDisablesClicks = UserClickableBehaviourUtils.canvasGroupThatDisablesClicks(gameObject);
-    var maybeErrorMsg = errorMessageIfSetupIsInvalid(gameObject.transform, withoutGraphicRaycaster, hasRayCastedChildren,
+    var maybeErrorMsg = errorMessageIfSetupIsInvalid(
+      gameObject.transform, withoutGraphicRaycaster, hasRayCastedChildren,
       componentName: "", canvasGroupThatDisablesClicks: canvasGroupThatDisablesClicks
     );
     if (maybeErrorMsg.valueOut(out var errorMsg)) {
