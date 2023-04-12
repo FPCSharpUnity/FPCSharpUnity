@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FPCSharpUnity.unity.core.Utilities;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
@@ -18,12 +19,20 @@ namespace FPCSharpUnity.unity.Data {
 
   [PublicAPI] public static class GameObjectStateExts {
     public static void apply(this IList<GameObjectState> states) {
+#if UNITY_EDITOR
+      // We don't want to spam the log with errors when the game has already been stopped.
+      if (ApplicationUtils.isQuitting) return;
+#endif
       foreach (var state in states) {
         state.apply();
       }
     } 
     
     public static void invertedApply(this IList<GameObjectState> states) {
+#if UNITY_EDITOR
+      // We don't want to spam the log with errors when the game has already been stopped.
+      if (ApplicationUtils.isQuitting) return;
+#endif
       foreach (var state in states) {
         state.invertedApply();
       }

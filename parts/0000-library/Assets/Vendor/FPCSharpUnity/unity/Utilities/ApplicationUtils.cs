@@ -1,3 +1,4 @@
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.unity.Logger;
 using GenerationAttributes;
 using JetBrains.Annotations;
@@ -11,6 +12,26 @@ namespace FPCSharpUnity.unity.core.Utilities {
 
     /// <inheritdoc cref="quit(byte)"/>
     public static void quit() => quit(0);
+    
+    /// <summary> Whether the application is quitting. </summary>
+    public static bool isQuitting { get; private set; }
+    static IDisposableTracker isQuittingTracker = new DisposableTracker(log);
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+    static void afterAssembliesLoaded() {
+      isQuitting = false;
+      isQuittingTracker.Dispose();
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void beforeSceneLoad() {
+      isQuitting = false;
+      isQuittingTracker.Dispose();
+      Application.quitting += onQuit;
+      isQuittingTracker.track(() => Application.quitting -= onQuit);
+      
+      static void onQuit() => isQuitting = true;
+    }
     
     /// <summary>
     /// As <see cref="Application.Quit(int)"/> but works in Unity Editor as well.
