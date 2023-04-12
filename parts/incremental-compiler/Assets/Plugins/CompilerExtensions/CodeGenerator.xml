@@ -41,6 +41,16 @@
             Special enum used only here. Add more values when you need them.
             </summary>
         </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.defaultValueForConstructorParam">
+            <summary>
+            Whether to set parameter in constructor to default value defined in this string.
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.addImplicitToConstructorParam">
+            <summary>
+            Whether yo add [Implicit] attribute to constructor parameter.
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet">
             <param name="list">
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
