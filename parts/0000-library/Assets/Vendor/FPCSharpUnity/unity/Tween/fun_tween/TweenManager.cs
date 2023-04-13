@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
+using ExhaustiveMatching;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
@@ -159,7 +160,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
               rewindTimePassed(false);
               break;
             default:
-              throw new ArgumentOutOfRangeException();
+              throw ExhaustiveMatch.Failed(looping.mode);
           }
           updateWithScaledTime(unusedTime);
         }
