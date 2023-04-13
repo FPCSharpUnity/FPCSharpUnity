@@ -82,8 +82,14 @@ public class TweenManagerWithStates<State>
 
   /// <summary> Stop running animation and start new one, transitioning to given state. </summary>
   public void transitionTo(State state) {
-    runAnimation(timeAtState(state));
-    _editor_currentStatePreview = state;
+    // Can't start coroutines if the game object is disabled. 
+    if (_tween.gameObject.activeInHierarchy) {
+      runAnimation(timeAtState(state));
+    }
+    else {
+      resetTo(state);
+    }
+    _editor_currentStatePreview = state;     
   }
 
   bool validateTimestamps(SerializableDictionaryMutable<State, Percentage> t, ref string msg) {
