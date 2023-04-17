@@ -82,7 +82,7 @@ public class TweenManagerWithStates<State>
 
   /// <summary> Stop running animation and start new one, transitioning to given state. </summary>
   public void transitionTo(State state) {
-    // Can't start coroutines if the game object is disabled. 
+    // Can't start coroutines if the game object is disabled - so set the state instantly.
     if (_tween.gameObject.activeInHierarchy) {
       runAnimation(timeAtState(state));
     }
