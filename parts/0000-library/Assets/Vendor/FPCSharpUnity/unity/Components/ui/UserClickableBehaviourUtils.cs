@@ -111,7 +111,7 @@ public static partial class UserClickableBehaviourUtils {
     var tr = gameObject.transform;
     var prevCanvasGroup = Option<CanvasGroup>.None;
     while (tr != null) {
-      if (tr.TryGetComponent<CanvasGroup>(out var canvasGroup)) {
+      if (tr.TryGetComponent<CanvasGroup>(out var canvasGroup) && canvasGroup.enabled) {
         if (canvasGroup.blocksRaycasts) return None._;
         if (canvasGroup.ignoreParentGroups) return Some.a(canvasGroup);
         prevCanvasGroup = Some.a(canvasGroup);
