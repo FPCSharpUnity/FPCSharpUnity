@@ -14,23 +14,25 @@ namespace FPCSharpUnity.unity.core.Utilities {
     public static void quit() => quit(0);
     
     /// <summary> Whether the application is quitting. </summary>
-    public static bool isQuitting { get; private set; }
+    public static bool isQuitting => _isQuitting && Application.isPlaying;
+    static bool _isQuitting;
     static IDisposableTracker isQuittingTracker = new DisposableTracker(log);
     
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
     static void afterAssembliesLoaded() {
-      isQuitting = false;
+      _isQuitting = false;
       isQuittingTracker.Dispose();
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void beforeSceneLoad() {
-      isQuitting = false;
+      _isQuitting = false;
       isQuittingTracker.Dispose();
+      Application.quitting += onQuit;
       Application.quitting += onQuit;
       isQuittingTracker.track(() => Application.quitting -= onQuit);
       
-      static void onQuit() => isQuitting = true;
+      static void onQuit() => _isQuitting = true;
     }
     
     /// <summary>
