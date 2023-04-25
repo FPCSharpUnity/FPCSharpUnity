@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.dispose;
@@ -21,6 +22,24 @@ namespace FPCSharpUnity.unity.Components.ui;
 
 public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   const string EDITOR_TEST = "Editor Test";
+  
+  [
+    ShowInInspector, DisplayAsString(overflow: false), HideInEditorMode, FoldoutGroup(EDITOR_TEST)
+  ] string _editor_previewLayoutItems = "";
+
+  partial void _editor_layoutUpdated<CommonDataType>(IReadOnlyList<CommonDataType> list) where CommonDataType : IElement {
+    _editor_previewLayoutItems = list
+      .Select(_ => {
+          var nm = _.GetType().Name;
+          return 
+            $"{nm} ["
+             + $"{(isHorizontal ? "h:" : "w:")}{_.sizeInSecondaryAxis.value * 100f:0.#}% "
+             + $"{(isHorizontal ? "w:" : "h:")}{_.sizeInScrollableAxis(isHorizontal):0.#}px"
+             + $"]"
+             + $"{(nm != "Spacer" ? (_.isVisible ? " ON" : " OFF") : "")}";
+        }
+      ).mkString("\n");
+  }
   
   static readonly Vector3[] editorCacheForArrayOfFour = new Vector3[4];
   public void OnDrawGizmosSelected() {
