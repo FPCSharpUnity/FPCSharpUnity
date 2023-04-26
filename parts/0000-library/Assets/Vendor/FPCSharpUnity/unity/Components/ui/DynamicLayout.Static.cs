@@ -144,19 +144,21 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// Combined union type which has inner datas for all `<see cref="CommonDynamicElementType"/>` types.
     /// </typeparam>
     /// <typeparam name="Data">Extra type to prevent closures.</typeparam>
-    public static void updateLayoutWithCommonInnerType<CommonDynamicElementType, CommonInnerData, Data>(
+    public static void updateLayoutWithCommonInnerType<CommonDynamicElementType, CommonInnerData, Data, Key>(
       this DynamicLayout.IModifyElementsList<CommonDynamicElementType> layout,
       IReadOnlyList<CommonInnerData> newItems, Data data, 
-      Func<CommonInnerData, Data, CommonDynamicElementType> toLayoutElement
+      Func<CommonInnerData, Data, CommonDynamicElementType> toLayoutElement,
+      Func<CommonInnerData, Key> getKey
     )
       where CommonDynamicElementType 
-      : DynamicLayout.ElementWithInnerData<CommonInnerData>, 
+      : DynamicLayout.ElementWithInnerDataSettable<CommonInnerData>, 
         IEquatable<CommonDynamicElementType>, 
         DynamicLayout.IElement
       where CommonInnerData : IEquatable<CommonInnerData> 
+      where Key : IEquatable<Key> 
     {
       using var previousItemsSet = 
-        DictionaryPool<CommonInnerData, Pool<List<CommonDynamicElementType>>.Disposable>.instance.BorrowDisposable();
+        DictionaryPool<Key, Pool<List<CommonDynamicElementType>>.Disposable>.instance.BorrowDisposable();
 
       foreach (var item in layout.items) {
         addVisualToSet(item.data, item);
@@ -177,20 +179,27 @@ namespace FPCSharpUnity.unity.Components.ui {
       disposeRemainingElements();
       layout.updateLayout();
 
-      void addVisualToSet(CommonInnerData key, CommonDynamicElementType value) {
+      void addVisualToSet(CommonInnerData innerData, CommonDynamicElementType value) {
+        var key = getKey(innerData);
         var list = previousItemsSet.value.getOrUpdate(
           key, static () => ListPool<CommonDynamicElementType>.instance.BorrowDisposable()
         );
         list.value.Add(value);
       }
       
-      Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData key) {
+      Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData innerData) {
+        var key = getKey(innerData);
         var list = previousItemsSet.value.get(key).getOr_RETURN_NONE();
         var value = list.value.last().getOr_RETURN_NONE();
         list.value.RemoveLast();
         if (list.value.isEmpty()) {
           previousItemsSet.value.Remove(key);
           list.Dispose();
+        }
+
+        if (!innerData.Equals(value.data)) {
+          value.dataSetter = innerData;
+          value.updateStateIfVisible();
         }
         return Some.a(value);
       }
