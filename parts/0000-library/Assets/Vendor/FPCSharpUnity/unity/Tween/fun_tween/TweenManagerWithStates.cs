@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.pools;
@@ -28,15 +29,16 @@ namespace FPCSharpUnity.unity.Tween.fun_tween;
 /// </example>
 /// <typeparam name="State">Enum for states.</typeparam>
 [Serializable]
-public class TweenManagerWithStates<State>
+public class TweenManagerWithStates<State, EnumTypeAType>
   where State : unmanaged, Enum
+  where EnumTypeAType : IEnumTypeAType<State, Percentage>
 {
 #pragma warning disable 649
   // ReSharper disable NotNullMemberIsNotInitialized
   [SerializeField, NotNull] FunTweenManagerV2 _tween;
   [
     SerializeField, NotNull, ValidateInput(nameof(validateTimestamps))
-  ] SerializableDictionaryMutable<State, Percentage> _timestamps;
+  ] EnumTypeAType _timestamps;
   // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
 
@@ -44,20 +46,24 @@ public class TweenManagerWithStates<State>
 
   // ReSharper disable once InconsistentNaming
   [ShowInInspector, ReadOnly] State _editor_currentStatePreview;
-  
+
+#if UNITY_EDITOR
   [OnInspectorGUI] void OnInspectorGUI() {
     if (!_tween) return;
+
+    var setDefaultValues =
+      EnumUtils<State>.valuesArray.All(e => _timestamps[e] == default(Percentage));
+
     for (var i = 0; i < EnumUtils<State>.valuesArray.Count; i++) {
       var state = EnumUtils<State>.valuesArray[i];
-      if (!_timestamps.a.ContainsKey(state)) {
-        _timestamps.set(state, new Percentage(i / (float)(EnumUtils<State>.valuesArray.Count - 1)));
-      }
+      if (setDefaultValues) _timestamps[state] = new Percentage(i / (float)(EnumUtils<State>.valuesArray.Count - 1));
       if (GUILayout.Button($"Apply `{state}`")) {
         _tween.timeline.timePassed = timeAtState(state);
         _editor_currentStatePreview = state;
       }
     }
   }
+#endif
 
   void runAnimation(float target) {
     currentAnimation.Dispose();
@@ -71,7 +77,7 @@ public class TweenManagerWithStates<State>
     }
   }
 
-  float timeAtState(State state) => _tween.timeline.duration * _timestamps.a[state].value;
+  float timeAtState(State state) => _tween.timeline.duration * _timestamps[state].value;
 
   /// <summary> Stop running animation and instantly set state to given value. </summary>
   public void resetTo(State state) {
@@ -92,24 +98,14 @@ public class TweenManagerWithStates<State>
     _editor_currentStatePreview = state;     
   }
 
-  bool validateTimestamps(SerializableDictionaryMutable<State, Percentage> t, ref string msg) {
+  bool validateTimestamps(EnumTypeAType _, ref string msg) {
     if (!_tween) return false;
     using var listDisposable = ListPool<ErrorMsg>.instance.BorrowDisposable();
     var list = listDisposable.value;
-    EnumUtils<State>.valuesArray.matchWith(_timestamps.a,
-      extractKeyA: s => s,
-      extractKeyB: kvp => kvp.Key,
-      onMatched: (s, kvp) => {
-        if (kvp.Value.value > 1 || kvp.Value.value < 0)
-          list.Add(new ErrorMsg($"Timestamp for state {s} is not in duration of the tween"));
-      },
-      onANotMatched: s => list.Add(new ErrorMsg("Missing timestamp for state " + s)),
-      onBNotMatched: kvp => list.Add(new ErrorMsg("Unknown state " + kvp.Key))
-    );
-    
-    foreach (var kvp in _timestamps.a.GroupBy(_ => _.Value)) {
+
+    foreach (var kvp in EnumUtils<State>.valuesArray.Select(e => (value: _timestamps[e], e)).GroupBy(_ => _.value)) {
       if (kvp.Count() > 1)
-        list.Add(new ErrorMsg($"Duplicate timestamp {kvp.Key} for states {kvp.Select(_ => _.Key).mkString(", ")}"));
+        list.Add(new ErrorMsg($"Duplicate timestamp {kvp.Key} for states {kvp.Select(_ => _.e).mkString(", ")}"));
     }
 
     msg = list.mkString("\n");

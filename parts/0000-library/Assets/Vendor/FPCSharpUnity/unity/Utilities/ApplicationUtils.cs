@@ -18,17 +18,10 @@ namespace FPCSharpUnity.unity.core.Utilities {
     static bool _isQuitting;
     static IDisposableTracker isQuittingTracker = new DisposableTracker(log);
     
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-    static void afterAssembliesLoaded() {
-      _isQuitting = false;
-      isQuittingTracker.Dispose();
-    }
-
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void beforeSceneLoad() {
       _isQuitting = false;
       isQuittingTracker.Dispose();
-      Application.quitting += onQuit;
       Application.quitting += onQuit;
       isQuittingTracker.track(() => Application.quitting -= onQuit);
       
