@@ -194,6 +194,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// `None` - item doesn't support visual (it's an empty item).
       /// </returns>
       Option<RectTransform> showOrUpdate(RectTransform parent, bool forceUpdate);
+
+      void updateStateIfVisible();
     
       /// <summary> Disposes of previously visible item visual (hides it). </summary>
       void hide();
@@ -278,15 +280,20 @@ namespace FPCSharpUnity.unity.Components.ui {
 
     /// <summary> DynamicLayout element which has a data field. </summary>
     /// <typeparam name="InnerData">Data used for resolving Ui visual in <see cref="DynamicLayout"/>.</typeparam>
-    public interface ElementWithInnerData<out InnerData> {
+    public interface ElementWithInnerData<InnerData> {
       /// <summary> Data used for resolving item's UI visual in <see cref="DynamicLayout"/>. </summary>
       InnerData data { get; }
+    }
+    
+    public interface ElementWithInnerDataSettable<InnerData> : ElementWithInnerData<InnerData> {
+      /// <summary> Data used for resolving item's UI visual in <see cref="DynamicLayout"/>. </summary>
+      InnerData dataSetter { set; }
     }
   
     /// <summary> Base class for all <see cref="IElement"/> implementations. </summary>
     /// <typeparam name="InnerData">See <see cref="data"/>.</typeparam>
     /// <typeparam name="View">Visual type. If item is visible, it will be Unity object.</typeparam>
-    public abstract partial class ElementBase<InnerData, View> : IElement, ElementWithInnerData<InnerData> {
+    public abstract partial class ElementBase<InnerData, View> : IElement, ElementWithInnerDataSettable<InnerData> {
       /// <summary> Tracks currently visible visual. </summary>
       readonly IDisposableTracker tracker;
     
@@ -295,6 +302,8 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// clearing all items from layout.
       /// </summary>
       public InnerData data { get; protected set; }
+      
+      public InnerData dataSetter { set => data = value; }
     
       /// <summary>
       /// Some(visual provider) - the item will be visible inside viewport.<br/>
@@ -364,6 +373,12 @@ namespace FPCSharpUnity.unity.Components.ui {
         tracker.Dispose();
         updateState(instance.view, tracker);
         return Some.a(instance.rt);
+      }
+
+      public void updateStateIfVisible() {
+        var instance = visibleInstance.getOr_RETURN();
+        tracker.Dispose();
+        updateState(instance.view, tracker);
       }
 
       public void hide() {
