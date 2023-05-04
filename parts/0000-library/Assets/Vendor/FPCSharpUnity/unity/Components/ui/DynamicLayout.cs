@@ -15,16 +15,13 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
-using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Logger;
-using FPCSharpUnity.unity.Pools;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Components.ui {
   /// <summary>
@@ -71,6 +68,8 @@ namespace FPCSharpUnity.unity.Components.ui {
     public Padding padding { get => _padding; set => _padding = value; }
 
     public bool isHorizontal => scrollRect.horizontal;
+
+    partial void _editor_layoutUpdated<CommonDataType>(IReadOnlyList<CommonDataType> list) where CommonDataType : IElement;
 
     public class Init<CommonDataType> : IModifyElementsList<CommonDataType>, IElements<CommonDataType>, IDynamicLayout
       where CommonDataType : IElement 
@@ -131,6 +130,12 @@ namespace FPCSharpUnity.unity.Components.ui {
       ) {
         this.renderLatestItemsFirst = renderLatestItemsFirst;
         backing = layout;
+        
+#if UNITY_EDITOR
+        backing.downcast(default(DynamicLayout)).ifSomeM(l => {
+          tracker.track(() => l._editor_layoutUpdated(EmptyArray<CommonDataType>._));
+        });
+#endif
 
         // When we add elements to layout and enable it on the same frame,
         // layout does not work correctly due to rect sizes == 0.
@@ -215,6 +220,9 @@ namespace FPCSharpUnity.unity.Components.ui {
         );
         
         containerSizeInScrollableAxis.value = result.containerSizeInScrollableAxis;
+#if UNITY_EDITOR
+        backing.downcast(default(DynamicLayout)).ifSomeM(l => l._editor_layoutUpdated(items));
+#endif
       }
       
       public Option<Percentage> findItemsNormalizedScrollPositionForItem(Func<CommonDataType, bool> predicate) {
