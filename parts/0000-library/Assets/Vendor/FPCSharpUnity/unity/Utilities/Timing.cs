@@ -159,7 +159,7 @@ namespace FPCSharpUnity.unity.Utilities {
 
     public void openScope(string name) {
       var hasParentScope = scopes.Count != 0;
-      var parent = hasParentScope ? scopes.Peek().some() : None._;
+      var parent = hasParentScope ? Some.a(scopes.Peek()) : None._;
       var data = dataPool.Borrow();
       data.name = name;
       data.fullScopeName = hasParentScope ? $"{scopes.Peek().fullScopeName}.{name}" : name;

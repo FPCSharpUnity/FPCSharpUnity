@@ -27,6 +27,7 @@ using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine.Playables;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -92,7 +93,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
           "Validating Objects", "Please wait...", progress.ratio
         ),
         onFinish: EditorUtility.ClearProgressBar, 
-        uniqueValuesCache: UniqueValuesCache.create.some()
+        uniqueValuesCache: Some.a(UniqueValuesCache.create)
       );
       showErrors(Log.d, errors);
     }
@@ -126,7 +127,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         static Option<GameObject> getGameObject(Object obj) {
           if (!obj) return None._;
           return obj switch {
-            GameObject go => go.some(),
+            GameObject go => Some.a(go),
             Component c => F.opt(c.gameObject),
             _ => None._
           };
@@ -189,7 +190,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         new CheckContext("Assets and Deps"),
         dependencies, customValidatorOpt, 
         onProgress: onProgress, onFinish: onFinish, 
-        uniqueValuesCache: UniqueValuesCache.create.some()
+        uniqueValuesCache: Some.a(UniqueValuesCache.create)
       );
     }
 
@@ -207,7 +208,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       context,
       collectDependencies(objects.ToArray()),
       customValidatorOpt: customValidatorOpt, onProgress: onProgress, onFinish: onFinish,
-      uniqueValuesCache: UniqueValuesCache.create.some()
+      uniqueValuesCache: Some.a(UniqueValuesCache.create)
     );
 
     /// <summary>

@@ -67,7 +67,7 @@ namespace FPCSharpUnity.unity.Extensions {
       foreach (var item in collection) {
         result += mapper(item);
       }
-      return (result / collection.Count).some();
+      return Some.a((result / collection.Count));
     }
     
     // overload that does not allocate
@@ -77,7 +77,7 @@ namespace FPCSharpUnity.unity.Extensions {
       foreach (var item in collection) {
         result += mapper(item);
       }
-      return (result / collection.Count).some();
+      return Some.a((result / collection.Count));
     }
   }
 }

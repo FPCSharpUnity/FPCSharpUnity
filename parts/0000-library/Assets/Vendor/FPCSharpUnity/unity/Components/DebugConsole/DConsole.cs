@@ -27,6 +27,7 @@ using UnityEngine;
 using UnityEngine.Scripting;
 using static FPCSharpUnity.core.typeclasses.Str;
 using static FPCSharpUnity.unity.Data.KeyModifier;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -344,7 +345,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         }
       };
 
-      currentViewRx.value = new ViewInstance(view, layout, logEntryPool, tracker).some();
+      currentViewRx.value = Some.a(new ViewInstance(view, layout, logEntryPool, tracker));
 
       BoundButtonList setupGroups(bool clearCommandsFilterText) {
         var groupButtons = commands.dictionary.OrderBySafe(_ => _.Key).Select(commandGroup => {

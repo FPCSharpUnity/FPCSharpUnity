@@ -11,7 +11,7 @@ namespace FPCSharpUnity.unity.Data {
 
     public bool cached => backing.value.isSome;
     public Option<Try<A>> read() => backing.value.map(F.scs);
-    public Try<Unit> store(A data) => backing.store(data.some());
+    public Try<Unit> store(A data) => backing.store(Some.a(data));
     public Try<Unit> clear() => backing.store(None._);
   }
 }

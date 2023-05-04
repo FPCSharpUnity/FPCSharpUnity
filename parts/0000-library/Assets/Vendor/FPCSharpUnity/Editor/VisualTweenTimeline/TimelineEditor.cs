@@ -18,6 +18,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 using Element = FPCSharpUnity.unity.Tween.fun_tween.serialization.manager.SerializedTweenTimelineV2.Element;
 
 namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
@@ -187,7 +188,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         selectedFunTweenManager.voidFold(
           () => funNodes.Clear(),
           manager => {
-            tweenPlaybackController = new TweenPlaybackController(manager, visualizationMode).some();
+            tweenPlaybackController = Some.a(new TweenPlaybackController(manager, visualizationMode));
             funNodes.Clear();
             importTimeline();
           }
@@ -549,7 +550,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
             linkedNode => 
               linkedNode == initialNode
               && selectedNodesList.find(x => x == rightNode).isNone
-                ? rightNode.some()
+                ? Some.a(rightNode)
                 : None._
             )
         );
@@ -605,10 +606,10 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
           var dragNodeStart = timelineVisuals.secondsToGUI(rootNode.startTime);
           var dragNodeEnd = timelineVisuals.secondsToGUI(rootNode.getEnd());
 
-          if (isInRangeOfSnap(nodeStart, dragNodeStart)) return SnapType.StartWithStart.some();
-          if (isInRangeOfSnap(nodeEnd, dragNodeStart)) return SnapType.StartWithEnd.some();
-          if (isInRangeOfSnap(nodeStart, dragNodeEnd)) return SnapType.EndWithStart.some();
-          if (isInRangeOfSnap(nodeEnd, dragNodeEnd)) return SnapType.EndWithEnd.some();
+          if (isInRangeOfSnap(nodeStart, dragNodeStart)) return Some.a(SnapType.StartWithStart);
+          if (isInRangeOfSnap(nodeEnd, dragNodeStart)) return Some.a(SnapType.StartWithEnd);
+          if (isInRangeOfSnap(nodeStart, dragNodeEnd)) return Some.a(SnapType.EndWithStart);
+          if (isInRangeOfSnap(nodeEnd, dragNodeEnd)) return Some.a(SnapType.EndWithEnd);
           return None._;
         }
       }
@@ -638,14 +639,14 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
             if (isInRangeOfSnap(snapPoint, nodeEndPos)) {
               selectedNode.setDuration(nodeToSnapTo.startTime - selectedNode.startTime);
               isEndSnapped = true;
-              nodeSnappedToOpt = new NodeSnappedTo(nodeToSnapTo, SnapType.EndWithStart).some();
+              nodeSnappedToOpt = Some.a(new NodeSnappedTo(nodeToSnapTo, SnapType.EndWithStart));
             }
             else {
               snapPoint = timelineVisuals.secondsToGUI(nodeToSnapTo.getEnd());
               if (isInRangeOfSnap(snapPoint, nodeEndPos)) {
                 selectedNode.setDuration(nodeToSnapTo.getEnd() - selectedNode.startTime);
                 isEndSnapped = true;
-                nodeSnappedToOpt = new NodeSnappedTo(nodeToSnapTo, SnapType.EndWithEnd).some();
+                nodeSnappedToOpt = Some.a(new NodeSnappedTo(nodeToSnapTo, SnapType.EndWithEnd));
               }
               else {
                 isEndSnapped = false;
@@ -666,7 +667,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
               selectedNode.setStartTime(nodeToSnapTo.startTime); 
               if (!isStartSnapped) {
                 selectedNode.setDuration(end - selectedNode.startTime);
-                nodeSnappedToOpt = new NodeSnappedTo(nodeToSnapTo, SnapType.StartWithStart).some();
+                nodeSnappedToOpt = Some.a(new NodeSnappedTo(nodeToSnapTo, SnapType.StartWithStart));
                 isStartSnapped = true;
               }
             }
@@ -676,7 +677,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
                 selectedNode.setStartTime(nodeToSnapTo.getEnd());
                 if (!isStartSnapped) {
                   selectedNode.setDuration(end - selectedNode.startTime);
-                  nodeSnappedToOpt = new NodeSnappedTo(nodeToSnapTo, SnapType.StartWithEnd).some();
+                  nodeSnappedToOpt = Some.a(new NodeSnappedTo(nodeToSnapTo, SnapType.StartWithEnd));
                   isStartSnapped = true;
                 }
               }
@@ -917,7 +918,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       }
 
       void addFunTweenManagerComponent(GameObject gameObject) {
-        selectedFunTweenManager = Undo.AddComponent<FunTweenManagerV2>(gameObject).some();
+        selectedFunTweenManager = Some.a(Undo.AddComponent<FunTweenManagerV2>(gameObject));
         importTimeline();
         EditorUtility.SetDirty(gameObject);
         backing.OnEnable(); 

@@ -302,13 +302,13 @@ namespace FPCSharpUnity.unity.Concurrent {
     public void ItemFound() {
       new[] {1, 3, 5, 6, 7}.
         Select(Future.successful).firstOfWhere(i => (i % 2 == 0).opt(i)).
-        value.__unsafeGet.shouldEqual(6.some());
+        value.__unsafeGet.shouldEqual(Some.a(6));
     }
     [Test]
     public void MultipleItemsFound() {
       new[] {1, 3, 5, 6, 7, 8}.
         Select(Future.successful).firstOfWhere(i => (i % 2 == 0).opt(i)).
-        value.__unsafeGet.shouldEqual(6.some());
+        value.__unsafeGet.shouldEqual(Some.a(6));
     }
 
     [Test]

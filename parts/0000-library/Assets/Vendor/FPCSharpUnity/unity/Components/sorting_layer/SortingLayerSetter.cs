@@ -57,7 +57,7 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
     public Option<SortingLayerReference> sortingLayerOverride { get; set; } = None._;
 
     public void setSortingLayerOverride(SortingLayerReference sortingLayer) {
-      sortingLayerOverride = sortingLayer.some();
+      sortingLayerOverride = Some.a(sortingLayer);
       apply(sortingLayer);
     }
 

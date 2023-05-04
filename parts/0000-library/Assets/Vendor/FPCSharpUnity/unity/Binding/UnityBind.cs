@@ -12,6 +12,7 @@ using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 
 namespace FPCSharpUnity.unity.binding {
   [PublicAPI] public static partial class UnityBind {
@@ -27,7 +28,7 @@ namespace FPCSharpUnity.unity.binding {
         NoOpDisposableTracker.instance,
         a => {
           stopOpt();
-          lastCoroutine = f(a).some();
+          lastCoroutine = Some.a(f(a));
         }
       ).andThen(stopOpt);
       tracker.track(sub);

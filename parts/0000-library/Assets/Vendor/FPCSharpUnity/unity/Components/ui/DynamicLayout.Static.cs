@@ -13,6 +13,7 @@ using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
 using Smooth.Collections;
 using UnityEngine;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 
 namespace FPCSharpUnity.unity.Components.ui {
   public static partial class DynamicLayoutExts {
@@ -354,7 +355,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// Calculates visible part of <see cref="container"/> using <see cref="maskRect"/> as viewport.
       /// </summary>
       public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
-        maskRect.rect.convertCoordinateSystem(((Transform) maskRect).some(), container);
+        maskRect.rect.convertCoordinateSystem(Some.a(((Transform) maskRect)), container);
       
     
     

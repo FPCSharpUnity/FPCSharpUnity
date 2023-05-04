@@ -26,7 +26,7 @@ namespace FPCSharpUnity.unity.Components {
     }
 
     protected override void onPointerDown(PointerEventData eventData) {
-      _isHeldDown.value = eventData.position.some();
+      _isHeldDown.value = Some.a(eventData.position);
     }
 
     protected override void onPointerUp(PointerEventData eventData) {

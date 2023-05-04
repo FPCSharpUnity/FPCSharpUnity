@@ -17,7 +17,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         this.checkedComponentTypes = checkedComponentTypes;
       }
 
-      public CheckContext(string value) : this(value.some(), ImmutableHashSet<Type>.Empty) {}
+      public CheckContext(string value) : this(Some.a(value), ImmutableHashSet<Type>.Empty) {}
 
       public override string ToString() => value.getOrElse("unknown ctx");
 

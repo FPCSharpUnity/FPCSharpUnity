@@ -120,9 +120,11 @@ namespace FPCSharpUnity.unity.Extensions {
                 && bcbmDot <= Vector3.Dot(bc, bc)
               )) return None._;
           else return
-            (new IntersectingLinkInfo(
-              linkInfo, new Rect(bl, tr - bl)
-            )).some();
+            Some.a(
+              (new IntersectingLinkInfo(
+                linkInfo, new Rect(bl, tr - bl)
+              ))
+            );
         }
       }
 

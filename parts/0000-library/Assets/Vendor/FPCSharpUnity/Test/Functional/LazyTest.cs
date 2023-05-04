@@ -96,7 +96,7 @@ namespace FPCSharpUnity.unity.Functional {
 
       when["#" + nameof(lazy.value.onComplete)] = () => {
         var result = @let(Option<Base>.None);
-        addBeforeEach(() => upcasted.value.onComplete(b => result.value = b.some()));
+        addBeforeEach(() => upcasted.value.onComplete(b => result.value = Some.a(b)));
 
         it["should transmit non-completion"] = () => result.value.shouldBeNone();
         it["should transmit completion"] = () => {

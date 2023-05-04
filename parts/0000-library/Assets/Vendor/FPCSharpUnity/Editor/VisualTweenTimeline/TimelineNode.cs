@@ -21,7 +21,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
     public float getEnd() => startTime + duration;
     
     public void linkTo(TimelineNode linkTo) {
-      linkedNode = linkTo.some();
+      linkedNode = Some.a(linkTo);
     }
 
     void setChannel(int idx) => channel = Mathf.Clamp(idx, 0, int.MaxValue);

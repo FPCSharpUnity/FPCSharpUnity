@@ -341,7 +341,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       ) {
         this.data = data;
         this.sizeProvider = sizeProvider;
-        this.maybeViewProvider = maybeViewProvider?.some() ?? None._;
+        this.maybeViewProvider = Option.a(maybeViewProvider);
         tracker = new DisposableTracker(log);
       }
 

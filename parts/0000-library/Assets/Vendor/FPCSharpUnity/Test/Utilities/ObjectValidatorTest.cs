@@ -577,7 +577,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     static ImmutableList<ObjectValidator.Error> errorsInScriptableObject<A>(
       Action<A> setup = null
     ) where A : ScriptableObject =>
-      checkForErrors(() => setupScriptableObject(setup), ObjectValidator.UniqueValuesCache.create.some());
+      checkForErrors(() => setupScriptableObject(setup), Some.a(ObjectValidator.UniqueValuesCache.create));
 
     public static void shouldNotFindErrors<A>(
       Action<A> setup = null
