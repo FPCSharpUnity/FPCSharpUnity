@@ -76,13 +76,22 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       );
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
+    
+    /// <summary>
+    /// <see cref="ConditionalAttribute"/> does not exclude the method from the build, it just removes the calls to it.
+    /// So we can't use it on the same method as <see cref="RuntimeInitializeOnLoadMethodAttribute"/> because it will
+    /// be called regardless.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod]
+    static void init() => registerLogMessages();
 
     /// <summary>
     /// Registers a handler to Unity that captures the log messages and stores them in
     /// <see cref="backgroundLogEntries"/>. 
     /// </summary>
-    [RuntimeInitializeOnLoadMethod]
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
     static void registerLogMessages() {
+      Debug.LogError("registerLogMessages");
       if (!Application.isEditor) {
         // Calculate limit only once. Also Debug.isDebugBuild can't be called from other threads.
         var limit =
