@@ -104,7 +104,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     var rect = _maskRect.rect.size;
     _editorTestEntries = _editorTestEntries.Concat(
       _container.children()
-        .Where(tr => (tr.gameObject.hideFlags & HideFlags.DontSave) != HideFlags.DontSave)
+        .Where(tr => (tr.gameObject.hideFlags & HideFlags_.dontSaveOnly) != HideFlags_.dontSaveOnly)
         .Take(number)
         .Select(tr => {
             var rt = (RectTransform)tr;
@@ -126,7 +126,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
 
     foreach (Transform tr in _container) {
-      if ((tr.gameObject.hideFlags & HideFlags.DontSave) == HideFlags.DontSave) {
+      if ((tr.gameObject.hideFlags & HideFlags_.dontSaveOnly) == HideFlags_.dontSaveOnly) {
         DestroyImmediate(tr.gameObject);
       }
     }
@@ -240,7 +240,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       protected override void becameVisible(RectTransform view, RectTransform rt, RectTransform parent) {
         base.becameVisible(view, rt, parent);
         view.name += " [Will not save]";
-        view.gameObject.hideFlags = HideFlags.DontSave;
+        view.gameObject.hideFlags = HideFlags_.dontSaveOnly;
         data.maybeVisibleEntry = Some.a(this);
       }
 
