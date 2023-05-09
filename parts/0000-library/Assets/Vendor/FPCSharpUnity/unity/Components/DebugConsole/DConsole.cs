@@ -91,7 +91,6 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// </summary>
     [Conditional(DEFINE_ENABLE_DCONSOLE)]
     static void registerLogMessages() {
-      Debug.LogError("registerLogMessages");
       if (!Application.isEditor) {
         // Calculate limit only once. Also Debug.isDebugBuild can't be called from other threads.
         var limit =
