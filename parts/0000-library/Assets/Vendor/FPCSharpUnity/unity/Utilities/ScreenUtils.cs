@@ -8,11 +8,17 @@ namespace FPCSharpUnity.unity.Utilities {
   public static partial class ScreenUtils {
     public static Size screenSize => new Size(Screen.width, Screen.height);
 
-    [LazyProperty] public static IRxVal<Size> screenSizeVal => 
+    [LazyProperty(hasReset: true)] public static IRxVal<Size> screenSizeVal => 
       ObservableU.everyFrame.toRxVal(() => screenSize);
 
-    [LazyProperty] public static IRxVal<Rect> screenSafeArea => 
+    [LazyProperty(hasReset: true)] public static IRxVal<Rect> screenSafeArea => 
       ObservableU.everyFrame.toRxVal(() => Screen.safeArea);
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+    static void reset() {
+      screenSafeArea_resetLazyProperty();
+      screenSizeVal_resetLazyProperty();
+    }
 
     /// <summary>Convert screen width percentage to absolute value.</summary>
     public static float pWidthToAbs(this float percentWidth) => Screen.width * percentWidth;
