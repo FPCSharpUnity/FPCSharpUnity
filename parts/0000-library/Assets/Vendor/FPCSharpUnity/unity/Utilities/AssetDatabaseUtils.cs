@@ -14,6 +14,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using UnityEditor;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -108,6 +109,15 @@ namespace FPCSharpUnity.unity.Utilities {
       AssetDatabase.FindAssets($"t:{typeof(A).Name}")
       .Select(loadMainAssetByGuid)
       .OfType<A>();
+    
+    /// <summary>
+    /// Get all asset importers of some type.
+    /// </summary>
+    /// <typeparam name="TAsset">Asset type. E.g. <see cref="AudioClip"/></typeparam>
+    /// <typeparam name="TImporter">Importer type. E.g. <see cref="AudioImporter"/></typeparam>
+    public static IEnumerable<TImporter> getImportersOfType<TAsset, TImporter>() where TImporter : AssetImporter =>
+      AssetDatabase.FindAssets($"t:{typeof(TAsset).Name}")
+        .Select(guid => (TImporter) AssetImporter.GetAtPath(AssetDatabase.GUIDToAssetPath(guid)));
 
     public static Object loadMainAssetByGuid(string guid) =>
       AssetDatabase.LoadMainAssetAtPath(AssetDatabase.GUIDToAssetPath(guid));
