@@ -119,7 +119,7 @@ class PlayerPrefsBackend : IPrefValueBackend {
   
 #if UNITY_EDITOR
 /// <summary>Stores preferences in Unity editor storage (which is separate from the application storage).</summary>
-sealed class EditorPrefsBackend : IPrefValueBackend {
+public sealed class EditorPrefsBackend : IPrefValueBackend {
   public static readonly EditorPrefsBackend instance = new EditorPrefsBackend();
   EditorPrefsBackend() {}
 
