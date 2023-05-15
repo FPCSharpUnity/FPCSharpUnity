@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
@@ -30,6 +31,9 @@ namespace FPCSharpUnity.unity.Components.ui {
     
       /// <summary> Space between each new line/column. </summary>
       float spacingInScrollableAxis { get; }
+    
+      /// <summary> Space between each new line/column. </summary>
+      float spacingInSecondaryAxis { get; }
     
       /// <inheritdoc cref="ExpandElementsRectSizeInSecondaryAxis"/>
       ExpandElementsRectSizeInSecondaryAxis expandElements { get; }
@@ -153,7 +157,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
     /// <summary> Action that gets called on each <see cref="DynamicLayout"/> element. </summary>
     public delegate ForEachElementActionResult ForEachElementActionStoppable<in TElementData, in Data>(
-      TElementData elementData, bool placementVisible, Rect cellRect, Data data
+      TElementData elementData, bool placementVisible, Rect cellRect, Data data, bool gotMovedToNextRow
     );
 
     /// <summary>Result type for <see cref="Init.forEachElementStoppable{TElementData,Data}"/>.</summary>
@@ -172,14 +176,16 @@ namespace FPCSharpUnity.unity.Components.ui {
       Obj view, Rect viewportSize, RectTransform viewRt, Padding padding
     ) where Obj : Component;
  
+    public interface IHasSizeProvider {
+      /// <inheritdoc cref="SizeProvider"/>
+      SizeProvider sizeProvider { get; }
+    }
+    
     /// <summary>
     /// <see cref="DynamicLayout"/> element data. It is put inside <see cref="DynamicLayout._container"/>. If this item
     /// is moved inside viewport, it can show a UI visual.
     /// </summary>
-    public interface IElement {
-      /// <inheritdoc cref="SizeProvider"/>
-      SizeProvider sizeProvider { get; }
-    
+    public interface IElement : IHasSizeProvider {
       /// <summary>
       /// Will start showing item's visual if it supports it. Repeated calls to this method will result in refreshing
       /// visual with newest data.
@@ -211,30 +217,42 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// `None` - item is not visible inside viewport or doesn't support visuals at all.
       /// </summary>
       abstract Option<RectTransform> visibleRt { get; }
+    }
     
-      /// <inheritdoc cref="DynamicLayout.ISizeProvider.sizeInSecondaryAxis"/>
-      Percentage sizeInSecondaryAxis { get; }
-    
-      /// <inheritdoc cref="DynamicLayout.ISizeProvider.sizeInScrollableAxis"/>
-      float sizeInScrollableAxis(bool isHorizontal);
+    /// <summary>
+    /// Item's size in secondary axis value wrapper. Value can be provided directly (float), given as percentage of
+    /// total viewport size (Percentage) or from UI template's rect size (Vector2).
+    /// </summary>
+    [Union(new[]{typeof(float), typeof(Percentage), typeof(Vector2)})] 
+    public readonly partial struct SizeInSecondaryAxis {
+      public float calculate(float viewportSize, bool isHorizontal) => this.foldM(
+        w => w,
+        percentage => viewportSize * percentage.value,
+        v2 => isHorizontal ? v2.y : v2.x
+      );
+
+      public static SizeInSecondaryAxis fromTemplate(Component c) => new(
+        ((RectTransform)c.transform).rect.size
+      );
+
+      public static readonly SizeInSecondaryAxis fullRowOrColumn = new(Percentage.oneHundred);
     }
 
     /// <summary>
-    /// It's useful when you don't want to pass enormous amount of setup data inside the item, and instead you pass setup
-    /// action. This allows us to automatically capture all data needed for setup inside closure class.
+    /// Item's size in scrollable axis value wrapper. Value can be provided directly (float), taken from Val or
+    /// from UI template's rect size (Vector2).
     /// </summary>
-    public abstract class ElementBaseWithSetupDelegate<InnerData, View> : ElementBase<InnerData, View> {
-      readonly Action<InnerData, View, ITracker> updateStateDelegate;
+    [Union(new[] {typeof(float), typeof(Val<float>), typeof(Vector2)})]
+    public readonly partial struct SizeInScrollableAxis {
+      public float calculate(bool isHorizontal) => this.foldM(
+        f => f,
+        val => val.value,
+        v2 => isHorizontal ? v2.x : v2.y
+      );
 
-      protected ElementBaseWithSetupDelegate(
-        InnerData data, SizeProvider sizeProvider, 
-        Action<InnerData, View, ITracker> updateStateDelegate,
-        [CanBeNull] IViewProvider<View> maybeViewProvider = default, ILog log = default
-      ) : base(data, sizeProvider, maybeViewProvider, log) {
-        this.updateStateDelegate = updateStateDelegate;
-      }
-
-      protected override void updateState(View view, ITracker tracker) => updateStateDelegate(data, view, tracker);
+      public static SizeInScrollableAxis fromTemplate(Component c) => new(
+        ((RectTransform)c.transform).rect.size
+      );
     }
   
     /// <summary> Item is already placed inside scene/prefab and we don't need to setup it. </summary>
@@ -245,8 +263,9 @@ namespace FPCSharpUnity.unity.Components.ui {
         [Implicit] ILog log = default
       ) : base(
         Unit._, 
-        sizeProvider: new SizeProvider.FromTemplateStatic(
-          rectTransform, sizeInSecondaryAxis: noneHundredSizeInSecondaryAxis ?? new Percentage(1)
+        sizeProvider: noneHundredSizeInSecondaryAxis.toOption().foldM(
+          () => SizeProvider.fromTemplate(rectTransform),
+          percentage => SizeProvider.fromTemplate(rectTransform, percentage)
         ), maybeViewProvider: ViewProvider.singleInstance(rectTransform), log) {}
 
       protected override void updateState(RectTransform view, ITracker tracker){}
@@ -273,7 +292,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         InnerData data, View template, GameObjectPool<View> pool, 
         [Implicit] ILog log = default
       ) : base(
-        data, sizeProvider: SizeProvider.FromTemplateStatic.fullRowOrColumn(template), 
+        data, sizeProvider: SizeProvider.fullRowOrColumn(template), 
         maybeViewProvider: new ViewProvider.Pooled<View>(pool), log
       ) {}
     }
@@ -313,15 +332,6 @@ namespace FPCSharpUnity.unity.Components.ui {
     
       public SizeProvider sizeProvider { get; }
       
-      public Percentage sizeInSecondaryAxis => sizeProvider.fold(
-        onFromTemplateWithCustomSizeInSecondaryAxis: static a => a.sizeInSecondaryAxis,
-        onStatic: static a => a.sizeInSecondaryAxis,
-        onFromTemplateStatic: static a => a.sizeInSecondaryAxis,
-        onDynamicSizeInScrollableAxis: static a => a.sizeInSecondaryAxis
-      );
-      
-      public float sizeInScrollableAxis(bool isHorizontal) => sizeProvider.sizeInScrollableAxis(isHorizontal);
-
       /// <summary>
       /// Mutable! Will be set to `Some(item's view)` if item is currently visible inside viewport.<br/>
       /// Will be `None` if it's not visible/doesn't support to be visible.
@@ -333,6 +343,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public bool isVisible => visibleInstance.isSome;
     
       public Option<RectTransform> visibleRt => visibleInstance.map(static _ => _.rt);
+
 
       protected ElementBase(
         InnerData data, SizeProvider sizeProvider,

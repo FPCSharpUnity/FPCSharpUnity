@@ -15,6 +15,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Logger;
 using Sirenix.OdinInspector;
@@ -58,6 +59,9 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, NotNull, PublicAccessor] RectTransform _maskRect;
     [SerializeField, NotNull] Padding _padding;
     [SerializeField, FormerlySerializedAs("_spacing"), PublicAccessor] float _spacingInScrollableAxis;
+    [
+      SerializeField, PublicAccessor, InfoBoxButton("Spacing between each item in non scrollable axis.")
+    ] float _spacingInSecondaryAxis;
     [SerializeField, InfoBox(
       DynamicLayout_ExpandElementsRectSizeInSecondaryAxisExts.SUMMARY_EXPAND_ELEMENTS_RECT_SIZE_IN_SECONDARY_AXIS
     ), PublicAccessor] ExpandElementsRectSizeInSecondaryAxis _expandElements;
@@ -91,6 +95,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
 
       public float spacingInScrollableAxis => backing.spacingInScrollableAxis;
+      public float spacingInSecondaryAxis => backing.spacingInSecondaryAxis;
       public ExpandElementsRectSizeInSecondaryAxis expandElements => backing.expandElements;
 
       /// <summary> How much space all layout elements takes up in scrollable axis. </summary>
@@ -258,7 +263,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         var result = Option<B>.None;
         forEachElementStoppable(
           predicate, 
-          (data, isVisible, cellRect, predicate_) => {
+          (data, isVisible, cellRect, predicate_, _) => {
             if (predicate_(data, cellRect).valueOut(out var match)) {
               result = Some.a(match);
               return ForEachElementActionResult.StopIterating;
@@ -289,10 +294,10 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementAction<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElement(
-          spacing: spacingInScrollableAxis, iElementDatas: items,
+          scrAxisSpacing: spacingInScrollableAxis, iElementDatas: items,
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
           containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
-          forEachElementAction: updateElement
+          forEachElementAction: updateElement, secAxisSpacing: spacingInSecondaryAxis
         );
 
       /// <inheritdoc cref="Init.forEachElementStoppable{TElementData,Data}"/>
@@ -300,10 +305,13 @@ namespace FPCSharpUnity.unity.Components.ui {
         Data dataA, ForEachElementActionStoppable<CommonDataType, Data> updateElement
       ) =>
         Init.forEachElementStoppable(
-          spacing: spacingInScrollableAxis, iElementDatas: items,
+          scrAxisSpacing: spacingInScrollableAxis, itemsCount: items.Count, getElement: static (i, t) => t.items[i],
           renderLatestItemsFirst: renderLatestItemsFirst, padding: padding, isHorizontal: isHorizontal,
-          containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: dataA,
-          forEachElementAction: updateElement
+          containersRectTransform: container, visibleRect: calculateVisibleRect, dataA: (dataA, items, updateElement),
+          forEachElementAction: static (elementData, placementVisible, cellRect, t, gotMovedToNextRow) => 
+            t.updateElement(elementData, placementVisible, cellRect, t.dataA, gotMovedToNextRow), 
+          secAxisSpacing: spacingInSecondaryAxis,
+          extractSizeProvider: static t => t.sizeProvider
         );
     }
   }
