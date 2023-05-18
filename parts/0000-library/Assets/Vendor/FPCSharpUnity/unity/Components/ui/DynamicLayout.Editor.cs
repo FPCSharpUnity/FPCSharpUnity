@@ -28,15 +28,26 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   ] string _editor_previewLayoutItems = "";
 
   partial void _editor_layoutUpdated<CommonDataType>(IReadOnlyList<CommonDataType> list) where CommonDataType : IElement {
+    var width = isHorizontal ? maskRect.rect.width - _padding.horizontal : maskRect.rect.height - _padding.vertical;
     _editor_previewLayoutItems = list
       .Select(_ => {
           var nm = _.GetType().Name;
           return 
             $"{nm} ["
-             + $"{(isHorizontal ? "h:" : "w:")}{_.sizeInSecondaryAxis.value * 100f:0.#}% "
-             + $"{(isHorizontal ? "w:" : "h:")}{_.sizeInScrollableAxis(isHorizontal):0.#}px"
+             + $"{(isHorizontal ? "h:" : "w:")}{secondaryAxis()} "
+             + $"{(isHorizontal ? "w:" : "h:")}{_.sizeProvider.sizeInScrollableAxis.calculate(isHorizontal):0.#}px"
              + $"]"
              + $"{(nm != "Spacer" ? (_.isVisible ? " ON" : " OFF") : "")}";
+          
+          string secondaryAxis() {
+            var size = _.sizeProvider.itemSizeInSecondaryAxis.calculate(width, isHorizontal);
+            var space = _.sizeProvider.spacingAfterItemSizeInSecondaryAxis
+              .mapM(s => s.calculate(width, isHorizontal));
+            return space.foldM(
+              () => $"{size:0.#}px",
+              s => $"{size:0.#}(+{s:0.#})px"
+            );
+          }
         }
       ).mkString("\n");
   }
@@ -163,7 +174,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       ).toImmutableArrayC();
 
       var result = Init.forEachElement(
-        spacing: _spacingInScrollableAxis,
+        scrAxisSpacing: _spacingInScrollableAxis,
         iElementDatas: entries,
         renderLatestItemsFirst: false, padding: _padding, isHorizontal: isHorizontal,
         containersRectTransform: _container,
@@ -187,7 +198,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
               break;
             }
           }
-        }
+        },
+        secAxisSpacing: _spacingInSecondaryAxis
       );
 
       Init.onRectSizeChange(
@@ -232,8 +244,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       public DynamicLayoutElement(
         EditorTestEntry data) : base(
         data, sizeProvider: data._customSizeInScrollableAxis.valueOut(out var size) 
-          ? new SizeProvider.Static(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
-          : new SizeProvider.FromTemplateStatic(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
+          ? new SizeProvider(sizeInScrollableAxis: size, itemSizeInSecondaryAxis: data.sizeInSecondaryAxis)
+          : SizeProvider.fromTemplate(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
         maybeViewProvider: new ViewProvider.InstantiateAndDestroyEditor<RectTransform>(data._item), log
       ) {}
 
