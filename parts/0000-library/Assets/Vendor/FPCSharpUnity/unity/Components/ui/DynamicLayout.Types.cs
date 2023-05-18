@@ -144,19 +144,12 @@ namespace FPCSharpUnity.unity.Components.ui {
       TElementData elementData, bool placementVisible, Rect cellRect, Data data
     );
 
-    /// <summary>
-    /// Result type for <see cref="ForEachElementActionStoppable{TElementData,Data}"/>.
-    /// </summary>
-    public enum ForEachElementActionResult {
-      /// <summary>Do not go through the rest of the elements in the layout.</summary>
-      StopIterating,
-    
-      /// <summary>Go to the next element in the layout.</summary>
-      ContinueIterating
-    }
-
     /// <summary> Action that gets called on each <see cref="DynamicLayout"/> element. </summary>
-    public delegate ForEachElementActionResult ForEachElementActionStoppable<in TElementData, in Data>(
+    /// <returns>
+    /// `Some(value)` - the iteration is stopped early and we do not go through the rest of the elements in the layout.
+    /// `None` - the iteration continues to the next element in the layout.
+    /// </returns>
+    public delegate Option<TStoppedEarly> ForEachElementActionStoppable<in TElementData, TStoppedEarly, in Data>(
       TElementData elementData, bool placementVisible, Rect cellRect, Data data, bool gotMovedToNextRow
     );
 

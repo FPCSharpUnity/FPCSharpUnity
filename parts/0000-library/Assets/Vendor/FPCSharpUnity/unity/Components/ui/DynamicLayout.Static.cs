@@ -1,20 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using ExhaustiveMatching;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.pools;
 using FPCSharpUnity.core.typeclasses;
-using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
-using Smooth.Collections;
 using UnityEngine;
-using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 
 namespace FPCSharpUnity.unity.Components.ui {
   public static partial class DynamicLayoutExts {
@@ -225,13 +220,15 @@ namespace FPCSharpUnity.unity.Components.ui {
       /// Calculates all positions for <see cref="iElementDatas"/> and invokes a callback
       /// <see cref="forEachElementAction"/> on each of them.
       /// <para/>
-      /// Returns `None` if the iteration was stopped early, as it's impossible to calculate the result then.
+      /// Returns `Left` if the iteration was stopped early, as it's impossible to calculate the result then.
       /// </summary>
-      public static Option<ForEachElementResult> forEachElementStoppable<TElementData, Data>(
+      public static Either<TStoppedEarly, ForEachElementResult> forEachElementStoppable<
+        TElementData, TStoppedEarly, Data
+      >(
         float scrAxisSpacing, int itemsCount, Func<int, Data, TElementData> getElement, 
         bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
         RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
-        ForEachElementActionStoppable<TElementData, Data> forEachElementAction,
+        ForEachElementActionStoppable<TElementData, TStoppedEarly, Data> forEachElementAction,
         float secAxisSpacing, Func<TElementData, SizeProvider> extractSizeProvider
       ) {
         var containerRect = containersRectTransform.rect;
@@ -263,13 +260,9 @@ namespace FPCSharpUnity.unity.Components.ui {
         var secAxisCurrentOffset = secAxisPaddingStart;
 
         var direction = renderLatestItemsFirst ? -1 : 1;
-        var iterationResult = ForEachElementActionResult.ContinueIterating;
+        var iterationResult = Option<TStoppedEarly>.None;
 
-        bool shouldContinueIterating() => iterationResult switch {
-          ForEachElementActionResult.StopIterating => false,
-          ForEachElementActionResult.ContinueIterating => true,
-          _ => throw ExhaustiveMatch.Failed(iterationResult)
-        };
+        bool shouldContinueIterating() => iterationResult.isNone;
 
         for (
           var idx = renderLatestItemsFirst ? itemsCount - 1 : 0;
@@ -371,14 +364,15 @@ namespace FPCSharpUnity.unity.Components.ui {
           iterationResult = forEachElementAction(data, placementVisible, cellRect, dataA, gotMovedToNextRow);
         }
 
-        if (shouldContinueIterating()) {
-          scrAxisCurrentOffset += isHorizontal ? padding.right : padding.bottom;
-          var containerSizeInScrollableAxis = scrAxisCurrentOffset + scrAxisCurrentRowSize;
-          return Some.a(new ForEachElementResult(containerSizeInScrollableAxis: containerSizeInScrollableAxis));
-        }
-        else {
-          return None._;
-        }
+        return iterationResult.foldM(
+          () => {
+            scrAxisCurrentOffset += isHorizontal ? padding.right : padding.bottom;
+            var containerSizeInScrollableAxis = scrAxisCurrentOffset + scrAxisCurrentRowSize;
+            var result = new ForEachElementResult(containerSizeInScrollableAxis: containerSizeInScrollableAxis);
+            return result;
+          },
+          Either<TStoppedEarly, ForEachElementResult>.Left
+        );
       }
 
       /// <inheritdoc cref="forEachElementStoppable{TElementData,Data}"/>
@@ -397,10 +391,10 @@ namespace FPCSharpUnity.unity.Components.ui {
           dataA: (forEachElementAction, dataA, iElementDatas),
           forEachElementAction: static (elementData, visible, rect, tuple, _) => {
             tuple.forEachElementAction(elementData, visible, rect, tuple.dataA);
-            return ForEachElementActionResult.ContinueIterating;
+            return Option<Unit>.None;
           },
           secAxisSpacing: secAxisSpacing, extractSizeProvider: static e => e.sizeProvider
-        ).getOrThrow("this should be impossible");
+        ).rightValue.getOrThrow("this should be impossible");
 
       /// <summary>
       /// Calculates visible part of <see cref="container"/> using <see cref="maskRect"/> as viewport.
