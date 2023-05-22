@@ -18,7 +18,7 @@ namespace FPCSharpUnity.unity.Components {
 // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
     [SerializeField] float trailWidth = 3;
     [SerializeField, NotNull] Gradient color = new Gradient();
-    [SerializeField, NotNull] AnimationCurve widthMultiplierCurve = AnimationCurve.Linear(0, 1, 1, 1);
+    [SerializeField, NotNull] AnimationCurve widthMultiplierCurve;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
 
