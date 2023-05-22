@@ -18,7 +18,7 @@ namespace FPCSharpUnity.unity.Components {
 // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
     [SerializeField] float trailWidth = 3;
     [SerializeField, NotNull] Gradient color = new Gradient();
-    [SerializeField, NotNull] AnimationCurve widthMultiplierCurve;
+    // [SerializeField, NotNull] AnimationCurve widthMultiplierCurve;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
 
@@ -33,7 +33,7 @@ namespace FPCSharpUnity.unity.Components {
         distanceToPrevNode: nodes[idx].distanceToPrevNode
       );
       lineMeshGenerator = Lazy.a(() => new LineMeshGenerator(
-        trailWidth, gameObject.GetComponent<MeshFilter>(), color, widthMultiplierCurve)
+        trailWidth, gameObject.GetComponent<MeshFilter>(), color)
       );
     }
 

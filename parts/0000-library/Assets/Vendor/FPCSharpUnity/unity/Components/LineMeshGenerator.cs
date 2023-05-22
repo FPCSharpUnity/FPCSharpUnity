@@ -21,14 +21,14 @@ namespace FPCSharpUnity.unity.Components {
     readonly float halfWidth;
     readonly Mesh m;
     readonly Gradient colorGradient;
-    readonly AnimationCurve curve;
+    // readonly AnimationCurve curve;
 
     public LineMeshGenerator(
-      float width, MeshFilter mf, Gradient colorGradient, AnimationCurve curve
+      float width, MeshFilter mf, Gradient colorGradient//, AnimationCurve curve
     ) {
       halfWidth = width / 2;
       this.colorGradient = colorGradient;
-      this.curve = curve;
+      // this.curve = curve;
       m = new Mesh();
       mf.sharedMesh = m;
     }
@@ -48,7 +48,7 @@ namespace FPCSharpUnity.unity.Components {
       m.RecalculateBounds();
     }
 
-    float getWidthForProgress(float progress) => curve.Evaluate(progress) * halfWidth;
+    float getWidthForProgress(float progress) => progress * halfWidth;
 
     void fillVerticesAndUvs(
       int totalPositions, float totalLineLength, GetNode getNode

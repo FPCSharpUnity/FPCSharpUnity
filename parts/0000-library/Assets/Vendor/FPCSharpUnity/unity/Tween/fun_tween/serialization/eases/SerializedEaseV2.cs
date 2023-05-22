@@ -70,11 +70,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
   }
   
   [Serializable] public class ComplexEase_AnimationCurve : SerializedEaseV2.IComplexSerializedEase {
-    [SerializeField, NotNull] AnimationCurve _curve;
+    // [SerializeField, NotNull] AnimationCurve _curve;
     
     public string easeName => nameof(AnimationCurve);
     public void invalidate() { }
-    public Ease ease => _curve.Evaluate;
+    public Ease ease => Eases.linear;
   }
   
   [Serializable] public class ComplexEase_Punch : SerializedEaseV2.IComplexSerializedEase {
@@ -98,14 +98,14 @@ while 0 oscillates only between the starting position and the decaying direction
   }
   
   [Serializable] public class ComplexEase_Shake : SerializedEaseV2.IComplexSerializedEase {
-    [SerializeField, NotNull] AnimationCurve 
-      _intensityOverTime,
-      _amplitudeOverTime;
+    // [SerializeField, NotNull] AnimationCurve 
+    //   _intensityOverTime,
+    //   _amplitudeOverTime;
     [SerializeField] float _intensityMulti = 20;
     
     public string easeName => $"Shake(s: {_intensityMulti})";
     public void invalidate() {}
-    public Ease ease => p => Mathf.Sin(p * _intensityOverTime.Evaluate(p) * _intensityMulti) * _amplitudeOverTime.Evaluate(p);
+    public Ease ease => p => Mathf.Sin(p * p * _intensityMulti) * p;
   }
 
   [Record] partial class SelectedEase {
