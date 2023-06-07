@@ -19,5 +19,11 @@ namespace FPCSharpUnity.unity.Configuration {
     
     public static readonly Parser<JsonValue, Color> colorParser =
       stringParser.flatMap(s => ColorUtility.TryParseHtmlString(s, out var c) ? Some.a(c) : None._);
+    
+    public static readonly Parser<JsonValue, Color> colorRGBAParser =
+      configPathedParser(
+        "r", floatParser, "g", floatParser, "b", floatParser, "a", floatParser,
+        (r, g, b, a) => new Color(r, g, b, a)
+      );
   }
 }
