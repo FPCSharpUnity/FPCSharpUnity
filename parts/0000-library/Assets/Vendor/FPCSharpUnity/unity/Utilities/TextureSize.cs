@@ -29,7 +29,7 @@ namespace Code.Utils {
           );
           r.register("Render texture format support", () =>
             EnumUtils.GetValues<RenderTextureFormat>()
-              .Select(tf => $"[{tf}] {SystemInfo.SupportsRenderTextureFormat(tf)}")
+              .Select(tf => $"[{tf}] {tf.isSupported()}")
               .asDebugString()
           );
           r.register("Max texture size", () => SystemInfo.maxTextureSize);
