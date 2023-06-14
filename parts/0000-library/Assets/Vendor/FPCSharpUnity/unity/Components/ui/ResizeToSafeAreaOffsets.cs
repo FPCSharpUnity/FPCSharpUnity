@@ -291,10 +291,12 @@ namespace FPCSharpUnity.unity.Components.ui {
       }
     }
 
+#if UNITY_EDITOR
     protected override void Reset() {
       base.Reset();
       _rt = (RectTransform)transform;
     }
+#endif
 
     bool validateAllForOdinAttribute(RectTransform _, ref string errors) {
       var errorMsg = validateAllThis().toImmutableArrayC();
