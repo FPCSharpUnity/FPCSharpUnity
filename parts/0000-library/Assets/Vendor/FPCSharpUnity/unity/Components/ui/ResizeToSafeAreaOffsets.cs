@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExhaustiveMatching;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.log;
-using FPCSharpUnity.core.macros;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
+using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
@@ -26,7 +27,7 @@ namespace FPCSharpUnity.unity.Components.ui {
   ] public partial class ResizeToSafeAreaOffsets : UIBehaviour, IMB_Update {
 #pragma warning disable 649
 // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
-    [SerializeField, NotNull] RectTransform _rt;
+    [SerializeField, NotNull, ValidateInput(nameof(validateAllForOdinAttribute))] RectTransform _rt;
     [SerializeField, NotNull, ValidateInput(nameof(validateNonZeroOffsets)), InfoBox(
       $"Remove offsets from the left side of the screen for these child {nameof(RectTransform)}s."
     )] List<RectTransform> _negativeOffsetLeft;
@@ -65,7 +66,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     [ShowInInspector, ReadOnly] Rect lastSafeArea = new Rect(0, 0, 0, 0);
     [ShowInInspector, ReadOnly] ScreenOrientation lastScreenOrientation;
     [ShowInInspector, ReadOnly] bool lastNotchOnLeft, lastNotchOnRight;
-    bool forceRefresh;
+    bool forceRefresh, addedNegativeOffset;
 
 #pragma warning disable 649
     [ShowInInspector] float __editor_leftOffsetTest, __editor_rightOffsetTest, __editor_bottomOffsetTest;
@@ -74,7 +75,7 @@ namespace FPCSharpUnity.unity.Components.ui {
     public static bool validateNonZeroOffsets(List<RectTransform> rts, ref string errors) {
       foreach (var rt in rts) {
         if ((rt.offsetMin != Vector2.zero || rt.offsetMax != Vector2.zero) && !Application.isPlaying) {
-          errors += $"RectTransform {rt.name} should have zero offsets, because it will be overwritten by "
+          errors += $"RectTransform `{rt.name}` should have zero offsets, because it will be overwritten by "
                     + $"{nameof(ResizeToSafeAreaOffsets)} and the UI will no longer match the design.";
         }
       }
@@ -92,31 +93,37 @@ namespace FPCSharpUnity.unity.Components.ui {
     public void addToNegativeOffsetLeft(RectTransform t) {
       _negativeOffsetLeft.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     public void addToNegativeOffsetRight(RectTransform t) {
       _negativeOffsetRight.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     public void addToNegativeOffsetAll(RectTransform t) {
       _negativeOffsetAll.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     public void addToNegativeOffsetBottom(RectTransform t) {
       _negativeOffsetBottom.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     public void addToNegativeOffsetSidesWithoutNotches(RectTransform t) {
       _negativeOffsetSidesWithoutNotches.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     public void addToNegativeOffsetLeftRightWithoutNotches(RectTransform t) {
       _negativeOffsetLeftRightWithoutNotches.Add(t);
       forceRefresh = true;
+      addedNegativeOffset = true;
     }
 
     void refresh() {
@@ -190,6 +197,17 @@ namespace FPCSharpUnity.unity.Components.ui {
           safeArea: safeArea, screenSize: new Vector2(width, height), notchLeft: notchLeft, notchRight: notchRight
         );
       }
+      
+      // This will allow us to catch runtime UI offset bugs, which can't be validated at build time.
+      if (addedNegativeOffset) {
+        if (log.willLog(LogLevel.INFO)) {
+          var errors = validateAllThis().toImmutableArrayC();
+          if (!errors.isEmpty()) {
+            log.error($"Runtime check for illegal offsets found potential bugs: {errors.mkStringEnumNewLines()}", this);
+          }
+        }
+      }
+      addedNegativeOffset = false;
     }
 
     void applySafeArea(Rect safeArea, Vector2 screenSize, bool notchLeft, bool notchRight) {
@@ -276,6 +294,92 @@ namespace FPCSharpUnity.unity.Components.ui {
     protected override void Reset() {
       base.Reset();
       _rt = (RectTransform)transform;
+    }
+
+    bool validateAllForOdinAttribute(RectTransform _, ref string errors) {
+      var errorMsg = validateAllThis().toImmutableArrayC();
+      if (errorMsg.isEmpty()) return true;
+      
+      errors = errorMsg.Select(e => e.s).mkStringEnumNewLines();
+      return false;
+    }
+
+    IEnumerable<ErrorMsg> validateAllThis() => validateAll(
+      gameObject,
+      negativeOffsetLeft: _negativeOffsetLeft,
+      negativeOffsetRight: _negativeOffsetRight,
+      negativeOffsetAll: _negativeOffsetAll,
+      negativeOffsetBottom: _negativeOffsetBottom,
+      negativeOffsetSidesWithoutNotches: _negativeOffsetSidesWithoutNotches,
+      customNegativeOffsetOnSidesWithoutNotches: _customNegativeOffsetOnSidesWithoutNotches,
+      negativeOffsetLeftRightWithoutNotches: _negativeOffsetLeftRightWithoutNotches
+    );
+
+    public static IEnumerable<ErrorMsg> validateAll(
+      GameObject gameObjectWhereTheComponentIsAttached,
+      IReadOnlyList<RectTransform> negativeOffsetLeft,
+      IReadOnlyList<RectTransform> negativeOffsetRight,
+      IReadOnlyList<RectTransform> negativeOffsetAll,
+      IReadOnlyList<RectTransform> negativeOffsetBottom,
+      IReadOnlyList<RectTransform> negativeOffsetSidesWithoutNotches,
+      IReadOnlyList<RectTransform> customNegativeOffsetOnSidesWithoutNotches,
+      IReadOnlyList<RectTransform> negativeOffsetLeftRightWithoutNotches
+    ) {
+      var offsetsLeft = negativeOffsetLeft
+        .Concat(negativeOffsetAll)
+        .Concat(negativeOffsetSidesWithoutNotches)
+        .Concat(negativeOffsetLeftRightWithoutNotches)
+        .Concat(customNegativeOffsetOnSidesWithoutNotches)
+        .toImmutableArrayC();
+      var offsetsRight = negativeOffsetRight
+        .Concat(negativeOffsetAll)
+        .Concat(negativeOffsetSidesWithoutNotches)
+        .Concat(negativeOffsetLeftRightWithoutNotches)
+        .Concat(customNegativeOffsetOnSidesWithoutNotches)
+        .toImmutableArrayC();
+      var offsetsBottom = negativeOffsetBottom
+        .Concat(negativeOffsetAll)
+        .Concat(negativeOffsetSidesWithoutNotches)
+        .Concat(customNegativeOffsetOnSidesWithoutNotches)
+        .toImmutableArrayC();
+      
+      return checkSide(offsetsLeft, "left")
+        .Concat(checkSide(offsetsRight, "right"))
+        .Concat(checkSide(offsetsBottom, "bottom"))
+        .Concat(checkForNestedResizeToSafeAreaOffsets());
+
+      IEnumerable<ErrorMsg> checkForNestedResizeToSafeAreaOffsets() =>
+        gameObjectWhereTheComponentIsAttached
+          .getComponentInParents<ResizeToSafeAreaOffsets>(includeSelf: false).mapM(r => new ErrorMsg(
+            $"Nested `<b>{nameof(ResizeToSafeAreaOffsets)}</b>` components are not supported! {r.transform.debugPath()}"  
+          )).asEnumerable();
+
+      IEnumerable<ErrorMsg> checkSide(ImmutableArrayC<RectTransform> rts, string sideName) {
+        foreach (var duplicateRt in rts.GroupBy(_ => _).Where(_ => _.Count() > 1)) {
+          yield return new ErrorMsg(
+            $"`<b>{duplicateRt.Key.debugPath()}</b>` has multiple negative offsets to the {sideName} side defined! "
+            + $"Only one can work at a time!"  
+          );
+        }
+        foreach (var rt1 in rts) {
+          foreach (var rt2 in rts) {
+            if (rt1 != rt2 && isParentOf(rt1, rt2)) {
+              yield return new ErrorMsg(
+                $"`<b>{rt1.debugPath()}</b>` is a child of `<b>{rt2.debugPath()}</b>` and has a negative offset to the "
+                + $"{sideName} side defined! Doing offset multiple times will result in broken UI!"  
+              );
+            }
+          }
+        }
+        bool isParentOf(Transform child, Transform maybeParent) {
+          var p = child.parent;
+          while (p != null) {
+            if (p == maybeParent) return true;
+            p = p.parent;
+          }
+          return false;
+        }
+      }      
     }
   }
 }
