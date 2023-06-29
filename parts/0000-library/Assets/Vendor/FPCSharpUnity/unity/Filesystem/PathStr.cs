@@ -13,7 +13,7 @@ namespace FPCSharpUnity.unity.Filesystem {
   [
     Serializable, PublicAPI, Record(ConstructorFlags.None, GenerateToString = false)
   ]
-  public partial struct PathStr : IComparable<PathStr>, IStr {
+  public partial struct PathStr : IComparable<PathStr>, IStr, IDebugStr {
     #region Unity Serialized Fields
 
 #pragma warning disable 649
@@ -72,7 +72,8 @@ namespace FPCSharpUnity.unity.Filesystem {
     public PathStr ensureBeginsWith(PathStr p) => path.StartsWithFast(p.path) ? this : p / path;
     public override string ToString() => asString();
     public readonly string asString() => _path;
-    
+    public string asDebugString() => $"{nameof(Path)}({_path})";
+
     /// <summary>Path in UNIX format (with / slashes).</summary>
     public string unixString => ToString().Replace('\\', '/');
 
