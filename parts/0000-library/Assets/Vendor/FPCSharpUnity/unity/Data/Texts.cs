@@ -47,6 +47,8 @@ namespace FPCSharpUnity.unity.Data {
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
 
+    public string _editor_setter(string s) => _text = s;
+
     public TextAreaStringNonEmpty([NotNull] string text) {
       _text = text;
     }

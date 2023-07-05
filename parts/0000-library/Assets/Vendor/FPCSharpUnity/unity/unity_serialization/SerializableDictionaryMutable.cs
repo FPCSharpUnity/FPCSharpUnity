@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
@@ -59,5 +60,27 @@ namespace FPCSharpUnity.unity.unity_serialization {
         _keyValuePairs = _keyValuePairs.addOne(new Pair(key, value));
       }
     }
+    
+    public void remove(K key) {
+      dictMutable.Remove(key);
+      
+      // Do not set the serialized field values if playing, because that operation may be expensive and we do not want to
+      // do that at runtime anyway.
+      if (!Application.isPlaying) {
+        setValueOnSerializedField();
+      }
+      
+      void setValueOnSerializedField() {
+        for (var i = 0; i < _keyValuePairs.Length; i++) {
+          if (_keyValuePairs[i].key.Equals(key)) {
+            _keyValuePairs.removeAt(i);
+            return;
+          }
+        }
+      }
+    }
+    
+    public static implicit operator ImmutableDictionary<K, V>(SerializableDictionaryMutable<K, V> a) => 
+      a.a.ToImmutableDictionary();
   }
 }
