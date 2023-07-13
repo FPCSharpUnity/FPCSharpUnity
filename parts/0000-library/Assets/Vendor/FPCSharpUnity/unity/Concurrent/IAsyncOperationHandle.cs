@@ -159,7 +159,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     ) => handle.asFuture.value.foldM(
       IAsyncOperationHandleStatus.InProgress,
       static either => either.foldM(
-        IAsyncOperationHandleStatus.Cancelled, 
+        _ => IAsyncOperationHandleStatus.Cancelled, 
         static @try => @try.isSuccess ? IAsyncOperationHandleStatus.Succeeded : IAsyncOperationHandleStatus.Failed
       )
     );
