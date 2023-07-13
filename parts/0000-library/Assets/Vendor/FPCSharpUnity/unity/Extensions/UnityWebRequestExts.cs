@@ -34,15 +34,22 @@ namespace FPCSharpUnity.unity.Extensions {
       this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
     ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeftM(err => err.simplify));
 
+    /// <param name="uri"></param>
+    /// <param name="acceptedResponseCodes"></param>
+    /// <param name="readable">
+    /// false - less RAM usage<br/>
+    /// true - allows you to read pixel data on the CPU
+    /// </param>
+    /// <returns></returns>
     [PublicAPI]
-    public static Future<Either<WebRequestError, Texture2D>> downloadTextureToRam(
-      this Uri uri, AcceptedResponseCodes acceptedResponseCodes
+    public static ICancellableFuture<Either<WebRequestError, Texture2D>> downloadTextureToRam(
+      this Uri uri, AcceptedResponseCodes acceptedResponseCodes, bool readable = false
     ) {
-      var downloadHandlerTexture = new DownloadHandlerTexture(); 
+      var downloadHandlerTexture = new DownloadHandlerTexture(readable: readable); 
       var req = new UnityWebRequest(
         uri, UnityWebRequest.kHttpVerbGET, downloadHandler: downloadHandlerTexture, uploadHandler: null
       );
-      return req.toFuture(acceptedResponseCodes, _ => downloadHandlerTexture.texture);
+      return req.toFutureCancellable(acceptedResponseCodes, _ => downloadHandlerTexture.texture);
     }
   }
 }

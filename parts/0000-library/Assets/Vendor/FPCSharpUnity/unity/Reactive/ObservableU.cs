@@ -89,13 +89,20 @@ namespace FPCSharpUnity.unity.Reactive {
 
     #endregion
 
+    /// <summary>
+    /// Observable that waits for <see cref="delay"/> and then emits the <see cref="DateTime.Now"/> every
+    /// <see cref="interval"/>.
+    /// </summary>
     public static IRxObservable<DateTime> interval(Duration interval, Duration delay) =>
       ObservableU.interval(interval, Some.a(delay));
 
+    /// <summary>
+    /// Observable that waits for <see cref="delay"/> if it is set and then emits the <see cref="DateTime.Now"/> every
+    /// <see cref="interval"/>.
+    /// </summary>
     public static IRxObservable<DateTime> interval(
       Duration interval, Option<Duration> delay=default
     ) {
-      Option.ensureValue(ref delay);
       return new Observable<DateTime>((observer, target) => {
         var cr = ASync.StartCoroutine(intervalEnum(observer, interval, delay));
         return new Subscription(cr.stop);
@@ -110,6 +117,10 @@ namespace FPCSharpUnity.unity.Reactive {
       // ReSharper disable once IteratorNeverReturns
     }
 
+    /// <summary>
+    /// Enumerator that waits for <see cref="delay"/> if it is set, then pushes <see cref="DateTime.Now"/> to
+    /// <see cref="pushEvent"/> every <see cref="interval"/>.
+    /// </summary>
     static IEnumerator intervalEnum(
       Action<DateTime> pushEvent, Duration interval, Option<Duration> delay
     ) {

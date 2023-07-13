@@ -363,7 +363,7 @@ namespace FPCSharpUnity.unity.Tween.path {
           seg = i;
         }
       }
-      return seg.some();
+      return Some.a(seg);
     }
     
     public Vector2 GetClosetPointOnLine(int aStart, int aEnd, Vector3 aPoint, bool aClamp, List<Vector3> points) {

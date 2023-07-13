@@ -9,6 +9,7 @@ using FPCSharpUnity.core.log;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -220,7 +221,10 @@ namespace FPCSharpUnity.unity.Pools {
         }
       }
       catch (Exception e) {
-        log.error("Could not release object to the pool. You probably unloaded the scene.", e);
+        // We don't want to spam the log with errors when the game has already been stopped.
+        if (!ApplicationUtils.isQuitting) {
+          log.error("Could not release object to the pool. You probably unloaded the scene.", e);
+        }
       }
       finally {
         maybeProfiledScope?.end();

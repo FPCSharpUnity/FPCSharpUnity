@@ -2,6 +2,7 @@
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 
 namespace FPCSharpUnity.unity.Configuration {
   public abstract class ConfigFetchError {
@@ -42,6 +43,6 @@ namespace FPCSharpUnity.unity.Configuration {
 
   public class ConfigWrongContentType : ConfigHeaderCheckFailed {
     public ConfigWrongContentType(ConfigFetcher.UrlWithContext url, string expected, string actual)
-    : base(url, "Content-Type", expected, actual.some()) {}
+    : base(url, "Content-Type", expected, Some.a(actual)) {}
   }
 }

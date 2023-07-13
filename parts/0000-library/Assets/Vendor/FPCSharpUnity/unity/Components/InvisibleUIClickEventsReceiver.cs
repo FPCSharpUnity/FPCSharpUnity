@@ -21,7 +21,7 @@ namespace FPCSharpUnity.unity.Components {
     [Obsolete] protected override void OnFillVBO(List<UIVertex> vbo) {}
     
     /// <inheritdoc cref="UserClickableBehaviourUtils.showInInspector"/>
-    [OnInspectorGUI] void fixRayCastersGui() => UserClickableBehaviourUtils.showInInspector(gameObject);
+    [OnInspectorGUI] void fixRayCastersGui() => UserClickableBehaviourUtils.showInInspector(this);
 
 
 #if !UNITY_5_1 && !UNITY_5_0
@@ -32,7 +32,8 @@ namespace FPCSharpUnity.unity.Components {
     public bool onObjectValidateIsThreadSafe => false;
     
     public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) {
-      if (!this.validateIfThisWillBeClickable(out var errorMsg, transform)) yield return new ErrorMsg(errorMsg);
+      if (!this.validateIfThisWillBeClickable(raycastTarget: raycastTarget, out var errorMsg)) 
+        yield return new ErrorMsg(errorMsg);
     }
   }
 }

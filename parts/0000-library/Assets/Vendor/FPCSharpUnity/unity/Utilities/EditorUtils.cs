@@ -79,10 +79,10 @@ namespace FPCSharpUnity.unity.Utilities {
 
     [PublicAPI]
     public static void userInfo(
-      string title, string body, LogLevel level = LogLevel.INFO, object context = null
+      string title, string body, LogLevel level = LogLevel.INFO, object context = null, ILog log = null
     ) {
-      var log = Log.@default;
-      if (log.willLog(level)) log.log(
+      log ??= Log.@default;
+      log.mLog(
         level,
         LogEntry.simple(
           $"########## {title} ##########\n\n" +

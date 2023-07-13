@@ -27,6 +27,7 @@ using UnityEngine;
 using UnityEngine.Scripting;
 using static FPCSharpUnity.core.typeclasses.Str;
 using static FPCSharpUnity.unity.Data.KeyModifier;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -75,21 +76,31 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       );
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
+    
+    /// <summary>
+    /// <see cref="ConditionalAttribute"/> does not exclude the method from the build, it just removes the calls to it.
+    /// So we can't use it on the same method as <see cref="RuntimeInitializeOnLoadMethodAttribute"/> because it will
+    /// be called regardless.
+    /// </summary>
+    [RuntimeInitializeOnLoadMethod]
+    static void init() => registerLogMessages();
 
     /// <summary>
     /// Registers a handler to Unity that captures the log messages and stores them in
     /// <see cref="backgroundLogEntries"/>. 
     /// </summary>
-    [RuntimeInitializeOnLoadMethod]
+    [Conditional(DEFINE_ENABLE_DCONSOLE)]
     static void registerLogMessages() {
       if (!Application.isEditor) {
+        // Calculate limit only once. Also Debug.isDebugBuild can't be called from other threads.
+        var limit =
+          Log.d.isDebug() || Debug.isDebugBuild
+            ? MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS
+            : MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS;
+        
         // In editor we have the editor console, so this is not really needed.
         Application.logMessageReceivedThreaded += (message, stacktrace, type) => {
           var entry = new LogEntry(DateTime.Now, message, type);
-          var limit =
-            Log.d.isDebug() || Debug.isDebugBuild
-              ? MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_DEBUG_BUILDS
-              : MAX_BACKGROUND_LOG_ENTRY_COUNT_IN_NON_DEBUG_BUILDS;
           
           lock (backgroundLogEntries) {
             while (backgroundLogEntries.Count > limit) backgroundLogEntries.RemoveFront();
@@ -344,7 +355,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         }
       };
 
-      currentViewRx.value = new ViewInstance(view, layout, logEntryPool, tracker).some();
+      currentViewRx.value = Some.a(new ViewInstance(view, layout, logEntryPool, tracker));
 
       BoundButtonList setupGroups(bool clearCommandsFilterText) {
         var groupButtons = commands.dictionary.OrderBySafe(_ => _.Key).Select(commandGroup => {

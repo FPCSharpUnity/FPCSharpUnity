@@ -24,7 +24,7 @@ namespace FPCSharpUnity.unity.Filesystem {
     
     public static Option<Try<byte[]>> read(PathStr path) =>
       File.Exists(path)
-        ? F.doTry(() => File.ReadAllBytes(path)).some()
+        ? Some.a(F.doTry(() => File.ReadAllBytes(path)))
         : F.none<Try<byte[]>>();
     
     public static Try<Unit> store(PathStr path, byte[] data) => 

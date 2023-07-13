@@ -166,26 +166,38 @@ namespace FPCSharpUnity.unity.TextMeshPro.Binding {
     /// WARNING: this method does not respect the hierarchy of rendering. For example: the link can be at the bottom
     /// of the render tree but this method will detect the pointer hovering on the link. 
     ///
-    /// If <see cref="getPointerPosition"/> returns None for that frame, the detection is not performed.
+    /// If <see cref="getPointerPositionForHover"/> returns None for that frame, the detection is not performed.
     /// </summary>
     public static IRxObservable<Option<TMP_LinkInfo>> onHoverOnLink(
-      this TMP_Text text, Func<Option<Vector3>> getPointerPosition, Camera camera = null
+      this TMP_Text text, Func<Option<Vector3>> getPointerPositionForHover, Camera camera = null
+    ) => 
+      ASync.onLateUpdate.map(_ => 
+        getPointerPositionForHover().valueOut(out var pointerPosition) 
+        ? findHoveredLink(text, pointerPosition, camera)
+        : None._ 
+      );
+
+    /// <summary>
+    /// Return whether user is hovering with a pointer over a TextMeshPro link. Returns Some when
+    /// you are hovering on it and None if you are not hovering on any link in the given <see cref="text"/>.
+    ///
+    /// WARNING: this method does not respect the hierarchy of rendering. For example: the link can be at the bottom
+    /// of the render tree but this method will detect the pointer hovering on the link. 
+    /// </summary>
+    public static Option<TMP_LinkInfo> findHoveredLink(
+      this TMP_Text text, Vector3 cursorScreenPoint, Camera camera = null
     ) {
       // Try to resolve the camera from canvas if it's not provided. If that resolves to null, it is also supported by
       // FindIntersectingLink.
       if (camera == null) camera = text.canvas.worldCamera;
 
-      return ASync.onLateUpdate.map(_ => {
-        if (!text.isActiveAndEnabled) return None._;
-        var maybePosition = getPointerPosition();
-        if (!maybePosition.valueOut(out var pointerPosition)) return None._;
+      if (!text.isActiveAndEnabled) return None._;
         
-        // Can be optimized: calculate the RectTransform bounding box and abort immediately if the pointer is outside of
-        // that bounding box. This fails if your text overflows the bounding box, thus this behaviour should be
-        // toggleable via method parameters.
-        var linkIndex = TMP_TextUtilities.FindIntersectingLink(text, pointerPosition, camera);
-        return linkIndex != -1 ? Some.a(text.textInfo.linkInfo[linkIndex]) : None._;
-      });
+      // Can be optimized: calculate the RectTransform bounding box and abort immediately if the pointer is outside of
+      // that bounding box. This fails if your text overflows the bounding box, thus this behaviour should be
+      // toggleable via method parameters.
+      var linkIndex = TMP_TextUtilities.FindIntersectingLink(text, cursorScreenPoint, camera);
+      return linkIndex != -1 ? Some.a(text.textInfo.linkInfo[linkIndex]) : None._;
     }
 
     public static void setDropdownOptions(this TMP_Dropdown dropdown, IEnumerable<TMP_Dropdown.OptionData> options) {

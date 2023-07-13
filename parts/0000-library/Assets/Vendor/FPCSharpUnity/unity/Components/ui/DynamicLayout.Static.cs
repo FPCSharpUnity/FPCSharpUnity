@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using ExhaustiveMatching;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
@@ -11,7 +9,6 @@ using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using JetBrains.Annotations;
-using Smooth.Collections;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.ui {
@@ -144,19 +141,21 @@ namespace FPCSharpUnity.unity.Components.ui {
     /// Combined union type which has inner datas for all `<see cref="CommonDynamicElementType"/>` types.
     /// </typeparam>
     /// <typeparam name="Data">Extra type to prevent closures.</typeparam>
-    public static void updateLayoutWithCommonInnerType<CommonDynamicElementType, CommonInnerData, Data>(
+    public static void updateLayoutWithCommonInnerType<CommonDynamicElementType, CommonInnerData, Data, Key>(
       this DynamicLayout.IModifyElementsList<CommonDynamicElementType> layout,
       IReadOnlyList<CommonInnerData> newItems, Data data, 
-      Func<CommonInnerData, Data, CommonDynamicElementType> toLayoutElement
+      Func<CommonInnerData, Data, CommonDynamicElementType> toLayoutElement,
+      Func<CommonInnerData, Key> getKey
     )
       where CommonDynamicElementType 
-      : DynamicLayout.ElementWithInnerData<CommonInnerData>, 
+      : DynamicLayout.ElementWithInnerDataSettable<CommonInnerData>, 
         IEquatable<CommonDynamicElementType>, 
         DynamicLayout.IElement
       where CommonInnerData : IEquatable<CommonInnerData> 
+      where Key : IEquatable<Key> 
     {
       using var previousItemsSet = 
-        DictionaryPool<CommonInnerData, Pool<List<CommonDynamicElementType>>.Disposable>.instance.BorrowDisposable();
+        DictionaryPool<Key, Pool<List<CommonDynamicElementType>>.Disposable>.instance.BorrowDisposable();
 
       foreach (var item in layout.items) {
         addVisualToSet(item.data, item);
@@ -177,20 +176,27 @@ namespace FPCSharpUnity.unity.Components.ui {
       disposeRemainingElements();
       layout.updateLayout();
 
-      void addVisualToSet(CommonInnerData key, CommonDynamicElementType value) {
+      void addVisualToSet(CommonInnerData innerData, CommonDynamicElementType value) {
+        var key = getKey(innerData);
         var list = previousItemsSet.value.getOrUpdate(
           key, static () => ListPool<CommonDynamicElementType>.instance.BorrowDisposable()
         );
         list.value.Add(value);
       }
       
-      Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData key) {
+      Option<CommonDynamicElementType> removeVisualFromSetIfExists(CommonInnerData innerData) {
+        var key = getKey(innerData);
         var list = previousItemsSet.value.get(key).getOr_RETURN_NONE();
         var value = list.value.last().getOr_RETURN_NONE();
         list.value.RemoveLast();
         if (list.value.isEmpty()) {
           previousItemsSet.value.Remove(key);
           list.Dispose();
+        }
+
+        if (!innerData.Equals(value.data)) {
+          value.dataSetter = innerData;
+          value.updateStateIfVisible();
         }
         return Some.a(value);
       }
@@ -209,76 +215,120 @@ namespace FPCSharpUnity.unity.Components.ui {
   public partial class DynamicLayout {
     public static class Init {
       const float EPS = 1e-9f;
-
+      
       /// <summary>
       /// Calculates all positions for <see cref="iElementDatas"/> and invokes a callback
       /// <see cref="forEachElementAction"/> on each of them.
       /// <para/>
-      /// Returns `None` if the iteration was stopped early, as it's impossible to calculate the result then.
+      /// Returns `Left` if the iteration was stopped early, as it's impossible to calculate the result then.
       /// </summary>
-      public static Option<ForEachElementResult> forEachElementStoppable<TElementData, Data>(
-        float spacing, IReadOnlyList<TElementData> iElementDatas, 
+      public static Either<TStoppedEarly, ForEachElementResult> forEachElementStoppable<
+        TElementData, TStoppedEarly, Data
+      >(
+        float scrAxisSpacing, int itemsCount, Func<int, Data, TElementData> getElement, 
         bool renderLatestItemsFirst, Padding padding, bool isHorizontal, 
         RectTransform containersRectTransform, Rect visibleRect, Data dataA, 
-        ForEachElementActionStoppable<TElementData, Data> forEachElementAction
-      ) where TElementData : IElement {
+        ForEachElementActionStoppable<TElementData, TStoppedEarly, Data> forEachElementAction,
+        float secAxisSpacing, Func<TElementData, SizeProvider> extractSizeProvider
+      ) {
         var containerRect = containersRectTransform.rect;
-        var containerHeight = containerRect.height;
-        var containerWidth = containerRect.width;
 
         // Depending on orientation it's top or left
-        float paddingPercentageStart;
+        float secAxisPaddingStart;
         // Depending on orientation it's bottom or right
-        float paddingPercentageEnd;
+        float secAxisPaddingEnd;
+        
+        float secAxisMaxSizeMinusPadding;
+        float secAxisMaxSize;
+        float scrAxisCurrentOffset;
         if (isHorizontal) {
-          paddingPercentageStart = padding.top / containerHeight;
-          paddingPercentageEnd = padding.bottom / containerHeight;
+          secAxisPaddingStart = padding.top;
+          secAxisPaddingEnd = padding.bottom;
+          secAxisMaxSize = containerRect.height;
+          secAxisMaxSizeMinusPadding = containerRect.height - padding.vertical;
+          scrAxisCurrentOffset = padding.left;
         }
         else {
-          paddingPercentageStart = padding.left / containerWidth;
-          paddingPercentageEnd = padding.right / containerWidth;
+          secAxisPaddingStart = padding.left;
+          secAxisPaddingEnd = padding.right;
+          secAxisMaxSize = containerRect.width;
+          secAxisMaxSizeMinusPadding = containerRect.width - padding.horizontal;
+          scrAxisCurrentOffset = padding.top;
         }
-
-        var secondaryAxisRemapMultiplier = 1f - paddingPercentageStart - paddingPercentageEnd;
         
-        var totalOffsetUntilThisRow = isHorizontal ? padding.left : padding.top;
-        var currentRowSizeInScrollableAxis = 0f;
-        var currentSizeInSecondaryAxisPerc = paddingPercentageStart;
+        var scrAxisCurrentRowSize = 0f;
+        var secAxisCurrentOffset = secAxisPaddingStart;
 
         var direction = renderLatestItemsFirst ? -1 : 1;
-        var iterationResult = ForEachElementActionResult.ContinueIterating;
+        var iterationResult = Option<TStoppedEarly>.None;
 
-        bool shouldContinueIterating() => iterationResult switch {
-          ForEachElementActionResult.StopIterating => false,
-          ForEachElementActionResult.ContinueIterating => true,
-          _ => throw ExhaustiveMatch.Failed(iterationResult)
-        };
+        bool shouldContinueIterating() => iterationResult.isNone;
 
         for (
-          var idx = renderLatestItemsFirst ? iElementDatas.Count - 1 : 0;
-          shouldContinueIterating() && renderLatestItemsFirst ? idx >= 0 : idx < iElementDatas.Count;
+          var idx = renderLatestItemsFirst ? itemsCount - 1 : 0;
+          shouldContinueIterating() && (renderLatestItemsFirst ? idx >= 0 : idx < itemsCount);
           idx += direction
         ) {
-          var data = iElementDatas[idx];
-          var itemSizeInSecondaryAxisPerc = data.sizeInSecondaryAxis.value * secondaryAxisRemapMultiplier;
-          float itemLeftPerc;
-          var rowSizeInScrollableAxis = data.sizeInScrollableAxis(isHorizontal: isHorizontal);
-          if (currentSizeInSecondaryAxisPerc + itemSizeInSecondaryAxisPerc + paddingPercentageEnd > 1f + EPS) {
-            itemLeftPerc = paddingPercentageStart;
-            currentSizeInSecondaryAxisPerc = paddingPercentageStart + itemSizeInSecondaryAxisPerc;
-            totalOffsetUntilThisRow += currentRowSizeInScrollableAxis + spacing;
-            currentRowSizeInScrollableAxis = rowSizeInScrollableAxis;
+          var data = getElement(idx, dataA);
+          var sizeProvider = extractSizeProvider(data);
+          var secAxisItemSize = 
+            sizeProvider.itemSizeInSecondaryAxis.calculate(secAxisMaxSizeMinusPadding, isHorizontal);
+
+          float secAxisOffsetBeforeThisItem;
+          var scrAxisItemSize = sizeProvider.sizeInScrollableAxis.calculate(isHorizontal: isHorizontal);
+          bool gotMovedToNextRow;
+          
+          {if (
+            sizeProvider.spacingAfterItemSizeInSecondaryAxis
+              .foldM(
+                () => secAxisSpacing > 0 ? Some.a(secAxisSpacing) : None._,
+                itemSpacing => Some.a(
+                  secAxisSpacing + itemSpacing.calculate(secAxisMaxSizeMinusPadding, isHorizontal)
+                )
+              )
+              .valueOut(out var secAxisItemSpaceAfter)
+          ) {
+            var secAxisItemSizePlusSpacing = secAxisItemSize + secAxisItemSpaceAfter;
+            if (fitsInCurrentRow(secAxisItemSizePlusSpacing)) {
+              updateForFittingInCurrentRow(secAxisItemSizePlusSpacing);
+            }          
+            else if (fitsInCurrentRow(secAxisItemSize)) {
+              updateForFittingInCurrentRow(secAxisItemSize);
+            }
+            else {
+              updateForNotFittingInCurrentRow(secAxisItemSizePlusSpacing);
+            }             
+          } else {
+            if (fitsInCurrentRow(secAxisItemSize)) {
+              updateForFittingInCurrentRow(secAxisItemSize);
+            }
+            else {
+              updateForNotFittingInCurrentRow(secAxisItemSize);
+            }            
+          }}
+
+          bool fitsInCurrentRow(float secAxisItemSize_) =>
+            secAxisCurrentOffset + secAxisItemSize_ + secAxisPaddingEnd <= secAxisMaxSize + EPS;
+
+          void updateForNotFittingInCurrentRow(float secAxisItemSize_) {
+            secAxisOffsetBeforeThisItem = secAxisPaddingStart;
+            secAxisCurrentOffset = secAxisPaddingStart + secAxisItemSize_;
+            scrAxisCurrentOffset += scrAxisCurrentRowSize + scrAxisSpacing;
+            scrAxisCurrentRowSize = scrAxisItemSize;
+            gotMovedToNextRow = true;
           }
-          else {
-            itemLeftPerc = currentSizeInSecondaryAxisPerc;
-            currentSizeInSecondaryAxisPerc += itemSizeInSecondaryAxisPerc;
-            currentRowSizeInScrollableAxis = Mathf.Max(currentRowSizeInScrollableAxis, rowSizeInScrollableAxis);
+
+          void updateForFittingInCurrentRow(float secAxisItemSize_) {
+            secAxisOffsetBeforeThisItem = secAxisCurrentOffset;
+            secAxisCurrentOffset += secAxisItemSize_;
+            scrAxisCurrentRowSize = Mathf.Max(scrAxisCurrentRowSize, scrAxisItemSize);
+            gotMovedToNextRow = false;
           }
 
           Rect cellRect;
           if (isHorizontal) {
-            var yPos = itemLeftPerc * containerHeight;
-            var itemHeight = containerHeight * itemSizeInSecondaryAxisPerc;
+            var yPos = secAxisOffsetBeforeThisItem;
+            var itemHeight = secAxisItemSize;
             
             // NOTE: y axis goes up, but we want to place the items from top to bottom
             // Y = 0                  ------------------------------
@@ -293,59 +343,64 @@ namespace FPCSharpUnity.unity.Components.ui {
             
             // cellRect pivot point (x,y) is at bottom left of the item
             cellRect = new Rect(
-              x: totalOffsetUntilThisRow,
+              x: scrAxisCurrentOffset,
               y: -yPos - itemHeight,
-              width: rowSizeInScrollableAxis,
+              width: scrAxisItemSize,
               height: itemHeight
             );
           }
           else {
-            var x = itemLeftPerc * containerWidth;
+            var x = secAxisOffsetBeforeThisItem;
             cellRect = new Rect(
               x: x,
-              y: -totalOffsetUntilThisRow - rowSizeInScrollableAxis,
-              width: containerWidth * itemSizeInSecondaryAxisPerc,
-              height: rowSizeInScrollableAxis
+              y: -scrAxisCurrentOffset - scrAxisItemSize,
+              width: secAxisItemSize,
+              height: scrAxisItemSize
             );            
           }
              
           var placementVisible = visibleRect.Overlaps(cellRect, true);
 
-          iterationResult = forEachElementAction(data, placementVisible, cellRect, dataA);
+          iterationResult = forEachElementAction(data, placementVisible, cellRect, dataA, gotMovedToNextRow);
         }
 
-        if (shouldContinueIterating()) {
-          totalOffsetUntilThisRow += isHorizontal ? padding.right : padding.bottom;
-          var containerSizeInScrollableAxis = totalOffsetUntilThisRow + currentRowSizeInScrollableAxis;
-          return Some.a(new ForEachElementResult(containerSizeInScrollableAxis: containerSizeInScrollableAxis));
-        }
-        else {
-          return None._;
-        }
+        return iterationResult.foldM(
+          () => {
+            scrAxisCurrentOffset += isHorizontal ? padding.right : padding.bottom;
+            var containerSizeInScrollableAxis = scrAxisCurrentOffset + scrAxisCurrentRowSize;
+            var result = new ForEachElementResult(containerSizeInScrollableAxis: containerSizeInScrollableAxis);
+            return result;
+          },
+          Either<TStoppedEarly, ForEachElementResult>.Left
+        );
       }
 
       /// <inheritdoc cref="forEachElementStoppable{TElementData,Data}"/>
       public static ForEachElementResult forEachElement<TElementData, Data>(
-        float spacing, IReadOnlyList<TElementData> iElementDatas,
+        float scrAxisSpacing, IReadOnlyList<TElementData> iElementDatas,
         bool renderLatestItemsFirst, Padding padding, bool isHorizontal,
         RectTransform containersRectTransform, Rect visibleRect, Data dataA,
-        ForEachElementAction<TElementData, Data> forEachElementAction
-      ) where TElementData : IElement =>
+        ForEachElementAction<TElementData, Data> forEachElementAction,
+        float secAxisSpacing
+      ) where TElementData : IHasSizeProvider =>
         forEachElementStoppable(
-          spacing: spacing, iElementDatas, renderLatestItemsFirst: renderLatestItemsFirst, padding,
+          scrAxisSpacing: scrAxisSpacing, itemsCount: iElementDatas.Count, 
+          getElement: static (i, t) => t.iElementDatas[i],
+          renderLatestItemsFirst: renderLatestItemsFirst, padding,
           isHorizontal: isHorizontal, containersRectTransform: containersRectTransform, visibleRect: visibleRect,
-          dataA: (forEachElementAction, dataA),
-          forEachElementAction: static (elementData, visible, rect, tuple) => {
+          dataA: (forEachElementAction, dataA, iElementDatas),
+          forEachElementAction: static (elementData, visible, rect, tuple, _) => {
             tuple.forEachElementAction(elementData, visible, rect, tuple.dataA);
-            return ForEachElementActionResult.ContinueIterating;
-          }
-        ).getOrThrow("this should be impossible");
+            return Option<Unit>.None;
+          },
+          secAxisSpacing: secAxisSpacing, extractSizeProvider: static e => e.sizeProvider
+        ).rightValue.getOrThrow("this should be impossible");
 
       /// <summary>
       /// Calculates visible part of <see cref="container"/> using <see cref="maskRect"/> as viewport.
       /// </summary>
       public static Rect calculateVisibleRectStatic(RectTransform container, RectTransform maskRect) => 
-        maskRect.rect.convertCoordinateSystem(((Transform) maskRect).some(), container);
+        maskRect.rect.convertCoordinateSystem(Some.a(((Transform) maskRect)), container);
       
     
     
@@ -358,13 +413,19 @@ namespace FPCSharpUnity.unity.Components.ui {
       ) where CommonDataType : IElement {
         if (expandElements == ExpandElementsRectSizeInSecondaryAxis.Expand) {
           if (isHorizontal) {
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical,
-              (containerSize.height - padding.vertical) * instance.sizeInSecondaryAxis.value
+            rt.SetSizeWithCurrentAnchors(
+              RectTransform.Axis.Vertical,
+              instance.sizeProvider.itemSizeInSecondaryAxis.calculate(
+                containerSize.height - padding.vertical, isHorizontal: true
+              )
             );
           } 
           else {
-            rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal,
-              (containerSize.width - padding.horizontal) * instance.sizeInSecondaryAxis.value
+            rt.SetSizeWithCurrentAnchors(
+              RectTransform.Axis.Horizontal,
+              instance.sizeProvider.itemSizeInSecondaryAxis.calculate(
+                containerSize.width - padding.horizontal, isHorizontal: false
+              )
             );         
           }
         }

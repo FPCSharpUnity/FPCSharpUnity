@@ -151,7 +151,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       registerNumeric(
         name, Ref.a(
           () => aOpt.value.getOrElse(showOnNone),
-          v => aOpt.value = v.some()
+          v => aOpt.value = Some.a(v)
         ), plusMinus, step, quickSetValues, canShow: canShow
       );
     }

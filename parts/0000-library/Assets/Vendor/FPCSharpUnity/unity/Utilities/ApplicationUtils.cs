@@ -1,16 +1,28 @@
 using FPCSharpUnity.unity.Logger;
-using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.log;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.core.Utilities {
-  [PublicAPI] public static class ApplicationUtils {
-    [LazyProperty] static ILog log => Log.d.withScope(nameof(ApplicationUtils));
+  [PublicAPI, HasLogger] public static partial class ApplicationUtils {
 
     /// <inheritdoc cref="quit(byte)"/>
     public static void quit() => quit(0);
+    
+    /// <summary> Whether the application is quitting. </summary>
+    public static bool isQuitting => _isQuitting && Application.isPlaying;
+    static bool _isQuitting;
+    
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+    static void afterAssembliesLoaded() {
+      Application.quitting += () => _isQuitting = true;
+#if UNITY_EDITOR
+      UnityEditor.EditorApplication.playModeStateChanged += state => {
+        if (state == UnityEditor.PlayModeStateChange.EnteredEditMode) _isQuitting = false;
+      };
+#endif
+    }
     
     /// <summary>
     /// As <see cref="Application.Quit(int)"/> but works in Unity Editor as well.

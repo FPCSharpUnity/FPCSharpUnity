@@ -16,7 +16,7 @@ namespace FPCSharpUnity.unity.caching {
     public Option<Try<A>> read() => blob.mapM(F.scs);
 
     public Try<Unit> store(A data) {
-      blob = data.some();
+      blob = Some.a(data);
       return F.scs(F.unit);
     }
 

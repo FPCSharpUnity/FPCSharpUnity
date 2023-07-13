@@ -48,7 +48,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
         discardPreviousRequest();
         foreach (var bindingLoader in opt) {
           var (_request, assetFtr) = bindingLoader.loadASync();
-          request.value = _request.some();
+          request.value = Some.a(_request);
           return assetFtr.toRxVal().map(csOpt => csOpt.toRight(new IsLoading(true)));
         }
 

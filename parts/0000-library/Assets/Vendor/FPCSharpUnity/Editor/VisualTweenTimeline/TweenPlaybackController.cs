@@ -82,7 +82,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         manager.recreate();
         Undo.RegisterCompleteObjectUndo(data, "Animating targets");
         manager.timeline.resetAllElementsToStart();
-        savedTargetDataOpt = data.some();
+        savedTargetDataOpt = Some.a(data);
         visualizationMode.value = true;
       }
     }
@@ -143,7 +143,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
             beforeCursorDataIsSaved = true;
             Undo.RegisterCompleteObjectUndo(data, "targets saved");
             manager.timeline.resetAllElementsToStart();
-            savedTargetDataOpt = data.some();
+            savedTargetDataOpt = Some.a(data);
             
             // TODO: implement this properly later
             // AnimationMode.StartAnimationMode();

@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.dispose;
@@ -21,6 +22,37 @@ namespace FPCSharpUnity.unity.Components.ui;
 
 public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   const string EDITOR_TEST = "Editor Test";
+  
+  [
+    ShowInInspector, DisplayAsString(overflow: false), HideInEditorMode, FoldoutGroup(EDITOR_TEST)
+  ] string _editor_previewLayoutItems = "";
+
+  partial void _editor_layoutUpdated<CommonDataType>(IReadOnlyList<CommonDataType> list) where CommonDataType : IElement {
+    var width = isHorizontal ? maskRect.rect.height - _padding.vertical : maskRect.rect.width - _padding.horizontal;
+    _editor_previewLayoutItems = 
+      $"Viewport size in secondary axis: {width:0.#}px\n\n"
+      + list
+      .Select(_ => {
+          var nm = _.GetType().Name;
+          return 
+            $"{nm} ["
+             + $"{(isHorizontal ? "h:" : "w:")}{secondaryAxis()} "
+             + $"{(isHorizontal ? "w:" : "h:")}{_.sizeProvider.sizeInScrollableAxis.calculate(isHorizontal):0.#}px"
+             + $"]"
+             + $"{(nm != "Spacer" ? (_.isVisible ? " ON" : " OFF") : "")}";
+          
+          string secondaryAxis() {
+            var size = _.sizeProvider.itemSizeInSecondaryAxis.calculate(width, isHorizontal);
+            var space = _.sizeProvider.spacingAfterItemSizeInSecondaryAxis
+              .mapM(s => s.calculate(width, isHorizontal));
+            return space.foldM(
+              () => $"{size:0.#}px",
+              s => $"{size:0.#}(+{s:0.#})px"
+            );
+          }
+        }
+      ).mkString("\n");
+  }
   
   static readonly Vector3[] editorCacheForArrayOfFour = new Vector3[4];
   public void OnDrawGizmosSelected() {
@@ -85,7 +117,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     var rect = _maskRect.rect.size;
     _editorTestEntries = _editorTestEntries.Concat(
       _container.children()
-        .Where(tr => (tr.gameObject.hideFlags & HideFlags.DontSave) != HideFlags.DontSave)
+        .Where(tr => (tr.gameObject.hideFlags & HideFlags_.dontSaveOnly) != HideFlags_.dontSaveOnly)
         .Take(number)
         .Select(tr => {
             var rt = (RectTransform)tr;
@@ -107,7 +139,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
     }
 
     foreach (Transform tr in _container) {
-      if ((tr.gameObject.hideFlags & HideFlags.DontSave) == HideFlags.DontSave) {
+      if ((tr.gameObject.hideFlags & HideFlags_.dontSaveOnly) == HideFlags_.dontSaveOnly) {
         DestroyImmediate(tr.gameObject);
       }
     }
@@ -144,7 +176,7 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       ).toImmutableArrayC();
 
       var result = Init.forEachElement(
-        spacing: _spacingInScrollableAxis,
+        scrAxisSpacing: _spacingInScrollableAxis,
         iElementDatas: entries,
         renderLatestItemsFirst: false, padding: _padding, isHorizontal: isHorizontal,
         containersRectTransform: _container,
@@ -168,7 +200,8 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
               break;
             }
           }
-        }
+        },
+        secAxisSpacing: _spacingInSecondaryAxis
       );
 
       Init.onRectSizeChange(
@@ -213,15 +246,15 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
       public DynamicLayoutElement(
         EditorTestEntry data) : base(
         data, sizeProvider: data._customSizeInScrollableAxis.valueOut(out var size) 
-          ? new SizeProvider.Static(sizeInScrollableAxis: size, sizeInSecondaryAxis: data.sizeInSecondaryAxis)
-          : new SizeProvider.FromTemplateStatic(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
+          ? new SizeProvider(sizeInScrollableAxis: size, itemSizeInSecondaryAxis: data.sizeInSecondaryAxis)
+          : SizeProvider.fromTemplate(data._item, sizeInSecondaryAxis: data.sizeInSecondaryAxis), 
         maybeViewProvider: new ViewProvider.InstantiateAndDestroyEditor<RectTransform>(data._item), log
       ) {}
 
       protected override void becameVisible(RectTransform view, RectTransform rt, RectTransform parent) {
         base.becameVisible(view, rt, parent);
         view.name += " [Will not save]";
-        view.gameObject.hideFlags = HideFlags.DontSave;
+        view.gameObject.hideFlags = HideFlags_.dontSaveOnly;
         data.maybeVisibleEntry = Some.a(this);
       }
 

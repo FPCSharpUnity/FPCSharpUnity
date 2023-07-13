@@ -41,6 +41,47 @@
             Special enum used only here. Add more values when you need them.
             </summary>
         </member>
+        <member name="T:IncrementalCompiler.CodeGeneration.FieldOrProp.ConstructorMode">
+            <summary>
+            Describes how the field or property should act as a constructor argument.
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.ConstructorMode.WithoutInitializer">
+            <summary>
+            The field is not initialized.
+            <code><![CDATA[ public readonly int foo; ]]></code>
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.ConstructorMode.WithInitializerExcluded">
+            <summary>
+            The field is initialized with a default value and should be excluded from constructor arguments.
+            <code><![CDATA[ public readonly int foo = 3; ]]></code>
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.ConstructorMode.WithInitializerIncluded">
+            <summary>
+            The field is initialized with a default value but should be included in constructor arguments.
+            <code><![CDATA[ [RecordForceInclude] public readonly int foo = 3; ]]></code>
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.constructorMode">
+            <inheritdoc cref="T:IncrementalCompiler.CodeGeneration.FieldOrProp.ConstructorMode"/>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.defaultValueForConstructorParam">
+            <summary>
+            Whether to set parameter in constructor to default value defined in this string.
+            </summary>
+        </member>
+        <member name="F:IncrementalCompiler.CodeGeneration.FieldOrProp.addImplicitToConstructorParam">
+            <summary>
+            Whether yo add [Implicit] attribute to constructor parameter.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.CodeGeneration.getMembersOfRecord(Microsoft.CodeAnalysis.ITypeSymbol)">
+            <summary>
+            Collects all members that should go into a record.
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet">
             <param name="list">
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
@@ -59,7 +100,7 @@
         <member name="M:IncrementalCompiler.CodeGeneration.TypeParameterListMagnet.op_Implicit(Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax)~IncrementalCompiler.CodeGeneration.TypeParameterListMagnet">
             <summary>For backwards compatibility.</summary>
         </member>
-        <member name="T:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs">
+        <member name="T:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs">
             <summary>
             Information about the type that contains record fields.
             </summary>
@@ -72,7 +113,7 @@
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
             </param>
         </member>
-        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,IncrementalCompiler.CodeGeneration.TypeParameterListMagnet,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},System.Boolean)">
+        <member name="M:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.#ctor(System.String,System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.Boolean,System.Boolean,System.Boolean,System.Boolean,IncrementalCompiler.CodeGeneration.TypeParameterListMagnet,Microsoft.CodeAnalysis.SyntaxList{Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax},System.Boolean)">
             <summary>
             Information about the type that contains record fields.
             </summary>
@@ -85,27 +126,27 @@
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
             </param>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.identifier">
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.identifier">
             <summary>Identifier without generic types, for example <![CDATA[`Foo`]]></summary>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.fullName">
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.fullName">
             <summary>FQDN Identifier without generic types, for example <![CDATA[`foo.bar.baz.Foo`]]></summary>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.isGeneric">
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.isGeneric">
             <summary>
             true if the type or any of the parent types (if this is a nested type) are generic.
             </summary>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList">
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.maybeTypeParameterList">
             <summary>
             array of type parameters, for example ["A", "B"] would produce <![CDATA[<A, B>]]>
             </summary>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.filteredTypeParameterList">
-            <summary>As <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList"/> but returns null if the list has 0 elements.</summary>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.filteredTypeParameterList">
+            <summary>As <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.maybeTypeParameterList"/> but returns null if the list has 0 elements.</summary>
         </member>
-        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.typeParameterListStr">
-            <summary>Rendered <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedCaseClassArgs.maybeTypeParameterList"/>.</summary>
+        <member name="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.typeParameterListStr">
+            <summary>Rendered <see cref="P:IncrementalCompiler.CodeGeneration.GeneratedRecordArgs.maybeTypeParameterList"/>.</summary>
         </member>
         <member name="T:IncrementalCompiler.RegisterGeneratorsBase">
             <summary>
@@ -138,6 +179,26 @@
         </member>
         <member name="M:IncrementalCompiler.ProcessBaseAttributeArgs.addMemberTo(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)">
             <inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberTo(System.String,Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,System.String)"/>
+        </member>
+        <member name="T:IncrementalCompiler.AfterCodeGenerationArgs">
+            <summary>
+            Args for <see cref="M:IncrementalCompiler.IRegisterActions.addCallbackAfterCodeGeneration(System.Action{IncrementalCompiler.AfterCodeGenerationArgs})"/> callback.
+            </summary>
+            <param name="generatedFolder">Path to a folder where compiler stores generated files.</param>
+            <param name="baseDirectory">Path to a solution directory.</param>
+        </member>
+        <member name="M:IncrementalCompiler.AfterCodeGenerationArgs.#ctor(System.String,System.String)">
+            <summary>
+            Args for <see cref="M:IncrementalCompiler.IRegisterActions.addCallbackAfterCodeGeneration(System.Action{IncrementalCompiler.AfterCodeGenerationArgs})"/> callback.
+            </summary>
+            <param name="generatedFolder">Path to a folder where compiler stores generated files.</param>
+            <param name="baseDirectory">Path to a solution directory.</param>
+        </member>
+        <member name="P:IncrementalCompiler.AfterCodeGenerationArgs.generatedFolder">
+            <summary>Path to a folder where compiler stores generated files.</summary>
+        </member>
+        <member name="P:IncrementalCompiler.AfterCodeGenerationArgs.baseDirectory">
+            <summary>Path to a solution directory.</summary>
         </member>
         <member name="T:IncrementalCompiler.Stage">
             <summary>
@@ -191,10 +252,31 @@
             between runs.
             </summary>
         </member>
+        <member name="M:IncrementalCompiler.Extensions.getConstantVal``1(Microsoft.CodeAnalysis.Operations.IArgumentOperation)">
+            <summary>
+            Gets compile time constant value of a method invocation argument.
+            Falls back to an argument default value if it is not provided.
+            <para/>
+            This method is suitable for non-nullable reference types and for primitives.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.getConstantValEnum``1(Microsoft.CodeAnalysis.Operations.IArgumentOperation)">
+            <summary>
+            Same as <see cref="M:IncrementalCompiler.Extensions.getConstantVal``1(Microsoft.CodeAnalysis.Operations.IArgumentOperation)"/>, but for enums.
+            </summary>
+        </member>
+        <member name="M:IncrementalCompiler.Extensions.getConstantValOpt``1(Microsoft.CodeAnalysis.Operations.IArgumentOperation)">
+            <summary>
+            Same as <see cref="M:IncrementalCompiler.Extensions.getConstantVal``1(Microsoft.CodeAnalysis.Operations.IArgumentOperation)"/>, but for nullable reference types.
+            </summary>
+        </member>
         <member name="T:IncrementalCompiler.GeneratorCtx">
             <summary>
-            This class is instantiated per C# file.
+            This class is instantiated per C# file while running code generation step (generating .partial.cs files).
             </summary>
+        </member>
+        <member name="F:IncrementalCompiler.GeneratorCtx.precomputedInfo">
+            <inheritdoc cref="T:CodeGenerator.PrecomputedInfo"/>
         </member>
         <member name="M:IncrementalCompiler.GeneratorCtx.addCompilationError(System.String,Microsoft.CodeAnalysis.Location)">
             <summary>
@@ -284,6 +366,23 @@
             <param name="generatorLabel"><inheritdoc cref="M:IncrementalCompiler.GeneratorCtx.addMemberToExtensionClass(System.String,System.String)"/></param>
             <param name="memberSyntax">Code that contains one or more class members.</param>
         </member>
+        <member name="M:IncrementalCompiler.IRegisterActions.addCallbackAfterCodeGeneration(System.Action{IncrementalCompiler.AfterCodeGenerationArgs})">
+            <summary>
+            Add a callback that will be executed after the code generation and macros are done.
+            <para/>
+            Most likely you will want to collect data from other callbacks and generate new files based on that data.
+            <para/>
+            Callbacks from other `add` methods in this interface <see cref="T:IncrementalCompiler.IRegisterActions"/> get called on different
+            threads in parallel. Because of that you could use `ConcurrentBag` to collect data and then sort it before using
+            it.
+            </summary>
+        </member>
+        <member name="T:IncrementalCompiler.MacroCtx">
+            <summary>
+            This class is instantiated per C# file while running code modifications
+            (modifying existing files to .transformed.cs).
+            </summary>
+        </member>
         <member name="F:IncrementalCompiler.MacroProcessor.ReplacementsScriptObject.replacementLamdas">
             <summary> Key -> argument name </summary>
         </member>
@@ -337,6 +436,21 @@
         <member name="M:IncrementalCompiler.MacroReplacer.visitExpressionBody(Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax)">
             <summary>
             A wrapper to <see cref="M:IncrementalCompiler.MacroReplacer.visitExpressionSyntax(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax)"/>, but for <see cref="T:Microsoft.CodeAnalysis.CSharp.Syntax.ArrowExpressionClauseSyntax"/>.
+            </summary>
+        </member>
+        <member name="T:CodeGenerator.MethodLinkerBase">
+            <summary>
+            This class is used as a base for classes generated by <see cref="!:GenerateMacroLinkingOfAssembly"/>
+            </summary>
+        </member>
+        <member name="T:CodeGenerator.PrecomputedInfo">
+            <summary>
+            Precomputed information about the current compilation that can be useful in your macro code.
+            </summary>
+        </member>
+        <member name="F:CodeGenerator.PrecomputedInfo.typeTree">
+            <summary>
+            Type tree of the assembly that is <b>currently</b> being compiled.
             </summary>
         </member>
         <member name="T:CodeGenerator.ScribanWrapper">

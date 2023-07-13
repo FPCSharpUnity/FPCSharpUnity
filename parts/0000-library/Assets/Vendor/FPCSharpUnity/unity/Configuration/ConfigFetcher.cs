@@ -13,6 +13,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.serialization;
 using UnityEngine;
+using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 
 //obsolete WWW
 #pragma warning disable 618
@@ -111,7 +112,7 @@ namespace FPCSharpUnity.unity.Configuration {
       future.map(wwwE => {
         var headersOpt = wwwE.foldM(
           err => F.opt(err as ConfigWWWError).mapM(_ => _.wwwWithHeaders),
-          _ => _.some()
+          _ => Some.a(_)
         );
         return headersOpt.foldM(
           wwwE,

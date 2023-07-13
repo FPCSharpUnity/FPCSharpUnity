@@ -261,12 +261,14 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
                 var distance = (Mathf.Abs(selectedNode.channel - nodeSnappedTo.node.channel) + 2) * CHANNEL_HEIGHT;
                 snapIndicatorOpt =
                   selectedIsHigher
-                    ? getIndicatorRect(selectedNode, isSnappedToRootStart(nodeSnappedTo), distance).some()
-                    : getIndicatorRect(nodeSnappedTo.node,
-                      nodeSnappedTo.snapType == SnapType.EndWithStart
-                      || nodeSnappedTo.snapType == SnapType.StartWithStart,
-                      distance
-                    ).some();
+                    ? Some.a(getIndicatorRect(selectedNode, isSnappedToRootStart(nodeSnappedTo), distance))
+                    : Some.a(
+                      getIndicatorRect(nodeSnappedTo.node,
+                        nodeSnappedTo.snapType == SnapType.EndWithStart
+                        || nodeSnappedTo.snapType == SnapType.StartWithStart,
+                        distance
+                      )
+                    );
   
                 Rect getIndicatorRect(TimelineNode nawd, bool isSnappedToStart, float dist) =>
                   new Rect(secondsToGUI(

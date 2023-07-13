@@ -172,8 +172,8 @@ namespace FPCSharpUnity.unity.Functional {
   public class EitherTestVoidFold {
     static void test(Either<int, string> e, char expected) {
       var result = Option<char>.None;
-      void leftFolder(int i) => result = i.ToString()[0].some();
-      void rightFolder(string s) => result = s[0].some();
+      void leftFolder(int i) => result = Some.a(i.ToString()[0]);
+      void rightFolder(string s) => result = Some.a(s[0]);
       e.voidFoldM(leftFolder, rightFolder);
       result.shouldBeSome(expected);
     }

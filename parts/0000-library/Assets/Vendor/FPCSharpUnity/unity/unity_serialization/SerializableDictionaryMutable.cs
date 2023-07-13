@@ -56,7 +56,7 @@ namespace FPCSharpUnity.unity.unity_serialization {
           }
         }
         // Key not found, create a new element.
-        _keyValuePairs.addOne(new Pair(key, value));
+        _keyValuePairs = _keyValuePairs.addOne(new Pair(key, value));
       }
     }
   }

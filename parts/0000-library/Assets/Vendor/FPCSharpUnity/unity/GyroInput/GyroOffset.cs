@@ -29,7 +29,7 @@ namespace FPCSharpUnity.unity.GyroInput {
         if (value) {
           // Make sure gyro is enabled. It is needed for us to work.
           gyro.enabled = true;
-          if (updateCoroutine.isNone) updateCoroutine = ASync.EveryFrame(update).some();
+          if (updateCoroutine.isNone) updateCoroutine = Some.a(ASync.EveryFrame(update));
         }
         else {
           offset = Vector2.zero;

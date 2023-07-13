@@ -9,4 +9,6 @@ namespace FPCSharpUnity.unity.Data;
   public override string ToString() { return $"{nameof(Size)}[{width}x{height}]"; }
   
   public Vector2Int vector2Int => new(width, height);
+
+  public float aspect => height == 0 ? 1 : (float) width / height;
 }

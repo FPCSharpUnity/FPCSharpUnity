@@ -15,8 +15,8 @@ namespace FPCSharpUnity.unity.Components.EditorTools {
     Option<Vector3> lastPlacedPosition = None._;
 
     static Option<LockedAxis2> next(Option<LockedAxis2> current) =>
-        current.isNone ? LockedAxis2.A.some()
-      : current.exists(LockedAxis2.A) ? LockedAxis2.B.some()
+        current.isNone ? Some.a(LockedAxis2.A)
+      : current.exists(LockedAxis2.A) ? Some.a(LockedAxis2.B)
       : None._;
 
     public override void OnInspectorGUI() {
@@ -73,7 +73,7 @@ namespace FPCSharpUnity.unity.Components.EditorTools {
                 case 0:
                   Undo.RegisterCreatedObjectUndo(obj, $"Object ({obj.name}) created");
                   obj.transform.parent = _target.parent.getOrNull();
-                  lastPlacedPosition = obj.transform.position.some();
+                  lastPlacedPosition = Some.a(obj.transform.position);
                   objectToMoveAroundOpt = None._;
                   break;
                 case 1:
