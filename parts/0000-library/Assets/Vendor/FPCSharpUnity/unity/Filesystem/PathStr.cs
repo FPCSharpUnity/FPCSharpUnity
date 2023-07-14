@@ -84,12 +84,14 @@ namespace FPCSharpUnity.unity.Filesystem {
     
     public PathStr toAbsolute => a(Path.GetFullPath(path));
     
+#if UNITY_EDITOR
     /// <summary>Relative directory to the `Unity Assets` folder (E.g. `relative_path/unity/Assets/`).</summary>
     public static readonly PathStr unityAssetsDirectory = a(Application.dataPath);
     
     /// <summary>Relative directory to the `Unity Project` folder (E.g. `relative_path/unity/`).</summary>
     public static readonly PathStr unityProjectDirectory = a(Application.dataPath) / "..";
-
+#endif
+    
     public static readonly ISerializedRW<PathStr> serializedRW =
       SerializedRW.str.mapNoFail(s => new PathStr(s), path => path.path);
 

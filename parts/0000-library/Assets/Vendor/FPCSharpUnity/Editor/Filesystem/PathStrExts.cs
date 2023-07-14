@@ -17,7 +17,7 @@ namespace FPCSharpUnity.unity.Filesystem {
     /// <para/>
     /// If a directory does not exist it will get created.
     /// </summary>
-    public static void ensureDirectory(this PathStr path) {
+    public static void ensureDirectoryExists(this PathStr path) {
       if (!Directory.Exists(path)) {
         Directory.CreateDirectory(path);
       }
