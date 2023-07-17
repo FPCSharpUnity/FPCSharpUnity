@@ -774,7 +774,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     ValueDropdownList<string> allIds { get {
       var list = new ValueDropdownList<string>();
       if (_target) {
-        foreach (var kvp in _target.variables.a) { list.Add(kvp.Key); }
+        foreach (var kvp in _target.variables.dict.value) { list.Add(kvp.Key); }
       }
       return list;
     } }

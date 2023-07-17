@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.macros;
+using FPCSharpUnity.core.reactive;
+using GenerationAttributes;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -12,36 +12,25 @@ namespace FPCSharpUnity.unity.unity_serialization {
   /// Mutable version of <see cref="SerializableDictionary{K,V}"/>
   /// </summary>
   [Serializable]
-  public class SerializableDictionaryMutable<K, V> : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver {
-    // Exposed in editor for debugging purposes.
-    [ShowInInspector, ReadOnly] Option<Dictionary<K, V>> cachedValue;
-  
-    Dictionary<K, V> dictMutable {
-      get {
-        if (cachedValue.isNone) updateCachedValue();
-        return cachedValue.get;
-      }
-    }
-
+  public partial class SerializableDictionaryMutable<K, V> : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver {
+    [LazyProperty, PublicReadOnlyAccessor] IRxRef<ImmutableDictionary<K, V>> _dict => RxRef.a(_keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value));
+    
     public SerializableDictionaryMutable(Pair[] keyValuePairs) : base(keyValuePairs) { }
-
-    public IReadOnlyDictionary<K, V> a => dictMutable;
 
     public void OnBeforeSerialize() { }
     public void OnAfterDeserialize() => updateCachedValue();
 
-    void updateCachedValue() {
-      cachedValue = Some.a(_keyValuePairs.ToDictionary(_ => _.key, _ => _.value));
-    }
+    [Button, OnInspectorGUI] void updateCachedValue() => valueChanged();
 
-    protected override void valueChanged() => cachedValue = None._;
+    public override void valueChanged() => 
+      _dict.value = _keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value);
 
     /// <summary>
     /// Sets the <see cref="value"/> for specified <see cref="key"/>. If application is not playing, then it also sets the
     /// <see cref="value"/> in the serialized data.
     /// </summary>
     public void set(K key, V value) {
-      dictMutable[key] = value;
+      _dict.value = _dict.value.SetItem(key, value);
     
       // Do not set the serialized field values if playing, because that operation may be expensive and we do not want to
       // do that at runtime anyway.
@@ -62,7 +51,8 @@ namespace FPCSharpUnity.unity.unity_serialization {
     }
     
     public void remove(K key) {
-      dictMutable.Remove(key);
+      Debug.LogError($"Removing1 {key}   {_dict.value.Count}/{_keyValuePairs.Length}");
+      _dict.value = _dict.value.Remove(key);
       
       // Do not set the serialized field values if playing, because that operation may be expensive and we do not want to
       // do that at runtime anyway.
@@ -70,17 +60,16 @@ namespace FPCSharpUnity.unity.unity_serialization {
         setValueOnSerializedField();
       }
       
+      Debug.LogError($"Removing2 {key}   {_dict.value.Count}/{_keyValuePairs.Length}");
+      
       void setValueOnSerializedField() {
         for (var i = 0; i < _keyValuePairs.Length; i++) {
           if (_keyValuePairs[i].key.Equals(key)) {
-            _keyValuePairs.removeAt(i);
-            return;
+            _keyValuePairs = _keyValuePairs.removeAt(i);
+            break;
           }
         }
       }
     }
-    
-    public static implicit operator ImmutableDictionary<K, V>(SerializableDictionaryMutable<K, V> a) => 
-      a.a.ToImmutableDictionary();
   }
 }

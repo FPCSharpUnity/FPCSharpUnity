@@ -25,7 +25,7 @@ namespace FPCSharpUnity.unity.unity_serialization {
       cachedValue = Some.a(_keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value));
     }
 
-    protected override void valueChanged() => cachedValue = None._;
+    public override void valueChanged() => cachedValue = None._;
     
     public static implicit operator ImmutableDictionary<K, V>(SerializableDictionary<K, V> a) => a.a;
   }
