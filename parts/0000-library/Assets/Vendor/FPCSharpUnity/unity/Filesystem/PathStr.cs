@@ -86,10 +86,10 @@ namespace FPCSharpUnity.unity.Filesystem {
     
 #if UNITY_EDITOR
     /// <summary>Relative directory to the `Unity Assets` folder (E.g. `relative_path/unity/Assets/`).</summary>
-    public static readonly PathStr unityAssetsDirectory = a(Application.dataPath);
+    public static readonly PathStr editor__unityAssetsDirectory = a(Application.dataPath);
     
     /// <summary>Relative directory to the `Unity Project` folder (E.g. `relative_path/unity/`).</summary>
-    public static readonly PathStr unityProjectDirectory = a(Application.dataPath) / "..";
+    public static readonly PathStr editor__unityProjectDirectory = a(Application.dataPath) / "..";
 #endif
     
     public static readonly ISerializedRW<PathStr> serializedRW =
