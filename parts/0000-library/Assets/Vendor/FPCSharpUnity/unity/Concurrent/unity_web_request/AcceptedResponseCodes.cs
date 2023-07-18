@@ -1,27 +1,33 @@
-﻿using System.Collections.Immutable;
+﻿using System.Linq;
+using FPCSharpUnity.core.collection;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
+using UnityEngine.Networking;
 
-namespace FPCSharpUnity.unity.Concurrent.unity_web_request {
-  /// <summary>
-  /// https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-  /// </summary>
-  [Record(GenerateToString = false)]
-  public partial struct AcceptedResponseCodes {
-    [PublicAPI] public readonly ImmutableArray<long> codes;
+namespace FPCSharpUnity.unity.Concurrent.unity_web_request; 
 
-    [PublicAPI]
-    public bool contains(long responseCode) =>
-      codes.Contains(responseCode);
+/// <summary>
+/// A list of accepted response codes for a <see cref="UnityWebRequest"/>.
+/// <para/>
+/// See also: https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+/// </summary>
+[Record(GenerateToString = false), PublicAPI]
+public sealed partial class AcceptedResponseCodes {
+  public readonly ImmutableArrayC<long> codes;
 
-    public override string ToString() =>
-      $"{nameof(AcceptedResponseCodes)}[{codes.mkStringEnum(", ", "", "")}]";
+  public bool contains(long responseCode) =>
+    codes._unsafeArray.Contains(responseCode);
+
+  public static AcceptedResponseCodes operator +(AcceptedResponseCodes c1, AcceptedResponseCodes c2) =>
+    new(c1.codes._unsafeArray.concat(c2.codes._unsafeArray).toImmutableArrayCMove());
+
+  public override string ToString() =>
+    $"{nameof(AcceptedResponseCodes)}[{codes.mkStringEnum(", ", "", "")}]";
     
-    [PublicAPI]
-    public static readonly AcceptedResponseCodes
-      _20X = new AcceptedResponseCodes(ImmutableArray.Create(
-        200L, 201, 202, 203, 204, 205, 206, 207, 208, 226
-      ));
-  }
+  public static readonly AcceptedResponseCodes
+    _20X = new AcceptedResponseCodes(ImmutableArrayC.create(
+      200L, 201, 202, 203, 204, 205, 206, 207, 208, 226
+    )),
+    _404 = new AcceptedResponseCodes(ImmutableArrayC.create(404L));
 }
