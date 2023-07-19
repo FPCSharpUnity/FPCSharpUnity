@@ -104,6 +104,9 @@ namespace FPCSharpUnity.unity.Data {
     public readonly Option<string> dataProcessingError;
   }
 
+  /// <summary>
+  /// <see cref="ASync.toFutureCancellable{A}"/> threw an exception while running the success handler.
+  /// </summary>
   [Record(ConstructorFlags.Constructor)] public readonly partial struct SuccessHandlerFailed {
     /// <summary>Url of the request.</summary>
     public readonly Url url;
