@@ -182,7 +182,7 @@ namespace FPCSharpUnity.unity.Data {
 
     class BadRW : ISerializedRW<int> {
       public Either<string, DeserializeInfo<int>> deserialize(IStreamReaderWithStream reader) =>
-        SerializedRW.integer.deserialize(reader).rightValue.filter(i => i.value % 2 != 0).toRight("failed");
+        SerializedRW.integer.deserialize(reader).rightValue.filterM(i => i.value % 2 != 0).toRight("failed");
 
       public void serialize(IStreamWriterWithStream writer, int a) =>
         SerializedRW.integer.serialize(writer, a);

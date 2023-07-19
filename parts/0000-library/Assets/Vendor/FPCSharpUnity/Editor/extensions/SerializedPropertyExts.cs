@@ -16,7 +16,7 @@ namespace FPCSharpUnity.unity.Editor.extensions {
 
       public Option<object> get(object source) {
         if (fieldNameOrArrayIndex.leftValueOut(out var fieldName)) {
-          return source.GetType().GetFieldInHierarchy(fieldName).map(field => field.GetValue(source));
+          return source.GetType().GetFieldInHierarchy(fieldName).mapM(field => field.GetValue(source));
         }
         else {
           var arrayIndex = fieldNameOrArrayIndex.__unsafeGetRight;

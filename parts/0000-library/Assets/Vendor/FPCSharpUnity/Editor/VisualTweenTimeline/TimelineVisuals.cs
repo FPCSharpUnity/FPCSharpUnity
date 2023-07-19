@@ -158,13 +158,13 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       List<TimelineNode> selectedNodesList, bool snapping, Option<TimelineNode> rootNode,
       Option<TimelineEditor.NodeSnappedTo> nodeSnappedToOpt
     ) {
-      var duration = funTweenManager.map(_ => _.timeline.duration).toNullable();
+      var duration = funTweenManager.mapM(_ => _.timeline.duration).toNullable();
       applicationPlaying = Application.isPlaying;
       timelineRect = position;
       if (_visualsSettings.timeZoomFactor == 0) {
         // Initialize only if it was not initialized before.
         // We must set timelineRect before calling this.
-        initializeZoomFactor(initialDuration: funTweenManager.map(_ => _.timeline.duration).getOrElse(1f));
+        initializeZoomFactor(initialDuration: funTweenManager.mapM(_ => _.timeline.duration).getOrElse(1f));
       }
       timeRect = new Rect (position.x + _visualsSettings.timelineOffset, position.y, position.width - 15, 20);
       blackBarRect = new Rect (position.x + _visualsSettings.timelineOffset - 1, position.y + 19, position.width, 16);
@@ -543,7 +543,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         GUILayout.BeginVertical();
         GUI.enabled = !visualizationMode.value && GUI.enabled;
 
-        funNodes.find(elem => elem.element.element == null).forEach(_ => GUI.enabled = false);
+        funNodes.find(elem => elem.element.element == null).forEachM(_ => GUI.enabled = false);
 
         if (GUILayout.Button("Add Tween (USE DRAG & DROP INSTEAD !!!)")) {
           onNewSettings(TimelineEditor.SettingsEvents.AddTween);

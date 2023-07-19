@@ -19,7 +19,7 @@ namespace FPCSharpUnity.unity.Data {
     ) where A : Component =>
       Future.successful(
         Try.a(() => SceneManagerBetter.instance.loadSceneAsyncWithAutomaticActivation(scenePath, loadSceneMode))
-          .toEither().mapLeft(err => new ErrorMsg($"Error while loading scene '{scenePath}': {err}"))
+          .toEither().mapLeftM(err => new ErrorMsg($"Error while loading scene '{scenePath}': {err}"))
       ).flatMapT(op => op.future.map(scene =>
         scene.findComponentOnRootGameObjects<A>()
       ));

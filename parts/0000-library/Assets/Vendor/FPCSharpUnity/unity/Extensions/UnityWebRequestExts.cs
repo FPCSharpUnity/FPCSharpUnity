@@ -32,7 +32,7 @@ public static class UnityWebRequestExts {
 
   public static Future<Either<LogEntry, byte[]>> downloadToRamSimpleError(
     this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
-  ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeft(err => err.simplify));
+  ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeftM(err => err.simplify));
 
   /// <param name="uri"></param>
   /// <param name="acceptedResponseCodes"></param>

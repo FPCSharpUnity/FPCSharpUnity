@@ -23,7 +23,7 @@ namespace FPCSharpUnity.unity.Data {
     public Once(Func<In, Out> fn) { this.fn = fn; }
 
     public Out run(In input) {
-      return cache.get(input).fold(
+      return cache.get(input).foldM(
         () => {
           var output = fn(input);
           cache[input] = output;

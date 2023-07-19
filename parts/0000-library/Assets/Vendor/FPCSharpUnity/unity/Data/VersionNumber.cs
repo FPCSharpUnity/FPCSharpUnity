@@ -85,15 +85,15 @@ namespace FPCSharpUnity.unity.Data {
       var parts = s.Split(separator);
       if (parts.Length > 3) return $"{errHeader}: too many parts!";
       if (parts.isEmpty()) return $"{errHeader}: empty!";
-      var majorE = parts[0].parseUInt().mapLeft(e => $"{errHeader} (major): {e}");
-      var minorE = getIdx(parts, 1).mapLeft(e => $"{errHeader} (minor): {e}");
-      var bugfixE = getIdx(parts, 2).mapLeft(e => $"{errHeader} (bugfix): {e}");
-      return majorE.flatMapRight(major => minorE.flatMapRight(minor => bugfixE.mapRight(bugfix =>
+      var majorE = parts[0].parseUInt().mapLeftM(e => $"{errHeader} (major): {e}");
+      var minorE = getIdx(parts, 1).mapLeftM(e => $"{errHeader} (minor): {e}");
+      var bugfixE = getIdx(parts, 2).mapLeftM(e => $"{errHeader} (bugfix): {e}");
+      return majorE.flatMapRightM(major => minorE.flatMapRightM(minor => bugfixE.mapRightM(bugfix =>
         new VersionNumber(major, minor, bugfix, separator)
       )));
     }
 
     static Either<string, uint> getIdx(IReadOnlyList<string> parts, int idx) =>
-      parts.get(idx).fold(0u, _ => _.parseUInt());
+      parts.get(idx).foldM(0u, _ => _.parseUInt());
   }
 }

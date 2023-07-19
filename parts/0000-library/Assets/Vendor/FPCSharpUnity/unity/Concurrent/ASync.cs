@@ -293,7 +293,7 @@ namespace FPCSharpUnity.unity.Concurrent;
 
   public static Future<Either<LogEntry, A>> toFutureSimple<A>(
     this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes, Func<UnityWebRequest, A> onSuccess
-  ) => req.toFuture(acceptedResponseCodes, onSuccess).map(_ => _.mapLeft(err => err.simplify));
+  ) => req.toFuture(acceptedResponseCodes, onSuccess).map(_ => _.mapLeftM(err => err.simplify));
 
   /* Wait until enumerator is completed and then do action */
   public static IEnumerator afterThis(this IEnumerator enumerator, Action action) {

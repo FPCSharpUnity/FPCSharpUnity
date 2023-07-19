@@ -130,7 +130,7 @@ namespace FPCSharpUnity.unity.Components.EditorTools {
     static Option<Vector3> projectToLine(
       Ray ray, Vector3 originPosition, Vector3 shiftedPosition,
       ObjectCloner.LockedAxis lockedAxis, LockedAxis2 secondaryLockedAxis
-    ) => projectToPlane(ray, originPosition, shiftedPosition).map(inPlane => {
+    ) => projectToPlane(ray, originPosition, shiftedPosition).mapM(inPlane => {
       var lineP1 = originPosition;
       var lineP2 =
         lockedAxis == ObjectCloner.LockedAxis.X ? new Vector3(

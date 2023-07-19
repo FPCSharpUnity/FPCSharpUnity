@@ -40,9 +40,9 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       Func<int, int, ImmutableList<string>> onPragmaExists,
       Func<ImmutableList<string>> onNoDirectives
     ) =>
-      getLastDirectiveIndex(lines).fold(
+      getLastDirectiveIndex(lines).foldM(
         onNoDirectives,
-        lastDirectiveIdx => pragmaLineNumber(lines.GetRange(0, lastDirectiveIdx + 1)).fold(
+        lastDirectiveIdx => pragmaLineNumber(lines.GetRange(0, lastDirectiveIdx + 1)).foldM(
           () => onNoPragma(lastDirectiveIdx),
           pragmaLineIdx => onPragmaExists(pragmaLineIdx, lastDirectiveIdx)
         )
@@ -57,7 +57,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       lines.addPragmaAt(lastDirectiveLineIdx + 1).RemoveAt(currentPragmaLineIdx);
 
     public static Option<int> getLastDirectiveIndex(this ImmutableList<string> lines) =>
-      lines.indexWhere(line => !line.StartsWithFast(DIRECTIVES_STR)).flatMap(idx => (idx > 0).opt(idx - 1));
+      lines.indexWhere(line => !line.StartsWithFast(DIRECTIVES_STR)).flatMapM(idx => (idx > 0).opt(idx - 1));
 
     public static Option<int> pragmaLineNumber(this ImmutableList<string> lines) =>
       lines.indexWhere(line => line.StartsWithFast(PRAG_STR));
