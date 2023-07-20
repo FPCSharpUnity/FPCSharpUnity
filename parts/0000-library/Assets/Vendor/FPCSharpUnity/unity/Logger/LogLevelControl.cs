@@ -7,6 +7,7 @@ using FPCSharpUnity.core.serialization;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Dispose;
+using FPCSharpUnity.unity.Threads;
 using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Logger {
@@ -29,7 +30,7 @@ namespace FPCSharpUnity.unity.Logger {
     public static void subscribeToApplyOverridenLevels(ILogRegistry registry, ITracker tracker, Option<ILog> maybeLog) {
       registry.onRegister.subscribe(tracker, args => {
         // Accessing prefvals requires main thread.
-        ASync.OnMainThread(() => {
+        OnMainThread.run(() => {
           {if (
             prefValDict.get(args.key).valueOut(out var prefVal) 
             && prefVal.value.valueOut(out var levelOverride)

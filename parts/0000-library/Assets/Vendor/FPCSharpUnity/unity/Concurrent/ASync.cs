@@ -12,9 +12,11 @@ using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Logger;
+using GenerationAttributes;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -88,9 +90,6 @@ namespace FPCSharpUnity.unity.Concurrent;
     float seconds, MonoBehaviour behaviour = null, TimeScale timeScale = TimeScale.Unity
   ) => WithDelay(seconds, () => { }, behaviour: behaviour, timeScale: timeScale)
     .toFuture().discardValue();
-
-  public static void OnMainThread(Action action, bool runNowIfOnMainThread = true) =>
-    Threads.OnMainThread.run(action, runNowIfOnMainThread);
 
   public static ICoroutine NextFrame(Action action) => NextFrame(behaviour, action);
 

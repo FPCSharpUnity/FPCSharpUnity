@@ -1,6 +1,7 @@
 ﻿#if UNITY_ANDROID
 using System;
 using FPCSharpUnity.unity.Concurrent;
+using FPCSharpUnity.unity.Threads;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -42,7 +43,7 @@ namespace FPCSharpUnity.unity.Android.Bindings.android.app {
 
       [UsedImplicitly] void onClick(AndroidJavaObject dialog, int which) {
         dialog.Call("cancel");
-        ASync.OnMainThread(callback);
+        OnMainThread.run(callback);
       }
     }
 

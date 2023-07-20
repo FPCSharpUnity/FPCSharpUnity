@@ -5,6 +5,7 @@ using FPCSharpUnity.unity.Android.Bindings.java.lang;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.unity.Functional;
+using FPCSharpUnity.unity.Threads;
 using JetBrains.Annotations;
 using UnityEngine;
 
@@ -41,7 +42,7 @@ namespace FPCSharpUnity.unity.Android.Bindings.fp_csharp_unity.unity {
             $"Error in {nameof(FPCSharpUnityAndroidBridge)}.{nameof(countryCodeFromLastKnownLocation)}: {e}"
           );
         }
-        ASync.OnMainThread(() => p.complete(ret));
+        OnMainThread.run(() => p.complete(ret));
       }).start());
     } }
   }

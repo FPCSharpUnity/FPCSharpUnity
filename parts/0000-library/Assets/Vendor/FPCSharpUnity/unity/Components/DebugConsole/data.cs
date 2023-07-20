@@ -1,4 +1,5 @@
 using FPCSharpUnity.core.macros;
+using FPCSharpUnity.unity.Data;
 using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole;
