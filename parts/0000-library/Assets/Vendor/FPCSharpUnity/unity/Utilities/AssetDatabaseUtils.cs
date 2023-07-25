@@ -14,7 +14,6 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -125,9 +124,8 @@ namespace FPCSharpUnity.unity.Utilities {
     public static string copyAssetAndGetPath<T>(T obj, PathStr path) where T: Object {
       var originalPath = AssetDatabase.GetAssetPath(obj);
       var newPath = path.unityPath + "/" + obj.name + Path.GetExtension(originalPath);
-      if (Log.d.isVerbose())
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(copyAssetAndGetPath)}: " +
-          $"copying asset from {originalPath} to {newPath}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(copyAssetAndGetPath)}: " +
+        $"copying asset from {originalPath} to {newPath}");
       if (!AssetDatabase.CopyAsset(originalPath, newPath))
         throw new Exception($"Couldn't copy asset from {originalPath} to {newPath}");
       return newPath;
@@ -149,14 +147,12 @@ namespace FPCSharpUnity.unity.Utilities {
       if (_assetsAreBeingEditedCount == 0)
         AssetDatabase.StartAssetEditing();
       _assetsAreBeingEditedCount++;
-      if (Log.d.isVerbose()) 
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(startAssetEditing)}: count: {_assetsAreBeingEditedCount}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(startAssetEditing)}: count: {_assetsAreBeingEditedCount}");
     }
     
     public static void stopAssetEditing() {
       _assetsAreBeingEditedCount--;
-      if (Log.d.isVerbose()) 
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(stopAssetEditing)}: count: {_assetsAreBeingEditedCount}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(stopAssetEditing)}: count: {_assetsAreBeingEditedCount}");
       if (_assetsAreBeingEditedCount == 0)
         AssetDatabase.StopAssetEditing();
       else if (_assetsAreBeingEditedCount < 0)
@@ -169,6 +165,20 @@ namespace FPCSharpUnity.unity.Utilities {
     public static ActionOnDispose doAssetEditing() {
       startAssetEditing();
       return new ActionOnDispose(stopAssetEditing);
+    }
+    
+    /// <summary>
+    /// Similar to <see cref="doAssetEditing"/> but pauses asset editing. Use this inside of 
+    /// <see cref="doAssetEditing"/> block to temporarily pause asset editing.
+    /// </summary>
+    public static ActionOnDispose pauseAssetEditing() {
+      if (_assetsAreBeingEditedCount > 0) {
+        AssetDatabase.StopAssetEditing();
+        return new ActionOnDispose(() => AssetDatabase.StartAssetEditing());
+      }
+      else {
+        return new ActionOnDispose(() => {});
+      }
     }
 
     /// <summary>
