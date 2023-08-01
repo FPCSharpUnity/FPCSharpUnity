@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExhaustiveMatching;
-using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
-using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Logger;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
@@ -67,9 +65,21 @@ namespace FPCSharpUnity.unity.Components.ui {
     [ShowInInspector, ReadOnly] Rect lastSafeArea = new Rect(0, 0, 0, 0);
     [ShowInInspector, ReadOnly] ScreenOrientation lastScreenOrientation;
     [ShowInInspector, ReadOnly] bool lastNotchOnLeft, lastNotchOnRight;
+    
+    /// <summary>
+    /// If `Some` - layout will be updated on next <see cref="Update"/> call and this flag will be reset.
+    /// </summary>
     Option<ForceRefreshType> maybeForceRefresh;
 
-    public enum ForceRefreshType { Initial, AddedNegativeOffset }
+    public enum ForceRefreshType {
+      /// <summary> Refresh was requested from <see cref="ResizeToSafeAreaOffsets.Awake"/> call. </summary>
+      Initial, 
+      
+      /// <summary>
+      /// Refresh was requested from <see cref="ResizeToSafeAreaOffsets"/>.addToNegativeOffsetToX call.
+      /// </summary>
+      AddedNegativeOffset
+    }
 
 #pragma warning disable 649
     [ShowInInspector] float __editor_leftOffsetTest, __editor_rightOffsetTest, __editor_bottomOffsetTest;
