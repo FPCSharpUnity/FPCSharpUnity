@@ -46,7 +46,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
         ? new SelectedEase(_complex.GetType())
         : new SelectedEase(_simple);
 
-      var valueDisplayString = currentSelection.value.fold(_ => _.ToString(), _ => _.Name);
+      var valueDisplayString = currentSelection.value.foldM(_ => _.ToString(), _ => _.Name);
       
       var res = OdinSelector<SelectedEase>.DrawSelectorDropdown(GUIContent.none, valueDisplayString, rect => {
         var selector = easeSelector;

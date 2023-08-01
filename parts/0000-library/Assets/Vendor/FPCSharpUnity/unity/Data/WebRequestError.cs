@@ -22,7 +22,7 @@ namespace FPCSharpUnity.unity.Data {
     typeof(SuccessHandlerFailed)
   })] public readonly partial struct WebRequestError {
     /// <summary>Turns this into <see cref="LogEntry"/>.</summary>
-    public LogEntry simplify => this.fold(
+    public LogEntry simplify => this.foldM(
       onUnacceptableResponseCode: err => new ErrorMsg(err.ToString()),
       onNonSuccessResult: err => new ErrorMsg(err.ToString()),
       onSuccessHandlerFailed: err => new ErrorMsg(err.ToString()),
@@ -59,7 +59,7 @@ namespace FPCSharpUnity.unity.Data {
       message,
       extras: 
         headers.Select(kv => KV.a($"header:{kv.Key}", kv.Value))
-          .Concat(responseText.map(text => KV.a("response-text", text)).asEnumerable())
+          .Concat(responseText.mapM(text => KV.a("response-text", text)).asEnumerable())
           .toImmutableArrayC()
     );
   }
@@ -104,6 +104,9 @@ namespace FPCSharpUnity.unity.Data {
     public readonly Option<string> dataProcessingError;
   }
 
+  /// <summary>
+  /// <see cref="ASync.toFutureCancellable{A}"/> threw an exception while running the success handler.
+  /// </summary>
   [Record(ConstructorFlags.Constructor)] public readonly partial struct SuccessHandlerFailed {
     /// <summary>Url of the request.</summary>
     public readonly Url url;

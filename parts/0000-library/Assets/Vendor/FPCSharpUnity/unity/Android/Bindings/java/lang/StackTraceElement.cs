@@ -18,8 +18,8 @@ namespace FPCSharpUnity.unity.Android.Bindings.java.lang {
   public static class StackTraceElementExts {
     public static StackTraceElement asAndroid(this BacktraceElem e) => new StackTraceElement(
       e.method.methodAsAndroid(), "_",
-      e.fileInfo.fold((string) null, fi => fi.file),
-      e.fileInfo.fold(-1, fi => fi.lineNo)
+      e.fileInfo.foldM((string) null, fi => fi.file),
+      e.fileInfo.foldM(-1, fi => fi.lineNo)
     );
 
     // The "Java letters" include uppercase and lowercase ASCII Latin

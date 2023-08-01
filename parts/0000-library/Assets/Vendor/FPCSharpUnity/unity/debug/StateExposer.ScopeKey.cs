@@ -17,7 +17,7 @@ public partial class StateExposer {
     public readonly Option<WeakReference<Object>> unityObject;
 
     /// <summary>Is this scope still valid?</summary>
-    public bool isValid => unityObject.fold(true, objWR => objWR.TryGetTarget(out var obj) && obj);
+    public bool isValid => unityObject.foldM(true, objWR => objWR.TryGetTarget(out var obj) && obj);
 
     public static ScopeKey fromString(string name) => new ScopeKey(name, unityObject: None._);
     public static implicit operator ScopeKey(string name) => fromString(name);

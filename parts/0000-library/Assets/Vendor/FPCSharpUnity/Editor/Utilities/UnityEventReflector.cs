@@ -31,7 +31,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       public PersistentCallGroup(object obj) { this.obj = obj; }
 
       public Option<ListPersistentCall> calls =>
-        F.opt((IList) f_Calls.GetValue(obj)).map(l => new ListPersistentCall(l));
+        F.opt((IList) f_Calls.GetValue(obj)).mapM(l => new ListPersistentCall(l));
     }
 
     public struct PersistentCall {

@@ -4,6 +4,7 @@ using System.Linq;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.unity.Threads;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -99,7 +100,7 @@ namespace FPCSharpUnity.unity.Components.errors_in_your_face {
 
       void logMessageHandlerThreaded(string message, string stackTrace, LogType type) {
         if (!handledTypes.Contains(type)) return;
-        ASync.OnMainThread(() => logMessageHandler(message, stackTrace, type));
+        OnMainThread.run(() => logMessageHandler(message, stackTrace, type));
       }
 
       void logMessageHandler(string message, string stackTrace, LogType type) {

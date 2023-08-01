@@ -39,7 +39,7 @@ namespace FPCSharpUnity.unity.Extensions {
     }
 
     static Option<object> getFieldValue(object obj, string fieldName) =>
-      obj.GetType().GetFieldInHierarchy(fieldName).flatMap(fi => F.opt(fi.GetValue(obj)));
+      obj.GetType().GetFieldInHierarchy(fieldName).flatMapM(fi => F.opt(fi.GetValue(obj)));
 
     /// <summary> Parses array idx from property field name ("data[5]" -> 5) </summary>
     static int parseArrayIndex(string propertyFieldName) {

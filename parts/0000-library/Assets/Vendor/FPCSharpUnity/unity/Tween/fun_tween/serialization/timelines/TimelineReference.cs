@@ -3,6 +3,7 @@
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.unity.Components;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.sequences {

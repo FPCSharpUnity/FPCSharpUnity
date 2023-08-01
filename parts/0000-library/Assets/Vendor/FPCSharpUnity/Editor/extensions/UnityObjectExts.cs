@@ -45,8 +45,8 @@ namespace FPCSharpUnity.unity.Editor.extensions {
 
   public static class UnityObjectExts {
     public static EditorObjectInfo<A> debugInfo<A>(this A o) where A : Object {
-      var pathOpt = AssetDatabase.GetAssetPath(o).opt().map(PathStr.a);
-      var assetInfoOpt = pathOpt.map(path => {
+      var pathOpt = AssetDatabase.GetAssetPath(o).opt().mapM(PathStr.a);
+      var assetInfoOpt = pathOpt.mapM(path => {
         var guid = AssetDatabase.AssetPathToGUID(path);
         return new EditorAssetInfo(path, guid);
       });
@@ -56,7 +56,7 @@ namespace FPCSharpUnity.unity.Editor.extensions {
     [UsedImplicitly, MenuItem("Assets/FP C# Unity/Debug/Debug info")]
     public static void editorUtility() {
       var obj = F.opt(Selection.activeObject);
-      obj.voidFold(
+      obj.voidFoldM(
         () => EditorUtils.userInfo("No object selected!", "Please select an object!"),
         o => EditorUtils.userInfo($"Debug info for {o}", o.debugInfo().ToString())
       );

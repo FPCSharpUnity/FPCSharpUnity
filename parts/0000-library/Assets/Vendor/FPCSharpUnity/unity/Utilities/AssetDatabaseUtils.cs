@@ -14,7 +14,6 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using UnityEditor;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -28,18 +27,18 @@ namespace FPCSharpUnity.unity.Utilities {
     
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDToAssetPath(string)"/>.</summary>
     public static Either<string, AssetPath> GUIDToAssetPath(AssetGuid guid) =>
-      Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMap(_ => _.nonEmptyOpt()).map(path => new AssetPath(path))
-        .toRight(guid, static guid => $"Can't turn {guid} to asset path: asset not found");
+      Option.a(AssetDatabase.GUIDToAssetPath(guid)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
+        .toRightM(() => $"Can't turn {guid} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GetAssetPath(Object)"/>.</summary>
     public static Either<string, AssetPath> GetAssetPath(Object obj) =>
-      Option.a(AssetDatabase.GetAssetPath(obj)).flatMap(_ => _.nonEmptyOpt()).map(path => new AssetPath(path))
-        .toRight(obj, static obj => $"Can't turn {obj} to asset path: asset not found");
+      Option.a(AssetDatabase.GetAssetPath(obj)).flatMapM(_ => _.nonEmptyOpt()).mapM(path => new AssetPath(path))
+        .toRightM(() => $"Can't turn {obj} to asset path: asset not found");
     
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
     public static Either<string, AssetGuid> AssetPathToGUID(AssetPath path) =>
-      Option.a(AssetDatabase.AssetPathToGUID(path)).flatMap(_ => _.nonEmptyOpt()).map(guid => new AssetGuid(guid))
-        .toRight(path, static path => $"Can't turn {path} to asset guid: asset not found");
+      Option.a(AssetDatabase.AssetPathToGUID(path)).flatMapM(_ => _.nonEmptyOpt()).mapM(guid => new AssetGuid(guid))
+        .toRightM(() => $"Can't turn {path} to asset guid: asset not found");
 
     /// <summary>Safe version of <see cref="AssetDatabase.GUIDFromAssetPath"/>.</summary>
     public static Either<string, AssetGuid> GUIDFromAssetPath(AssetPath path) =>
@@ -48,7 +47,7 @@ namespace FPCSharpUnity.unity.Utilities {
 
     /// <summary>Safe version of <see cref="AssetDatabase.LoadAssetAtPath{T}"/>.</summary>
     public static Either<string, A> LoadAssetAtPath<A>(AssetPath assetPath) where A : Object => 
-      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRight(assetPath, static assetPath => 
+      Option.a(AssetDatabase.LoadAssetAtPath<A>(assetPath)).toRightM(() => 
         $"Can't load asset of type {typeof(A).FullName} from {assetPath}: asset not found or has a different type"
       );
 
@@ -65,7 +64,7 @@ namespace FPCSharpUnity.unity.Utilities {
 
     /// <summary>Safe version of <see cref="AssetDatabase.LoadMainAssetAtPath(string)"/>.</summary>
     public static Either<string, A> LoadMainAssetAtPath<A>(AssetPath path) where A : Object => 
-      LoadMainAssetAtPath(path).flatMapRight(obj => obj.cast().toE<A>());
+      LoadMainAssetAtPath(path).flatMapRightM(obj => obj.cast().toE<A>());
 
     public static IEnumerable<A> getPrefabsOfType<A>() {
       var prefabGuids = AssetDatabase.FindAssets("t:prefab");
@@ -125,9 +124,8 @@ namespace FPCSharpUnity.unity.Utilities {
     public static string copyAssetAndGetPath<T>(T obj, PathStr path) where T: Object {
       var originalPath = AssetDatabase.GetAssetPath(obj);
       var newPath = path.unityPath + "/" + obj.name + Path.GetExtension(originalPath);
-      if (Log.d.isVerbose())
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(copyAssetAndGetPath)}: " +
-          $"copying asset from {originalPath} to {newPath}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(copyAssetAndGetPath)}: " +
+        $"copying asset from {originalPath} to {newPath}");
       if (!AssetDatabase.CopyAsset(originalPath, newPath))
         throw new Exception($"Couldn't copy asset from {originalPath} to {newPath}");
       return newPath;
@@ -149,14 +147,12 @@ namespace FPCSharpUnity.unity.Utilities {
       if (_assetsAreBeingEditedCount == 0)
         AssetDatabase.StartAssetEditing();
       _assetsAreBeingEditedCount++;
-      if (Log.d.isVerbose()) 
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(startAssetEditing)}: count: {_assetsAreBeingEditedCount}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(startAssetEditing)}: count: {_assetsAreBeingEditedCount}");
     }
     
     public static void stopAssetEditing() {
       _assetsAreBeingEditedCount--;
-      if (Log.d.isVerbose()) 
-        Log.d.verbose($"{nameof(AssetDatabaseUtils)}#{nameof(stopAssetEditing)}: count: {_assetsAreBeingEditedCount}");
+      Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(stopAssetEditing)}: count: {_assetsAreBeingEditedCount}");
       if (_assetsAreBeingEditedCount == 0)
         AssetDatabase.StopAssetEditing();
       else if (_assetsAreBeingEditedCount < 0)
@@ -169,6 +165,20 @@ namespace FPCSharpUnity.unity.Utilities {
     public static ActionOnDispose doAssetEditing() {
       startAssetEditing();
       return new ActionOnDispose(stopAssetEditing);
+    }
+    
+    /// <summary>
+    /// Similar to <see cref="doAssetEditing"/> but pauses asset editing. Use this inside of 
+    /// <see cref="doAssetEditing"/> block to temporarily pause asset editing.
+    /// </summary>
+    public static ActionOnDispose pauseAssetEditing() {
+      if (_assetsAreBeingEditedCount > 0) {
+        AssetDatabase.StopAssetEditing();
+        return new ActionOnDispose(() => AssetDatabase.StartAssetEditing());
+      }
+      else {
+        return new ActionOnDispose(() => {});
+      }
     }
 
     /// <summary>

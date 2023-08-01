@@ -72,7 +72,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// <summary>Will be true if the view is currently instantiated and not minimized.</summary>
     [LazyProperty] public IRxVal<bool> isActiveAndMaximizedRx =>
       currentViewRx.flatMap(static maybeView => 
-        maybeView.map(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
+        maybeView.mapM(static _ => _.view.maximizedRx).getOrElse(RxVal.staticallyCached(false))
       );
     
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(DConsole));
@@ -233,7 +233,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     ) {
       timeContext ??= TimeContextU.DEFAULT;
 
-      var mouseObs = mouseDataOpt.fold(
+      var mouseObs = mouseDataOpt.foldM(
         Observable<DebugSequenceInvocationMethod>.empty, 
         mouseData => 
           new RegionClickObservable(mouseData.width, mouseData.height)
@@ -241,7 +241,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
             .map(_ => DebugSequenceInvocationMethod.Mouse)
       );
 
-      var directionObs = directionDataOpt.fold(
+      var directionObs = directionDataOpt.foldM(
         Observable<DebugSequenceInvocationMethod>.empty,
         directionData => {
           var directions = ObservableU.everyFrame.collect(_ => {
@@ -263,7 +263,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         }
       );
 
-      var keyboardShortcutObs = keyboardShortcutOpt.fold(
+      var keyboardShortcutObs = keyboardShortcutOpt.foldM(
         Observable<DebugSequenceInvocationMethod>.empty,
         kc => ObservableU.everyFrame.filter(_ => kc.getKeyDown).map(_ => DebugSequenceInvocationMethod.Keyboard)
       );
@@ -320,7 +320,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       
       var commandsList = setupList(
         None._, view.commands, clearFilterText: true,
-        () => selectedGroup.fold(ImmutableList<ButtonBinding>.Empty, _ => _.commandButtons)
+        () => selectedGroup.foldM(ImmutableList<ButtonBinding>.Empty, _ => _.commandButtons)
       );
       
       DConsoleCommandAPIImpl apiForClosures = null;
@@ -379,7 +379,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       }
 
       void rerender() {
-        var maybeSelectedGroupName = selectedGroup.map(_ => _.groupButton.text.text);
+        var maybeSelectedGroupName = selectedGroup.mapM(_ => _.groupButton.text.text);
         log.mInfo($"Re-rendering DConsole, currently selected group = {maybeSelectedGroupName}.");
 
         cleanupExistingGroups();

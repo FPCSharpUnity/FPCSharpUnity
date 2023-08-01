@@ -94,7 +94,7 @@ namespace FPCSharpUnity.unity.Editor.AssetTools {
       var matcher = createMatcher();
 
       _replacementPaths = _assetPaths
-        .collect(assetPath => matcher(assetPath).map(replaced => (assetPath, replaced)))
+        .collect(assetPath => matcher(assetPath).mapM(replaced => (assetPath, replaced)))
         .GroupBy(tpl => tpl.assetPath.dirname)
         .ToImmutableDictionary(
           kv => kv.Key,

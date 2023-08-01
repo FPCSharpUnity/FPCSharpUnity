@@ -9,6 +9,7 @@ using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Threads;
 using UnityEngine;
 using Application = UnityEngine.Application;
 
@@ -72,7 +73,7 @@ namespace FPCSharpUnity.unity.Android {
     public static void runOnUI(Action act) => current.runOnUIThread(act);
     public static Future<A> runOnUI<A>(Func<A> f) => Future.async<A>(promise => runOnUI(() => {
       var ret = f();
-      ASync.OnMainThread(() => promise.complete(ret));
+      OnMainThread.run(() => promise.complete(ret));
     }));
 
     public static A runOnUIBlocking<A>(Func<A> f) =>

@@ -1,5 +1,6 @@
 ﻿#if UNITY_ANDROID
 using FPCSharpUnity.unity.Concurrent;
+using FPCSharpUnity.unity.Threads;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Android {
@@ -20,7 +21,7 @@ namespace FPCSharpUnity.unity.Android {
     protected virtual void invokeOnMain(string methodName, object[] args) => base.Invoke(methodName, args);
 
     public override AndroidJavaObject Invoke(string methodName, object[] args) {
-      ASync.OnMainThread(() => invokeOnMain(methodName, args));
+      OnMainThread.run(() => invokeOnMain(methodName, args));
       return null;
     }
   }

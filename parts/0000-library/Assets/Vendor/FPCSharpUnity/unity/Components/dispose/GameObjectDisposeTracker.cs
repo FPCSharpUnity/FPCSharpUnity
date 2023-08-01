@@ -64,9 +64,9 @@ namespace FPCSharpUnity.unity.Components.dispose {
     bool awakeCalled;
 
     readonly LazyVal<DisposableTracker> tracker;
-    public int trackedCount => tracker.value.fold(0, static _ => _.trackedCount);
+    public int trackedCount => tracker.value.foldM(0, static _ => _.trackedCount);
     public IEnumerable<TrackedDisposable> trackedDisposables => 
-      tracker.value.fold(ImmutableArrayC<TrackedDisposable>.empty, _ => _.trackedDisposables);
+      tracker.value.foldM(ImmutableArrayC<TrackedDisposable>.empty, _ => _.trackedDisposables);
 
     public GameObjectDisposeTracker() {
       tracker = Lazy.a(() => {

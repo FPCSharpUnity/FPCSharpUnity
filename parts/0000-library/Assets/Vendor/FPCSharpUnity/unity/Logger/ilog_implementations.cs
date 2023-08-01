@@ -6,6 +6,7 @@ using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.core.utils.registry;
+using FPCSharpUnity.unity.Threads;
 
 namespace FPCSharpUnity.unity.Logger {
   /**
@@ -26,7 +27,7 @@ namespace FPCSharpUnity.unity.Logger {
 
     public bool willLog(LogLevel l) => backing.willLog(l);
     public void logRaw(LogLevel l, LogEntry entry) => defer(() => backing.log(l, entry));
-    static void defer(Action a) => ASync.OnMainThread(a, runNowIfOnMainThread: false);
+    static void defer(Action a) => OnMainThread.run(a, runNowIfOnMainThread: false);
 
     public event ILogMessageLogged messageLogged {
       add { backing.messageLogged += value; }

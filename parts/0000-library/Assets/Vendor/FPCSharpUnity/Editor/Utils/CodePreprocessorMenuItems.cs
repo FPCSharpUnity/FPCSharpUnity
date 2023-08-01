@@ -18,7 +18,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     static void removePragmas() => enablePragmas(true);
 
     static void enablePragmas(bool addPragma) {
-      selectedPath.voidFold(
+      selectedPath.voidFoldM(
         () => EditorUtility.DisplayDialog(
           "Error",
           "Not a valid path.\nYou shouldn't do this in the project window's file tree, use the right panel.",
@@ -26,7 +26,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
         ),
         rootPath => {
           if (askForConfirmation(addPragma, rootPath)) {
-            getFilePaths(rootPath, "*.cs").voidFold(
+            getFilePaths(rootPath, "*.cs").voidFoldM(
               err => EditorUtility.DisplayDialog("Error", err, "OK"),
               paths => {
                 processFiles(paths, addPragma);
@@ -42,7 +42,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     }
 
     static Option<PathStr> selectedPath =>
-      AssetDatabase.GetAssetPath(Selection.activeObject).nonEmptyOpt().map(PathStr.a);
+      AssetDatabase.GetAssetPath(Selection.activeObject).nonEmptyOpt().mapM(PathStr.a);
 
     static void processFiles(IEnumerable<PathStr> paths, bool addPragma) {
       foreach (var path in paths) CodePreprocessor.processFile(path, addPragma);

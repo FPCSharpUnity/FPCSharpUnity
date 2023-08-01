@@ -27,7 +27,7 @@ namespace FPCSharpUnity.unity.Android.Bindings.android.content {
     public Option<string> getDataString() => java.Call<string>("getDataString").opt();
 
     /// https://developer.android.com/reference/android/content/Intent#getExtras()
-    public Option<Bundle> getExtras() => java.cjo("getExtras").opt().map(jo => new Bundle(jo));
+    public Option<Bundle> getExtras() => java.cjo("getExtras").opt().mapM(jo => new Bundle(jo));
   }
 }
 #endif

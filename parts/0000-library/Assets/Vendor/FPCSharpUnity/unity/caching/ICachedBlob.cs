@@ -27,7 +27,7 @@ namespace FPCSharpUnity.unity.caching {
 
     public bool cached => backing.cached;
     public Try<Unit> clear() => backing.clear();
-    public Option<Try<B>> read() => backing.read().map(_ => _.map(bimap.map));
+    public Option<Try<B>> read() => backing.read().mapM(_ => _.map(bimap.map));
     public Try<Unit> store(B data) => backing.store(bimap.comap(data));
   }
 

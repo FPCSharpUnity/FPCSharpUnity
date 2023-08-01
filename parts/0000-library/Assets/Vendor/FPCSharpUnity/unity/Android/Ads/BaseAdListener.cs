@@ -1,5 +1,6 @@
 ﻿using System;
 using FPCSharpUnity.unity.Concurrent;
+using FPCSharpUnity.unity.Threads;
 
 #if UNITY_ANDROID
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace FPCSharpUnity.unity.Android.Ads {
    *
    * We can't do:
    * <code>
-   *   public static void invoke(Action a) { if (a != null) ASync.OnMainThread(a); }
+   *   public static void invoke(Action a) { if (a != null) OnMainThread.run(a); }
    * </code>
    *
    * Because, given following situation:
@@ -46,13 +47,13 @@ namespace FPCSharpUnity.unity.Android.Ads {
    **/
   public static class BaseAdListenerOps {
     public static void invoke(Func<Action> aFn) =>
-      ASync.OnMainThread(() => aFn()?.Invoke());
+      OnMainThread.run(() => aFn()?.Invoke());
 
     public static void invoke<A>(Func<Action<A>> act, A a) =>
-      ASync.OnMainThread(() => act()?.Invoke(a));
+      OnMainThread.run(() => act()?.Invoke(a));
 
     public static void invoke<A, B>(Func<Action<A, B>> act, A a, B b) =>
-      ASync.OnMainThread(() => act()?.Invoke(a, b));
+      OnMainThread.run(() => act()?.Invoke(a, b));
   }
 
 #if UNITY_ANDROID

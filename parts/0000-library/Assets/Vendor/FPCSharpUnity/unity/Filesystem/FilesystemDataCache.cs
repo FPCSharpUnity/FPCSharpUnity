@@ -12,7 +12,7 @@ namespace FPCSharpUnity.unity.Filesystem {
   public class FilesystemDataCache : ICache<byte[]> {
     [PublicAPI]
     public static Option<FilesystemDataCache> forPath(string pathStr) =>
-      pathStr.nonEmptyOpt(trim: true).map(path =>
+      pathStr.nonEmptyOpt(trim: true).mapM(path =>
         new FilesystemDataCache(new PathStr(path))
       );
 

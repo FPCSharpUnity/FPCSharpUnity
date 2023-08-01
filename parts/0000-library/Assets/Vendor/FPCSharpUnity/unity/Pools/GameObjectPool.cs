@@ -137,7 +137,7 @@ namespace FPCSharpUnity.unity.Pools {
       GameObjectPool.Init<T> init, Func<T, GameObject> toGameObject, int initialSize = 0,
       Option<int> maxSize = default, IProfiledScope? maybeProfiledScope = null
     ) {
-      rootOpt = init.parent.map(parent => {
+      rootOpt = init.parent.mapM(parent => {
         var rootParent = new GameObject($"{nameof(GameObjectPool)}: {init.name}").transform;
         rootParent.parent = parent;
         if (init.dontDestroyOnLoad) Object.DontDestroyOnLoad(rootParent.gameObject);
@@ -152,7 +152,7 @@ namespace FPCSharpUnity.unity.Pools {
       maybeMaxSize = maxSize;
       dontDestroyOnLoad = init.dontDestroyOnLoad;
       this.maybeProfiledScope = maybeProfiledScope;
-      var limitedInitialSize = maxSize.fold(initialSize, maxSizeVal => Math.Min(maxSizeVal, initialSize));
+      var limitedInitialSize = maxSize.foldM(initialSize, maxSizeVal => Math.Min(maxSizeVal, initialSize));
       values = limitedInitialSize == 0 ? new Stack<T>() : new Stack<T>(limitedInitialSize);
 
       for (var i = 0; i < limitedInitialSize; i++) {

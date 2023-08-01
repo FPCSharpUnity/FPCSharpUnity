@@ -13,7 +13,7 @@ namespace FPCSharpUnity.unity.Filesystem {
   [
     Serializable, PublicAPI, Record(ConstructorFlags.None, GenerateToString = false)
   ]
-  public partial struct PathStr : IComparable<PathStr>, IStr {
+  public partial struct PathStr : IComparable<PathStr>, IStr, IDebugStr {
     #region Unity Serialized Fields
 
 #pragma warning disable 649
@@ -72,7 +72,8 @@ namespace FPCSharpUnity.unity.Filesystem {
     public PathStr ensureBeginsWith(PathStr p) => path.StartsWithFast(p.path) ? this : p / path;
     public override string ToString() => asString();
     public readonly string asString() => _path;
-    
+    public string asDebugString() => $"{nameof(Path)}({_path})";
+
     /// <summary>Path in UNIX format (with / slashes).</summary>
     public string unixString => ToString().Replace('\\', '/');
 
@@ -82,7 +83,15 @@ namespace FPCSharpUnity.unity.Filesystem {
     public string unityPath => Path.DirectorySeparatorChar == '/' ? path : path.Replace('\\' , '/');
     
     public PathStr toAbsolute => a(Path.GetFullPath(path));
-
+    
+#if UNITY_EDITOR
+    /// <summary>Relative directory to the `Unity Assets` folder (E.g. `relative_path/unity/Assets/`).</summary>
+    public static readonly PathStr editor__unityAssetsDirectory = a(Application.dataPath);
+    
+    /// <summary>Relative directory to the `Unity Project` folder (E.g. `relative_path/unity/`).</summary>
+    public static readonly PathStr editor__unityProjectDirectory = a(Application.dataPath) / "..";
+#endif
+    
     public static readonly ISerializedRW<PathStr> serializedRW =
       SerializedRW.str.mapNoFail(s => new PathStr(s), path => path.path);
 

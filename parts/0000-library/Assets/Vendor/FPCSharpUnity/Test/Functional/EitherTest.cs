@@ -113,17 +113,17 @@ namespace FPCSharpUnity.unity.Functional {
   public class EitherTestFlatMapLeft {
     [Test] public void WhenLeftToLeft() =>
       new Either<int, string>(3)
-      .flatMapLeft(i => new Either<char,string>(i.ToString()[0]))
+      .flatMapLeftM(i => new Either<char,string>(i.ToString()[0]))
       .shouldBeLeft('3');
 
     [Test] public void WhenLeftToRight() =>
       new Either<int, string>(3)
-      .flatMapLeft(i => new Either<char,string>(i.ToString()))
+      .flatMapLeftM(i => new Either<char,string>(i.ToString()))
       .shouldBeRight("3");
 
     [Test] public void WhenRight() =>
       new Either<int, string>("3")
-      .flatMapLeft(i => new Either<char,string>('a'))
+      .flatMapLeftM(i => new Either<char,string>('a'))
       .shouldBeRight("3");
   }
 
@@ -131,42 +131,42 @@ namespace FPCSharpUnity.unity.Functional {
     [Test]
     public void WhenRightToLeft() =>
       new Either<int, string>("3")
-      .flatMapRight(s => new Either<int, char>(s.parseInt().rightOrThrow))
+      .flatMapRightM(s => new Either<int, char>(s.parseInt().rightOrThrow))
       .shouldBeLeft(3);
 
     [Test]
     public void WhenRightToRight() =>
       new Either<int, string>("3")
-      .flatMapRight(s => new Either<int, char>(s[0]))
+      .flatMapRightM(s => new Either<int, char>(s[0]))
       .shouldBeRight('3');
 
     [Test]
     public void WhenLeft() =>
       new Either<int, string>(3)
-      .flatMapRight(s => new Either<int, char>('a'))
+      .flatMapRightM(s => new Either<int, char>('a'))
       .shouldBeLeft(3);
   }
 
   public class EitherTestMapLeft {
     static char mapper(int i) => i.ToString()[0];
 
-    [Test] public void WhenLeft() => new Either<int, string>(3).mapLeft(mapper).shouldBeLeft('3');
-    [Test] public void WhenRight() => new Either<int, string>("foo").mapLeft(mapper).shouldBeRight("foo");
+    [Test] public void WhenLeft() => new Either<int, string>(3).mapLeftM(mapper).shouldBeLeft('3');
+    [Test] public void WhenRight() => new Either<int, string>("foo").mapLeftM(mapper).shouldBeRight("foo");
   }
 
   public class EitherTestMapRight {
     static char mapper(string s) => s[0];
 
-    [Test] public void WhenLeft() => new Either<int, string>(3).mapRight(mapper).shouldBeLeft(3);
-    [Test] public void WhenRight() => new Either<int, string>("foo").mapRight(mapper).shouldBeRight("f");
+    [Test] public void WhenLeft() => new Either<int, string>(3).mapRightM(mapper).shouldBeLeft(3);
+    [Test] public void WhenRight() => new Either<int, string>("foo").mapRightM(mapper).shouldBeRight("f");
   }
 
   public class EitherTestFold {
     static char folder(int i) => i.ToString()[0];
     static char folder(string s) => s[0];
 
-    [Test] public void WhenLeft() => Either<int, string>.Left(3).fold(folder, folder).shouldEqual('3');
-    [Test] public void WhenRight() => Either<int, string>.Right("foo").fold(folder, folder).shouldEqual('f');
+    [Test] public void WhenLeft() => Either<int, string>.Left(3).foldM(folder, folder).shouldEqual('3');
+    [Test] public void WhenRight() => Either<int, string>.Right("foo").foldM(folder, folder).shouldEqual('f');
   }
 
   public class EitherTestVoidFold {
@@ -174,7 +174,7 @@ namespace FPCSharpUnity.unity.Functional {
       var result = Option<char>.None;
       void leftFolder(int i) => result = Some.a(i.ToString()[0]);
       void rightFolder(string s) => result = Some.a(s[0]);
-      e.voidFold(leftFolder, rightFolder);
+      e.voidFoldM(leftFolder, rightFolder);
       result.shouldBeSome(expected);
     }
 

@@ -73,7 +73,7 @@ namespace FPCSharpUnity.unity.Concurrent {
     }
 
     public int priority {
-      get => operations.headOption().fold(0, _ => _.priority);
+      get => operations.headOption().foldM(0, _ => _.priority);
       set {
         // ReSharper disable once ForCanBeConvertedToForeach
         for (var idx = 0; idx < operations.Count; idx++) {

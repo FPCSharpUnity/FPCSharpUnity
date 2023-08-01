@@ -265,7 +265,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
     [LazyProperty] static PathStr testPrefabsDirectory {
       get {
         var name = $"Test/Utilities/{nameof(ObjectValidatorTest)}.cs";
-        return AssetDatabase.GetAllAssetPaths().find(s => s.EndsWithFast(name)).map(p => PathStr.a(p).dirname)
+        return AssetDatabase.GetAllAssetPaths().find(s => s.EndsWithFast(name)).mapM(p => PathStr.a(p).dirname)
           .getOrThrow($"Can't find this file ({name}) in assets database.");
       }
     }
