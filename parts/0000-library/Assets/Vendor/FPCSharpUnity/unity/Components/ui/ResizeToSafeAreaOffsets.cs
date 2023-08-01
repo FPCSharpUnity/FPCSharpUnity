@@ -3,6 +3,7 @@ using System.Linq;
 using ExhaustiveMatching;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
@@ -66,7 +67,9 @@ namespace FPCSharpUnity.unity.Components.ui {
     [ShowInInspector, ReadOnly] Rect lastSafeArea = new Rect(0, 0, 0, 0);
     [ShowInInspector, ReadOnly] ScreenOrientation lastScreenOrientation;
     [ShowInInspector, ReadOnly] bool lastNotchOnLeft, lastNotchOnRight;
-    bool forceRefresh, addedNegativeOffset;
+    Option<ForceRefreshType> maybeForceRefresh;
+
+    public enum ForceRefreshType { Initial, AddedNegativeOffset }
 
 #pragma warning disable 649
     [ShowInInspector] float __editor_leftOffsetTest, __editor_rightOffsetTest, __editor_bottomOffsetTest;
@@ -84,7 +87,7 @@ namespace FPCSharpUnity.unity.Components.ui {
 
     protected override void Awake() {
       parent = (RectTransform) _rt.parent;
-      forceRefresh = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.Initial);
       refresh();
     }
 
@@ -92,38 +95,32 @@ namespace FPCSharpUnity.unity.Components.ui {
 
     public void addToNegativeOffsetLeft(RectTransform t) {
       _negativeOffsetLeft.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     public void addToNegativeOffsetRight(RectTransform t) {
       _negativeOffsetRight.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     public void addToNegativeOffsetAll(RectTransform t) {
       _negativeOffsetAll.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     public void addToNegativeOffsetBottom(RectTransform t) {
       _negativeOffsetBottom.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     public void addToNegativeOffsetSidesWithoutNotches(RectTransform t) {
       _negativeOffsetSidesWithoutNotches.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     public void addToNegativeOffsetLeftRightWithoutNotches(RectTransform t) {
       _negativeOffsetLeftRightWithoutNotches.Add(t);
-      forceRefresh = true;
-      addedNegativeOffset = true;
+      maybeForceRefresh = Some.a(ForceRefreshType.AddedNegativeOffset);
     }
 
     void refresh() {
@@ -134,9 +131,10 @@ namespace FPCSharpUnity.unity.Components.ui {
         safeArea.yMin += __editor_bottomOffsetTest;
       }
       var orientation = Screen.orientation;
+      var addedNegativeOffset = maybeForceRefresh.foldM(false, t => t is ForceRefreshType.AddedNegativeOffset);
       
-      if (forceRefresh || safeArea != lastSafeArea || orientation != lastScreenOrientation) {
-        forceRefresh = false;
+      if (maybeForceRefresh.isSome || safeArea != lastSafeArea || orientation != lastScreenOrientation) {
+        maybeForceRefresh = None._;
         lastSafeArea = safeArea;
         lastScreenOrientation = orientation;
 
@@ -207,7 +205,6 @@ namespace FPCSharpUnity.unity.Components.ui {
           }
         }
       }
-      addedNegativeOffset = false;
     }
 
     void applySafeArea(Rect safeArea, Vector2 screenSize, bool notchLeft, bool notchRight) {
