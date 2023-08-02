@@ -51,7 +51,6 @@ namespace FPCSharpUnity.unity.unity_serialization {
     }
     
     public void remove(K key) {
-      Debug.LogError($"Removing1 {key}   {_dict.value.Count}/{_keyValuePairs.Length}");
       _dict.value = _dict.value.Remove(key);
       
       // Do not set the serialized field values if playing, because that operation may be expensive and we do not want to
@@ -59,8 +58,6 @@ namespace FPCSharpUnity.unity.unity_serialization {
       if (!Application.isPlaying) {
         setValueOnSerializedField();
       }
-      
-      Debug.LogError($"Removing2 {key}   {_dict.value.Count}/{_keyValuePairs.Length}");
       
       void setValueOnSerializedField() {
         for (var i = 0; i < _keyValuePairs.Length; i++) {
