@@ -47,7 +47,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         // TODO: we can make a more typesafe way to select a required field
         var selectedField = allAssignableFields.find(_ => _.Name == "_target") || allAssignableFields.headOption();
 
-        return selectedField.map(_ => (type, field: _));
+        return selectedField.mapM(_ => (type, field: _));
       }).ToArray();
 
       var possibleTargetObjects = new List<Object> { targetObject };

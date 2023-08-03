@@ -53,7 +53,7 @@ namespace FPCSharpUnity.unity.Data {
     public static Url operator +(Url u1, Url u2) => new Url(u1.url + u2.url);
 
     public static Url operator /(Url u1, string u2) {
-      var lastIsSlash = u1.url.lastChar().exists(_ => _ == '/');
+      var lastIsSlash = u1.url.lastChar().existsM(_ => _ == '/');
       return new Url(u1.url + (lastIsSlash ? "" : "/") + u2);
     }
   }

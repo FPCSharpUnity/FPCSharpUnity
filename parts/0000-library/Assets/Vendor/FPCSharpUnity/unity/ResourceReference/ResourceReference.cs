@@ -61,7 +61,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
 
     [PublicAPI]
     public static Either<ErrorMsg, A> load<A>(PathStr loadPath) where A : Object => 
-      ResourceLoader.load<ResourceReference<A>>(loadPath).mapRight(getReferenceFromResource);
+      ResourceLoader.load<ResourceReference<A>>(loadPath).mapRightM(getReferenceFromResource);
 
     [PublicAPI]
     public static Tpl<IAsyncOperation, Future<Either<ErrorMsg, A>>> loadAsync<A>(

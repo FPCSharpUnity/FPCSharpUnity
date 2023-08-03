@@ -162,7 +162,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
 
         selectedFunTweenManager =
           ftmToSetOpt
-            .flatMap(ftmToSet => ftms.find(ftm => ftm == ftmToSet))
+            .flatMapM(ftmToSet => ftms.find(ftm => ftm == ftmToSet))
             || ftms.headOption();
           
         timelineVisuals = new TimelineVisuals(
@@ -176,16 +176,16 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
             ? ftms.IndexOf(selectedFunTweenManager.get)
             : 0;
 
-          return selectedFunTweenManager.flatMap(
+          return selectedFunTweenManager.flatMapM(
               ftm => backing.mappedSettings.get(ftm)
-                .map(settings => {
+                .mapM(settings => {
                   settings.selectedFTMindex = idx;
                   return settings;
               })
           ).getOrElse(new TimelineVisuals.TimelineVisualsSettings(idx));
         } 
         
-        selectedFunTweenManager.voidFold(
+        selectedFunTweenManager.voidFoldM(
           () => funNodes.Clear(),
           manager => {
             tweenPlaybackController = Some.a(new TweenPlaybackController(manager, visualizationMode));
@@ -256,7 +256,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       // Selects or deselects node
       void manageSelectedNode(TimelineNode nodeToAdd, Event currentEvent) {
         if (!selectedNodesList.isEmpty()) {
-          selectedNodesList.find(selectedNode => selectedNode == nodeToAdd).voidFold(
+          selectedNodesList.find(selectedNode => selectedNode == nodeToAdd).voidFoldM(
             () => {
               if (currentEvent.control) {
                 selectedNodesList.Add(nodeToAdd);
@@ -467,7 +467,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
                 }
   
                 void updateLinkedNodeChannels(TimelineNode node, Action<TimelineNode> changeChannel) {
-                  getLinkedRightNode(node, node).voidFold(
+                  getLinkedRightNode(node, node).voidFoldM(
                     () => { },
                     rightNode => { updateLinkedNodeChannels(rightNode, changeChannel); }
                   );
@@ -532,7 +532,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       }
 
       void updateLinkedNodeStartTimes(TimelineNode node) =>
-        getLinkedRightNode(node, node).voidFold(
+        getLinkedRightNode(node, node).voidFoldM(
           () => { },
           rightNode => {
             if (rightNode.linkedNode.valueOut(out var nodeLinkedTo) && nodeLinkedTo == node) {
@@ -544,8 +544,8 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
         );
 
       Option<TimelineNode> getLinkedRightNode(TimelineNode initialNode, TimelineNode node) =>
-        getRightNode(node).flatMap(rightNode => 
-          rightNode.linkedNode.fold(
+        getRightNode(node).flatMapM(rightNode => 
+          rightNode.linkedNode.foldM(
             () => getLinkedRightNode(initialNode, rightNode),
             linkedNode => 
               linkedNode == initialNode
@@ -558,13 +558,13 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       void snapDrag(TimelineNode rootNode, List<TimelineNode> selectedNodes) {
         var nonSelectedNodes = funNodes.Except(selectedNodes).ToList();
 
-        nonSelectedNodes.ForEach(earlierNode => nodeSnappedToOpt.voidFold(
+        nonSelectedNodes.ForEach(earlierNode => nodeSnappedToOpt.voidFoldM(
           () => snap(earlierNode),
           nodeSnapped => snap(nodeSnapped.node)
         ));
 
         void snap(TimelineNode nodeToSnapTo) {
-          nodeSnappedToOpt = getSnapType(nodeToSnapTo).map(
+          nodeSnappedToOpt = getSnapType(nodeToSnapTo).mapM(
             snapType => {
               switch (snapType) {
                 case SnapType.StartWithStart:
@@ -623,7 +623,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
           .Except(selectedNodesList)
           .Where(node => cmpr(selectedNodePoint, nodePoint(node)))
           .ToList()
-          .ForEach(earlierNode => nodeSnappedToOpt.voidFold(
+          .ForEach(earlierNode => nodeSnappedToOpt.voidFoldM(
             () => snap(earlierNode),
             nodeSnapped => snap(nodeSnapped.node)
           ));
@@ -734,14 +734,14 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       Option<TimelineNode> getLeftNode(TimelineNode selectedNode) =>
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.startTime < selectedNode.startTime
-        ).ToList().toNonEmpty().map(
+        ).ToList().toNonEmpty().mapM(
           channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).Last()
         );
 
       Option<TimelineNode> getRightNode(TimelineNode selectedNode) =>
         funNodes.Where(node => node.channel == selectedNode.channel
           && node.getEnd() > selectedNode.getEnd()
-        ).ToList().toNonEmpty().map(
+        ).ToList().toNonEmpty().mapM(
           channelNodes => channelNodes.neVal.OrderBy(channelNode => channelNode.startTime).First()
         );
 
@@ -950,7 +950,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       }
 
       static ImmutableArray<FunTweenManagerV2> getFunTweenManagers(Option<GameObject> gameObjectOpt) =>
-        gameObjectOpt.fold(
+        gameObjectOpt.foldM(
           () => ImmutableArray<FunTweenManagerV2>.Empty,
           gameObject => gameObject.GetComponents<FunTweenManagerV2>().ToImmutableArray()
         );

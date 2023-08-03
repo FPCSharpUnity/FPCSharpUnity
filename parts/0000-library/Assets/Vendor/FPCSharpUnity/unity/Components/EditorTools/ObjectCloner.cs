@@ -45,7 +45,7 @@ namespace FPCSharpUnity.unity.Components.EditorTools {
 // ReSharper restore FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local
 
     public Option<EditorData> editorData =>
-      _prefab.opt().map(prefab => new EditorData(
+      _prefab.opt().mapM(prefab => new EditorData(
         prefab,
         _sourceTransform.opt().getOrElse(prefab.transform)
       ));

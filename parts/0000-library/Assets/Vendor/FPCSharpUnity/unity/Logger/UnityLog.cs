@@ -7,6 +7,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.utils.registry;
+using FPCSharpUnity.unity.Threads;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -92,7 +93,7 @@ namespace FPCSharpUnity.unity.Logger {
                   logEventTry.__unsafeException
                 ));
 
-            ASync.OnMainThread(
+            OnMainThread.run(
               () => {
                 try {
                   onEvent(logEvent);

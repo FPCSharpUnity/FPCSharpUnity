@@ -26,10 +26,10 @@ namespace FPCSharpUnity.unity.Extensions {
     /// <summary>
     /// Retrieve first <see cref="A"/> attached to a root <see cref="GameObject"/> in the <see cref="Scene"/>.
     /// </summary>
-    public static Either<ErrorMsg, A> findComponentOnRootGameObjects<A>(this in Scene scene) where A : Component =>
+    public static Either<ErrorMsg, A> findComponentOnRootGameObjects<A>(this Scene scene) where A : Component =>
       scene.GetRootGameObjects()
       .collectFirst(static go => go.GetComponent<A>().opt())
-      .toRight(scene.path, static path => new ErrorMsg($"Couldn't find {typeof(A)} in scene '{path}' root game objects"));
+      .toRightM(() => new ErrorMsg($"Couldn't find {typeof(A)} in scene '{scene.path}' root game objects"));
 
     public static SceneName sceneName(this in Scene scene) => new SceneName(scene.name);
     public static ScenePath scenePath(this in Scene scene) => new ScenePath(scene.path);

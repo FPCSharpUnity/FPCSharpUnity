@@ -12,7 +12,7 @@ namespace FPCSharpUnity.unity.Data {
       storage.ContainsKey(name);
 
     A get<A>(string name, A defaultValue, Func<OneOf<string, int, float>, Option<A>> select) =>
-      storage.get(name).fold(defaultValue, _ => select(_).get);
+      storage.get(name).foldM(defaultValue, _ => select(_).get);
 
     public string getString(string name, string defaultValue) =>
       get(name, defaultValue, _ => _.aValue);

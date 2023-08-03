@@ -62,7 +62,7 @@ public static partial class UserClickableBehaviourUtils {
   /// along side it. This means that all children of this parent will not be raycasted.
   /// </summary>
   static Option<GameObject> parentWithoutGraphicRaycaster(GameObject gameObject) =>
-    gameObject.getComponentInParents<Canvas>().flatMap(canvas => 
+    gameObject.getComponentInParents<Canvas>().flatMapM(canvas => 
       // Don't check prefab-edit-mode canvases.
       canvas.name != "Canvas (Environment)" 
       && canvas.name != "Prefab Mode in Context"

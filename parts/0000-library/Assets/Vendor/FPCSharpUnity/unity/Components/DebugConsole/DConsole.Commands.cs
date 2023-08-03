@@ -39,7 +39,7 @@ public partial class DConsole {
 
       // Drops the shortcut it conflicts are detected.
       Command clearShortcutIfItConflicts() =>
-        command.shortcut.fold(
+        command.shortcut.foldM(
           command,
           shortcut => checkShortcutForDuplication(shortcut) ? command.withShortcut(None._) : command
         );
@@ -50,7 +50,7 @@ public partial class DConsole {
         foreach (var (groupName, groupCommands) in dictionary) {
           foreach (var otherCommand in groupCommands) {
             if (
-              otherCommand.shortcut.filter(s1 => s1.wouldTriggerOn(shortcut) || shortcut.wouldTriggerOn(s1))
+              otherCommand.shortcut.filterM(s1 => s1.wouldTriggerOn(shortcut) || shortcut.wouldTriggerOn(s1))
               .valueOut(out var conflictingShortcut)
             ) {
               log.error(

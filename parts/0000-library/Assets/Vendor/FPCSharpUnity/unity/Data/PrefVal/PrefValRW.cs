@@ -46,7 +46,7 @@ namespace FPCSharpUnity.unity.Data {
         s => {
           try {
             var bytes = Convert.FromBase64String(s);
-            return aRW.deserialize(bytes).mapRight(_ => _.value);
+            return aRW.deserialize(bytes).mapRightM(_ => _.value);
           }
           catch (FormatException e) {
             return $"converting from base64 threw {e}";

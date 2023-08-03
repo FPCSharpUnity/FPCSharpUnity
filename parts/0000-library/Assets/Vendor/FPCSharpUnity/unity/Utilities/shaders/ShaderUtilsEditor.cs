@@ -109,7 +109,7 @@ namespace FPCSharpUnity.unity.core.Utilities {
           $"but it was not of type: \"{type}\"."
         ) : None._;
 
-      return maybeErrorMessage.map(_ => new ShaderPropertyValidationError(_));
+      return maybeErrorMessage.mapM(_ => new ShaderPropertyValidationError(_));
     }
     
     public static ShaderPropertyAttribute.Type toShaderUtilsGame(

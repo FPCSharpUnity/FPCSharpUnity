@@ -22,7 +22,7 @@ namespace FPCSharpUnity.unity.Editor.AssetTools {
       foreach (var guid in guidStr.nonEmptyOpt(trim: true)) {
         GUILayoutUtility.GetRect(12f, 12f); // Space
 
-        var objPathOpt = F.opt(AssetDatabase.GUIDToAssetPath(guid)).filter(_ => !string.IsNullOrEmpty(_));
+        var objPathOpt = F.opt(AssetDatabase.GUIDToAssetPath(guid)).filterM(_ => !string.IsNullOrEmpty(_));
 
         if (objPathOpt.isNone) {
           EditorGUILayout.HelpBox("Nothing found by this GUID.", MessageType.Info);

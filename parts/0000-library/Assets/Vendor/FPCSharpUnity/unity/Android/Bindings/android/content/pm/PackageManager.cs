@@ -69,13 +69,13 @@ namespace FPCSharpUnity.unity.Android.Bindings.android.content.pm {
 
     // https://developer.android.com/reference/android/content/pm/PackageManager.html#getLaunchIntentForPackage(java.lang.String)
     public Option<Intent> getLaunchIntentForPackage(string bundleIdentifier) =>
-      F.opt(java.cjo("getLaunchIntentForPackage", bundleIdentifier)).map(_ => new Intent(_));
+      F.opt(java.cjo("getLaunchIntentForPackage", bundleIdentifier)).mapM(_ => new Intent(_));
 
     /// <summary>
     /// Convenience method for launching an app by bundle identifier.
     /// </summary>
     public Option<ErrorMsg> openApp(string bundleIdentifier, Context context = null) =>
-      getLaunchIntentForPackage(bundleIdentifier).fold(
+      getLaunchIntentForPackage(bundleIdentifier).foldM(
         () => Some.a(new ErrorMsg($"Unknown bundle identifier '{bundleIdentifier}'")),
         intent => (context ?? AndroidActivity.current).startActivity(intent).fold(
           None._,

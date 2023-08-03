@@ -477,7 +477,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
   
   [Serializable]
   public sealed class GraphicsSetColor : SerializedTweenerColor<GraphicsSet> {
-    protected override Color get => _target.graphics.headOption().map(static _ => _.color).getOrDefault();
+    protected override Color get => _target.graphics.headOption().mapM(static _ => _.color).getOrDefault();
     protected override void set(Color value) => _target.color = value;
     public override Color editorColor => cColor;
   }
@@ -488,7 +488,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     protected override Color add(Color a, Color b) => a + b;
     protected override Color subtract(Color a, Color b) => a - b;
     
-    protected override Color get => _target.graphics.headOption().map(static _ => _.color).getOrDefault();
+    protected override Color get => _target.graphics.headOption().mapM(static _ => _.color).getOrDefault();
     protected override void set(Color value) => _target.color = value;
     
 #if UNITY_EDITOR

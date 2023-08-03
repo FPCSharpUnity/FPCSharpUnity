@@ -87,10 +87,10 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       }
 
       static Option<AssetPath> lookupAssetPath(Object o) =>
-        AssetDatabase.GetAssetPath(o).nonEmptyOpt().map(_ => new AssetPath(_));
+        AssetDatabase.GetAssetPath(o).nonEmptyOpt().mapM(_ => new AssetPath(_));
 
       static Option<ScenePath> lookupScenePath(Object o) =>
-        from go in F.opt(o as GameObject) || F.opt(o as Component).map(c => c.gameObject)
+        from go in F.opt(o as GameObject) || F.opt(o as Component).mapM(c => c.gameObject)
         from path in go.scene.path.nonEmptyOpt(trim: true)
         select new ScenePath(path);
 

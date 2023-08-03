@@ -100,7 +100,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         processing = true;
         needsRepaint = true;
 
-        refsOpt.voidFold(
+        refsOpt.voidFoldM(
           () => refsOpt = Some.a(AssetReferences.a(data, progress, log, useExtraResolvers: true)),
           refs => refs.update(data, progress, log)
         );
