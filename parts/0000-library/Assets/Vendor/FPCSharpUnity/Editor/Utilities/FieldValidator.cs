@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 

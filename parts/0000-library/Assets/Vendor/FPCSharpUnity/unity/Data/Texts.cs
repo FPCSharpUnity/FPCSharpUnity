@@ -1,6 +1,6 @@
 ﻿using System;
 using FPCSharpUnity.unity.unity_serialization;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reflection;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
@@ -139,8 +139,8 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         
         [LazyProperty] public bool hasSerializeReferenceAttribute => fieldInfo.hasAttribute<SerializeReference>();
 
-        [LazyProperty] public ImmutableArrayC<UniqueValue> uniqueValueAttributes => 
-          fieldInfo.getAttributes<UniqueValue>().toImmutableArrayC();
+        [LazyProperty] public ImmutableArrayC<UniqueValueAttribute> uniqueValueAttributes => 
+          fieldInfo.getAttributes<UniqueValueAttribute>().toImmutableArrayC();
 
         [LazyProperty] public ImmutableArrayC<UnityTagAttribute> unityTagAttributes => 
           fieldInfo.getAttributes<UnityTagAttribute>().toImmutableArrayC();
