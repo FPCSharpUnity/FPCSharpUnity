@@ -1,4 +1,5 @@
 ﻿using System;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.unity.unity_serialization;
 using FPCSharpUnity.core.validations;
 using GenerationAttributes;
@@ -42,7 +43,7 @@ namespace FPCSharpUnity.unity.Data {
     // ReSharper disable NotNullMemberIsNotInitialized
     [
       SerializeField, NotNull, NonEmpty, TextAreaAttribute(minLines: 2, maxLines: 30), HideLabel, PublicAccessor, 
-      FormerlySerializedAs("_template")
+      EditorSetter, FormerlySerializedAs("_template")
     ] string _text = "";
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
