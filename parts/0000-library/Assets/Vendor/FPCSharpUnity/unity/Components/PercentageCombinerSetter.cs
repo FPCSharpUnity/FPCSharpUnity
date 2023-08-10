@@ -5,7 +5,7 @@ using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using FPCSharpUnity.unity.unity_serialization;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;

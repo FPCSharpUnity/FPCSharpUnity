@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.sequences;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using UnityEngine;
