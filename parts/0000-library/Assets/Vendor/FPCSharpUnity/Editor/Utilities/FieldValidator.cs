@@ -91,10 +91,10 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         b.Add(new NonEmptyValidator());
       }
 
-      uniqueValidators = fi.getAttributes<UniqueValue>().Select(uv => new UniqueValuesValidator(uv.category))
+      uniqueValidators = fi.getAttributes<UniqueValueAttribute>().Select(uv => new UniqueValuesValidator(uv.category))
         .ToImmutableArray();
 
-      if (fi.getAttributes<UnityTagAttribute>().nonEmptyAllocating()) {
+      if (fi.getAttributes<UnityTagAttribute>().Any()) {
         b.Add(new TagValidator());
       }
 
