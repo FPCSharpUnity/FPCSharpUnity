@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ExhaustiveMatching;
 using FPCSharpUnity.core.log;
 using GenerationAttributes;
 using FPCSharpUnity.core.data;
@@ -87,14 +88,14 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// </summary>
     /// <returns>guids for scenes where given guid is used</returns>
     public System.Collections.Immutable.ImmutableList<Chain> findParentScenes(AssetGuid guid) => 
-      findParentX(guid, path => path.path.EndsWithFast(".unity"));
+      findDependencyChains(guid, ChildOrParent.Parent, path => path.path.EndsWithFast(".unity"));
     
     /// <summary>
     /// Given an object GUID find all resources where that particular GUID is being used.
     /// </summary>
     /// <returns>guids for resources where given guid is used</returns>
     public System.Collections.Immutable.ImmutableList<Chain> findParentResources(AssetGuid guid) => 
-      findParentX(guid, path => path.path.ToLowerInvariant().Contains("/resources/"));
+      findDependencyChains(guid, ChildOrParent.Parent, path => path.path.ToLowerInvariant().Contains("/resources/"));
 
     /// <summary>
     /// Given an object GUID find all children that are referenced by this object, either directly or indirectly.
@@ -127,26 +128,45 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       public AssetGuid mainGuid => guids.head();
     }
     
-    public System.Collections.Immutable.ImmutableList<Chain> findParentX(AssetGuid guid, Func<AssetPath, bool> pathPredicate) {
+    public enum ChildOrParent {
+      Child, Parent
+    }
+    
+    /// <param name="guid"></param>
+    /// <param name="childOrParent">
+    /// which direction the search should go? Search for children or parents?
+    /// </param>
+    /// <param name="pathPredicate"></param>
+    /// <returns></returns>
+    public System.Collections.Immutable.ImmutableList<Chain> findDependencyChains(
+      AssetGuid guid, ChildOrParent childOrParent, Func<AssetPath, bool> pathPredicate
+    ) {
       // TODO: expensive operation. Need to cache results
-      // Dijkstra
+      var neighbors = childOrParent switch {
+        ChildOrParent.Child => children,
+        ChildOrParent.Parent => parents,
+        _ => throw ExhaustiveMatch.Failed(childOrParent)
+      };
+      
+      // Dijkstra algorithm
       
       // guid -> child guid
       var visited = new Dictionary<AssetGuid, Option<AssetGuid>>();
-      var q = new Queue<(AssetGuid current, Option<AssetGuid> child)>();
+      
+      var q = new Queue<(AssetGuid current, Option<AssetGuid> previous)>();
       q.Enqueue((guid, None._));
       var res = ImmutableList.CreateBuilder<Chain>();
       while (q.Count > 0) {
-        var (current, maybeChild) = q.Dequeue();
+        var (current, maybePrevious) = q.Dequeue();
         if (visited.ContainsKey(current)) continue;
-        visited.Add(current, maybeChild);
+        visited.Add(current, maybePrevious);
         var path = new AssetPath(AssetDatabase.GUIDToAssetPath(current));
         if (pathPredicate(path)) {
           res.Add(makeChain(current));
         }
-        if (parents.TryGetValue(current, out var currentParents)) {
-          foreach (var parent in currentParents) {
-            if (!visited.ContainsKey(parent)) q.Enqueue((parent, Some.a(current)));
+        if (neighbors.TryGetValue(current, out var currentNeighbors)) {
+          foreach (var neighbor in currentNeighbors) {
+            if (!visited.ContainsKey(neighbor)) q.Enqueue((neighbor, Some.a(current)));
           }
         }
       }
