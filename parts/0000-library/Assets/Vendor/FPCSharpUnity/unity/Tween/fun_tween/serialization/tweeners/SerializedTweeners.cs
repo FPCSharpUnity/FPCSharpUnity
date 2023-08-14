@@ -10,7 +10,7 @@ using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.eases;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using FPCSharpUnity.unity.Utilities;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -774,7 +774,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
     ValueDropdownList<string> allIds { get {
       var list = new ValueDropdownList<string>();
       if (_target) {
-        foreach (var kvp in _target.variables.a) { list.Add(kvp.Key); }
+        foreach (var kvp in _target.variables.dict.value) { list.Add(kvp.Key); }
       }
       return list;
     } }

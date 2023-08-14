@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 
@@ -91,7 +91,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         b.Add(new NonEmptyValidator());
       }
 
-      uniqueValidators = fi.getAttributes<UniqueValue>().Select(uv => new UniqueValuesValidator(uv.category))
+      uniqueValidators = fi.getAttributes<UniqueValueAttribute>().Select(uv => new UniqueValuesValidator(uv.category))
         .ToImmutableArray();
 
       if (fi.getAttributes<UnityTagAttribute>().nonEmptyAllocating()) {

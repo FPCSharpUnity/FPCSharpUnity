@@ -110,10 +110,14 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
     }
 
-    bool foldout1 = true, foldout2 = true, foldout3 = true, foldout4 = true;
+    bool foldout1 = true, foldout2 = true, foldout3 = true, foldout4 = true, foldout5 = true;
     Object hoverItem, previousHoverItem, lockedObj;
     readonly IRxRef<bool> locked = RxRef.a(false);
     bool showActions, showChains;
+    
+    string searchQuery = "";
+    AssetReferences.ChildOrParent searchDirection = AssetReferences.ChildOrParent.Child;
+    HashSet<string> searchResults = new();
 
     public void OnGUI() {
       var isMouseMoveEvent = Event.current.type == EventType.MouseMove;
@@ -139,12 +143,34 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (currentGUID.guid == null) break;
           GUILayout.Label("Selected");
           objectDisplay(currentGUID);
-          foreach (var refs in refsOpt) {
+          refsOpt.ifSomeM(refs => {
             displayObjects(currentGUID, "Used by objects (parents)", refs.parents, ref foldout1);
             displayObjects(currentGUID, "Contains (children)", refs.children, ref foldout2);
             displayObjects("Placed in scenes", refs.findParentScenes(currentGUID), ref foldout3);
             displayObjects("Placed in resources", refs.findParentResources(currentGUID), ref foldout4);
-          }
+
+            {
+              EditorGUI.BeginChangeCheck();
+              searchQuery = EditorGUILayout.TextField("Custom search query", searchQuery);
+              if (EditorGUI.EndChangeCheck()) {
+                searchResults.Clear();
+                if (searchQuery.Length > 0) {
+                  var paths = AssetDatabase.FindAssets(searchQuery)
+                    .Select(_ => new AssetPath(AssetDatabase.GUIDToAssetPath(_)));
+                  foreach (var path in paths) {
+                    searchResults.Add(path);
+                  }
+                }
+              }
+
+              searchDirection = (AssetReferences.ChildOrParent) EditorGUILayout.EnumPopup(
+                "Custom search direction", searchDirection
+              );
+
+              var chains = refs.findDependencyChains(currentGUID, searchDirection, path => searchResults.Contains(path));
+              displayObjects("Custom search results:", chains, ref foldout5);
+            }
+          });
           if (!isMouseMoveEvent && hoverItem) {
             GUI.Label(new Rect(Event.current.mousePosition, new Vector2(128, 128)), AssetPreview.GetAssetPreview(previousHoverItem));
           }

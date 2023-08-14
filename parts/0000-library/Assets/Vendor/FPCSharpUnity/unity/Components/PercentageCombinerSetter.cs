@@ -5,7 +5,7 @@ using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
 using FPCSharpUnity.unity.unity_serialization;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
@@ -66,7 +66,7 @@ namespace FPCSharpUnity.unity.Components {
         _ => throw ExhaustiveMatch.Failed(_formula)
       };
     
-      foreach (var kvp in _variables.a) {
+      foreach (var kvp in _variables.dict.value) {
         value = _formula switch {
           Formula.Max => Mathf.Max(kvp.Value.value, value),
           Formula.Min => Mathf.Min(kvp.Value.value, value),
@@ -114,7 +114,7 @@ namespace FPCSharpUnity.unity.Components {
       ValueDropdownList<string> allIds { get {
         var list = new ValueDropdownList<string>();
         if (_setter) {
-          foreach (var kvp in _setter.variables.a) { list.Add(kvp.Key); }
+          foreach (var kvp in _setter.variables.dict.value) { list.Add(kvp.Key); }
         }
         return list;
       } }

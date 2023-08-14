@@ -1,4 +1,4 @@
-﻿using FPCSharpUnity.unity.validations;
+﻿using FPCSharpUnity.core.validations;
 using GenerationAttributes;
 using UnityEngine;
 

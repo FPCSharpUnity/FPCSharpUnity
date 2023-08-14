@@ -45,7 +45,7 @@ namespace FPCSharpUnity.unity.unity_serialization {
       _keyValuePairs = keyValuePairs;
     }
 
-    protected abstract void valueChanged();
+    public abstract void valueChanged();
 
     public bool onObjectValidateIsThreadSafe => false;
 

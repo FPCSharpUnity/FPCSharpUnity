@@ -23,7 +23,12 @@
             ]]></code>
             Parameters:
             <ul>
-              <li>${this} - pointer to self. Not replaced in static methods.</li>
+              <li>${self} - pointer to self (aka this). Not replaced in static methods.</li>
+              <li>
+                ${selfRaw} - as ${self} but always returns the raw syntax blob the compiler gives us. Useful if ${self} gives
+                you `this` when you want something else.
+              </li>
+              <li>${selfType} - type of self (aka this). Not replaced in static methods.</li>
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
               <li>${returnType} - resolved return type of the invoked method.</li>
@@ -58,7 +63,12 @@
             ]]></code>
             Parameters:
             <ul>
-              <li>${this} - pointer to self. Not replaced in static methods.</li>
+              <li>${self} - pointer to self (aka this). Not replaced in static methods.</li>
+              <li>
+                ${selfRaw} - as ${self} but always returns the raw syntax blob the compiler gives us. Useful if ${self} gives
+                you `this` when you want something else.
+              </li>
+              <li>${selfType} - type of self (aka this). Not replaced in static methods.</li>
               <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
               <li>${argumentName} - refers to argument named 'argumentName'</li>
               <li>${returnType} - resolved return type of the invoked method.</li>
@@ -106,7 +116,12 @@
              <ul>
                <li>${varType} - type of x</li>
                <li>${varName} - name of x</li>
-               <li>${this} - pointer to self. Not replaced in static methods.</li>
+               <li>${self} - pointer to self (aka this). Not replaced in static methods.</li>
+               <li>
+                 ${selfRaw} - as ${self} but always returns the raw syntax blob the compiler gives us. Useful if ${self} gives
+                 you `this` when you want something else.
+               </li>
+               <li>${selfType} - type of self (aka this). Not replaced in static methods.</li>
                <li>${uniqueId} - unique id for this macro call, can be used as a temporary variable name.</li>
                <li>${argumentName} - refers to argument named 'argumentName'</li>
                <li>${returnType} - resolved return type of the invoked method.</li>

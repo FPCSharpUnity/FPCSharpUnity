@@ -25,33 +25,66 @@ namespace FPCSharpUnity.unity.Threads;
 public static class OnMainThread {
   static readonly Queue<(Action action, CallerData callerData)> actions = new();
   static Thread mainThread;
-  public static TaskScheduler mainThreadScheduler;
     
   public static bool isMainThread {
     get {
       if (mainThread == null) {
-        // can't use Log.d here, because it calls isMainThread
+        // can't use `Log.d` here, because it calls `isMainThread` and we get infinite recursion
         Debug.LogError(
-          $"{nameof(OnMainThread)}#{nameof(isMainThread)} does not know which thread is main!"
+          $"{nameof(OnMainThread)}.{nameof(isMainThread)} does not know which thread is main!"
         );
       }
       return Thread.CurrentThread == mainThread;
     }
   }
 
-  // mainThread variable may not be initialized in editor when MonoBehaviour constructor gets called
-  public static bool isMainThreadIgnoreUnknown => Thread.CurrentThread == mainThread;
-    
 #if UNITY_EDITOR
   // InitializeOnLoad runs before InitializeOnLoadMethod
-  static OnMainThread() => init();
+  static OnMainThread() {
+    initMainThreadVariable();
+    initOnUpdate();
+  }
 #endif
 
-  [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-  static void init() {
+  // According to our tests and https://uninomicon.com/runtimeinitializeonload `SubsystemRegistration` is the earliest
+  // when Unity runs the code from a main thread:
+  //
+  //   SubsystemRegistration: id = 1, name =
+  //   UnityCallbacks:SubsystemRegistration () (at Assets/UnityCallbacks.cs:35)
+  //
+  //   AfterAssembliesLoaded: id = 1, name =
+  //   UnityCallbacks:AfterAssembliesLoaded () (at Assets/UnityCallbacks.cs:23)
+  //
+  //   BeforeSplashScreen: id = 1, name =
+  //   UnityCallbacks:BeforeSplashScreen () (at Assets/UnityCallbacks.cs:29)
+  //
+  //   BeforeSceneLoad: id = 1, name =
+  //   UnityCallbacks:BeforeSceneLoad () (at Assets/UnityCallbacks.cs:17)
+  //
+  //   AfterSceneLoad: id = 1, name =
+  //   UnityCallbacks:AfterSceneLoad () (at Assets/UnityCallbacks.cs:11)
+  //
+  // We determined this with the following code:
+  //   var t = Thread.CurrentThread;
+  //   Debug.Log($"AfterSceneLoad: id = {t.ManagedThreadId}, name = {t.Name}");
+  //
+  // Therefore we use it to initialize the `mainThread` variable.
+  [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+  static void initMainThreadVariable() {
     // Can't use static constructor, because it may be called from a different thread
     // init will always be called fom a main thread
-    mainThread = Thread.CurrentThread;
+    var mainThread = OnMainThread.mainThread = Thread.CurrentThread;
+    
+    // Can't use `Log.d` here because it calls `isMainThread` and we want to be safe.
+    Debug.Log(
+      $"{Macros.classAndMethodNameShort}: initialized {nameof(mainThread)} to thread id={mainThread.ManagedThreadId}"
+    );
+  }
+  
+  // Initialize the main thread scheduler a bit later to make sure everything is properly set up and `ASync.EveryFrame`
+  // won't die.
+  [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+  static void initOnUpdate() {
     if (Application.isPlaying) {
       // In players isPlaying is always true.
       ASync.EveryFrame(onUpdate);
@@ -61,6 +94,9 @@ public static class OnMainThread {
       UnityEditor.EditorApplication.update += () => onUpdate();
     }
 #endif
+    
+    // Can't use `Log.d` here because it calls `isMainThread` and we want to be safe.
+    Debug.Log($"{Macros.classAndMethodNameShort}: initialized main thread dispatcher.");
   }
 
   public static readonly RunAction runAction = action => run(action);

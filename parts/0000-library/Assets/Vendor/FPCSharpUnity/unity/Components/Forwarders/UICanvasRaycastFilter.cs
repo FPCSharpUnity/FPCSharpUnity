@@ -1,8 +1,12 @@
 ﻿#nullable enable
 using System;
+using FPCSharpUnity.core.data;
+using FPCSharpUnity.core.dispose;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Extensions;
 using GenerationAttributes;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Components.Forwarders; 
@@ -13,26 +17,64 @@ namespace FPCSharpUnity.unity.Components.Forwarders;
 /// This is useful when you want to make a UI element clickable only in some areas or the behavior you need is not
 /// possible with the standard way of toggling `raycast target` flag.
 /// </summary>
-public class UICanvasRaycastFilter : MonoBehaviour, ICanvasRaycastFilter {
-  public Func<Vector2, Camera, bool>? filter;
+[PublicAPI] public class UICanvasRaycastFilter : MonoBehaviour, ICanvasRaycastFilter {
+  /// <returns>`true` if the raycast is valid.</returns>
+  public delegate bool Filter(Vector2 screenSpacePosition, Camera eventCamera);
   
-  public bool IsRaycastLocationValid(Vector2 sp, Camera eventCamera) => filter?.Invoke(sp, eventCamera) ?? true;
+  public Filter? filter;
+  
+  public bool IsRaycastLocationValid(Vector2 screenSpacePosition, Camera eventCamera) => 
+    filter?.Invoke(screenSpacePosition, eventCamera) ?? true;
 }
 
-public static class UICanvasRaycastFilterExts {
+[PublicAPI] public static class UICanvasRaycastFilterExts {
   /// <summary>
-  /// Adds `<see cref="UICanvasRaycastFilter"/>` on the game object and assigns the given filter function to it.
+  /// Ensures `<see cref="UICanvasRaycastFilter"/>` exists on the game object and assigns the given filter function to
+  /// it.
+  /// <para/>
+  /// Returns `Left` if a filter is already set.
   /// </summary>
-  /// <param name="go"></param>
-  /// <param name="filter">Should return `true` if the raycast is valid.</param>
-  /// <param name="log">Used to log an error.</param>
-  public static void addUiRaycastFilter(
-    this GameObject go, Func<Vector2, Camera, bool> filter, [Implicit] ILog log = default!
+  public static Either<LogEntry, Unit> trySetUiRaycastFilter(
+    this GameObject go, ITracker tracker, UICanvasRaycastFilter.Filter filter, 
+    [Implicit] CallerData callerData = default
   ) {
     var comp = go.EnsureComponent<UICanvasRaycastFilter>();
-    if (comp.filter == null) comp.filter = filter;
+    var maybeExistingFilter = comp.filter;
+    if (maybeExistingFilter == null) {
+      comp.filter = filter;
+      tracker.track(() => comp.filter = null);
+      return Unit._;
+    }
     else {
-      log.error($"Trying to initialize a `{nameof(UICanvasRaycastFilter)}` on `{go}` but it already has one.");
+      return LogEntry.simple(
+        $"Trying to set a `{nameof(UICanvasRaycastFilter)}.{nameof(UICanvasRaycastFilter.Filter)}` on `{go}` but "
+        + $"it already has one.",
+        context: go
+      );
+    }
+  }
+  
+  /// <summary>
+  /// Ensures `<see cref="UICanvasRaycastFilter"/>` exists on the game object and assigns the given filter function to
+  /// it.
+  /// <para/>
+  /// Overrides the existing filter if it is already set.
+  /// </summary>
+  public static void setUiRaycastFilter(
+    this GameObject go, ITracker tracker, UICanvasRaycastFilter.Filter filter, 
+    [Implicit] CallerData callerData = default
+  ) {
+    var component = go.EnsureComponent<UICanvasRaycastFilter>();
+    component.filter = filter;
+    tracker.track(() => component.filter = null);
+  }
+
+  /// <summary>
+  /// If `<see cref="UICanvasRaycastFilter"/>` exists on the game object and clears filter on it.
+  /// </summary>
+  public static void clearUiRaycastFilter(this GameObject go) {
+    if (go.TryGetComponent(out UICanvasRaycastFilter component)) {
+      component.filter = null;
     }
   }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
-using FPCSharpUnity.unity.validations;
+using FPCSharpUnity.core.validations;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
 using UnityEngine;
