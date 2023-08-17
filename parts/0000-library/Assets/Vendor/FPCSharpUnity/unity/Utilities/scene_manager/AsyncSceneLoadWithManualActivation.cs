@@ -2,12 +2,14 @@ using System;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Extensions;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using static FPCSharpUnity.core.typeclasses.DebugStr;
 
 namespace FPCSharpUnity.unity.Utilities {
   /// <summary>
@@ -16,7 +18,7 @@ namespace FPCSharpUnity.unity.Utilities {
   /// <para/>
   /// The <see cref="future"/> will complete when the scene will be fully loaded and activated.
   /// </summary>
-  [PublicAPI] public sealed class AsyncSceneLoadWithManualActivation : AsyncSceneLoad {
+  [PublicAPI] public sealed class AsyncSceneLoadWithManualActivation : AsyncSceneLoad, IDebugStr {
     /// <summary>
     /// When <see cref="AsyncOperation.allowSceneActivation"/> is false in scene load operation, then Unity stops
     /// loading at 0.9 until we activate the scene.
@@ -55,6 +57,12 @@ namespace FPCSharpUnity.unity.Utilities {
       loadOperation.allowSceneActivation = false;
       future = loadOperation.toFuture().map(sceneBeingLoaded, static (_, sceneBeingLoaded) => sceneBeingLoaded);
     }
+
+    public string asDebugString() =>
+      $"{Macros.classNameShort}["
+      + $"{dsi(loadOperation)}, has {nameof(onSceneActivation)}={onSceneActivation.isSome}, "
+      + $"{nameof(sceneBeingLoaded)}={dsi(sceneBeingLoaded)}"
+      + $"]";
 
     /// <summary>
     /// Activate the scene. The <see cref="loadOperation"/> (and <see cref="future"/>) will not complete until you call

@@ -12,6 +12,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
@@ -90,7 +91,8 @@ namespace FPCSharpUnity.unity.Concurrent {
   /// <summary>
   /// The <see cref="IAsyncOperationHandle{A}"/> has been cancelled before it has finished.
   /// </summary>
-  [Record] public sealed partial class IAsyncOperationHandleCancelled : IAsyncOperationProgress {
+  [Record, GenDebugStr(generateToString = false)] 
+  public sealed partial class IAsyncOperationHandleCancelled : IAsyncOperationProgress {
     public float percentComplete { get; }
     public DownloadStatus downloadStatus { get; }
 
