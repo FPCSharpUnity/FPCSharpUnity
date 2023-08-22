@@ -36,6 +36,16 @@ namespace FPCSharpUnity.unity.debug {
     /// </summary>
     void exposeDisposableTrackers() {
       var disposableTrackerRegistry = this / nameof(DisposableTrackerRegistry);
+      disposableTrackerRegistry.exposeStatic("Tracker groups", static () => new EnumerableValue(
+        DisposableTrackerRegistry.instance.registered
+          .GroupBy(_ => _.Key.callerData)
+          .OrderBySafe(_ => _.Key.ToString())
+          .Select(grouping => new HeaderValue(
+            new StringValue($"{grouping.Count()} - {grouping.Key.asShortString()}"),
+            new StringValue(grouping.Key.asString())
+          ))
+          .ToArrayFast()
+      ));
       disposableTrackerRegistry.exposeStatic("Trackers", static () => new EnumerableValue(
         DisposableTrackerRegistry.instance.registered
           .OrderBySafe(_ => _.Key.ToString())
