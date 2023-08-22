@@ -54,7 +54,8 @@ public partial class StateExposer {
 
     /// <summary>Exposes a named value that is available statically (not via an object instance).</summary>
     /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
-    public void exposeStatic(string name, Func<RenderableValue> get) => add(new StaticData(name, get));
+    /// <returns>Subscription that can be disposed to remove the exposed value.</returns>
+    public ISubscription exposeStatic(string name, Func<RenderableValue> get) => add(new StaticData(name, get));
     
     /// <summary>
     /// Exposes a named value that is available via an object instance.
