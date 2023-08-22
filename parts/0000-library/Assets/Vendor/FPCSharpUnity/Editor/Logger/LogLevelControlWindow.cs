@@ -33,7 +33,7 @@ namespace FPCSharpUnity.unity.Logger {
 
         tableDrawer.beginCells(2); EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
         
-        if (registered.isEmpty()) {
+        if (registered.Count == 0) {
           tableDrawer.beginRow();
           tableDrawer.beginCells(5); 
           EditorGUILayout.LabelField("No loggers found in the default registry.");
