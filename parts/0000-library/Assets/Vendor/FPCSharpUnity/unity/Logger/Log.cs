@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.unity.Components.DebugConsole;
 using FPCSharpUnity.unity.Utilities;
@@ -39,7 +39,8 @@ namespace FPCSharpUnity.unity.Logger {
     
     /// <summary>Registers loggers to <see cref="DConsole"/> using a function to get the loggers.</summary>
     public static void registerToDConsole(
-      ITracker tracker, DConsole dc, Func<ImmutableDictionary<LogRegistryName, ILogProperties>> getRegistered
+      ITracker tracker, DConsole dc,
+      Func<IReadOnlyCollection<KeyValuePair<LogRegistryName, ILogProperties>>> getRegistered
     ) {
       var levels = EnumUtils.GetValues<LogLevel>();
       
@@ -55,8 +56,8 @@ namespace FPCSharpUnity.unity.Logger {
             v => {
               // Note: we get current registered logs on button press, do not cache the result.
               var registered = getRegistered();
-              foreach (var log in registered.Values) {
-                log.level = v;
+              foreach (var kv in registered) {
+                kv.Value.level = v;
               }
             }
           ), levels);
