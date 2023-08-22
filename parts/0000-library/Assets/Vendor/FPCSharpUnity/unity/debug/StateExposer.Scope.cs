@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.reactive;
 using JetBrains.Annotations;
 
 namespace FPCSharpUnity.unity.debug;
@@ -13,7 +15,10 @@ public partial class StateExposer {
     readonly Dictionary<ScopeKey, Scope> _scopes = new();
     readonly List<IData> data = new();
 
-    public void add(IData data) => this.data.Add(data);
+    public ISubscription add(IData data) {
+      this.data.Add(data);
+      return new Subscription(() => this.data.Remove(data));
+    }
 
     /// <summary>Clear all non statically accessible registered values.</summary>
     public void clearNonStatics() {
@@ -50,12 +55,13 @@ public partial class StateExposer {
     /// <summary>Exposes a named value that is available statically (not via an object instance).</summary>
     /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
     public void exposeStatic(string name, Func<RenderableValue> get) => add(new StaticData(name, get));
-      
+    
     /// <summary>
     /// Exposes a named value that is available via an object instance.
     /// </summary>
-    /// <note><b>To avoid memory leaks the <see cref="get"/> function needs to be a static one!</b></note>
-    public void expose<A, Data>(A reference, string name, Data data, Render<A, Data> render) where A : class => 
+    /// <note><b>To avoid memory leaks the <see cref="render"/> function needs to be a static one!</b></note>
+    /// <returns>Subscription that can be disposed to remove the exposed value.</returns>
+    public ISubscription expose<A, Data>(A reference, string name, Data data, Render<A, Data> render) where A : class => 
       add(new InstanceData<A, Data>(reference.weakRef(), name, data, render));
       
     /// <summary>

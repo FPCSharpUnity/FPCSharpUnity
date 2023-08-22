@@ -30,7 +30,9 @@ public partial class StateExposer {
     public bool isStatic => false;
 
     public Option<ForRepresentation> representation => 
-      reference.TryGetTarget(out var _ref)
+      reference.TryGetTarget(out var _ref) 
+      // Unity Object may be destroyed, but WeakRef could still be valid. Check if Unity object is still alive.
+      && !_ref.Equals(null)
         ? Some.a(new ForRepresentation(Some.a<object>(_ref), name, render(_ref, data)))
         : None._;
   }
