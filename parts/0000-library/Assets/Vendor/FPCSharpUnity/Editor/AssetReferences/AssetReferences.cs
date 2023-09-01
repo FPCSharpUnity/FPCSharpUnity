@@ -27,40 +27,42 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
   public partial class AssetReferences {
     /// <summary>Amount of workers (CPU threads) used.</summary>
     public readonly int workers;
-    /// <summary>
-    /// Extra resolvers are project specific reference resolvers that resolve links between assets. They are initialized
-    /// statically via <see cref="AssetReferences.extraResolvers"/>. Using this boolean we can choose to use them or not.
-    /// <para/>
-    /// In either case, we will always use the default resolver that resolves unity references.
-    /// </summary>
-    public readonly bool useExtraResolvers;
+
+    /// <summary> Whether to use default resolver that parses direct Unity references. </summary>
+    public readonly bool useDefaultResolver;
+    
+    /// <summary> Extra resolvers are project specific reference resolvers that resolve links between assets. </summary>
+    public readonly ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers;
     
     public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> parents = new();
     public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> children = new();
     readonly Dictionary<AssetPath, AssetGuid> pathToGuid = new();
     public string scanDuration = "";
 
-    AssetReferences(int workers, bool useExtraResolvers) {
+    AssetReferences(int workers, bool useDefaultResolver, ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers) {
       this.workers = workers;
-      this.useExtraResolvers = useExtraResolvers;
+      this.useDefaultResolver = useDefaultResolver;
+      this.extraResolvers = extraResolvers;
     }
 
     /// <param name="data"></param>
     /// <param name="progress"></param>
     /// <param name="log"></param>
-    /// <param name="useExtraResolvers">See <see cref="useExtraResolvers"/></param>
+    /// <param name="useDefaultResolver">See <see cref="useDefaultResolver"/></param>
+    /// <param name="extraResolvers">See <see cref="extraResolvers"/></param>
     public static AssetReferences a(
-      AssetUpdate data, Ref<float> progress, ILog log, bool useExtraResolvers
+      AssetUpdate data, Ref<float> progress, ILog log, bool useDefaultResolver, 
+      ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
     ) {
       // It runs slower if we use too many threads ¯\_(ツ)_/¯
       var workers = Math.Min(Environment.ProcessorCount, 10);
       
-      var refs = new AssetReferences(workers, useExtraResolvers);
+      var refs = new AssetReferences(workers, useDefaultResolver, extraResolvers);
       var sw = Stopwatch.StartNew();
       process(
         data, workers,
         pathToGuid: refs.pathToGuid, parents: refs.parents, children: refs.children,
-        progress: progress, log: log, useResolvers: refs.useExtraResolvers
+        progress: progress, log: log, useDefaultResolver: refs.useDefaultResolver, extraResolvers: refs.extraResolvers
       );
       refs.scanDuration = s(sw.Elapsed);
       return refs;
@@ -79,7 +81,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       process(
         data, workers,
         pathToGuid: pathToGuid, parents: parents, children: children,
-        progress: progress, log: log, useResolvers: useExtraResolvers
+        progress: progress, log: log, useDefaultResolver: useDefaultResolver, extraResolvers: extraResolvers
       );
     }
 
@@ -192,7 +194,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
       Dictionary<AssetGuid, HashSet<AssetGuid>> children,
       Ref<float> progress, ILog log,
-      bool useResolvers
+      bool useDefaultResolver,
+      ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
     ) {
       progress.value = 0;
       bool predicate(AssetPath p) {
@@ -222,7 +225,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         parallelOptions: new ParallelOptions { MaxDegreeOfParallelism = workers },
         localInit: () => new List<ParseFileResult>(), 
         body: (added, loopState, results) => {
-          if (parseFileOptimized(log, added, useResolvers: useResolvers).valueOut(out var parseResult)) {
+          if (
+            parseFileOptimized(
+              log, added, useDefaultResolver: useDefaultResolver, extraResolvers: extraResolvers
+            ).valueOut(out var parseResult)
+          ) {
             results.Add(parseResult);
           }
           // parseFile(pathToGuid, log, added, updatedChildren);
@@ -292,7 +299,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <para/>
     /// This solution lets to keep your project specific code separate from this library code.
     /// </summary>
-    public static readonly List<BytesParserAndGuidResolver> extraResolvers = new();
+    public static readonly List<BytesParserAndGuidResolver> extraResolversForProject = new();
     
     /// <summary> See for more info <see cref="extraResolvers"/>. </summary>
     public abstract class BytesParserAndGuidResolver {
@@ -314,14 +321,22 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <summary>
     /// Optimized version of <see cref="parseFileUnoptimized"/>. This works at least 10x faster.
     /// </summary>
-    static Option<ParseFileResult> parseFileOptimized(ILog log, AssetPath assetPath, bool useResolvers) {
+    /// <param name="log"></param>
+    /// <param name="assetPath"></param>
+    /// <param name="useDefaultResolver"> See <see cref="AssetReferences.useDefaultResolver"/> </param>
+    /// <param name="extraResolvers"> See <see cref="AssetReferences.extraResolvers"/> </param>
+    static Option<ParseFileResult> parseFileOptimized(
+      ILog log, AssetPath assetPath, bool useDefaultResolver, ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
+    ) {
       if (!getGuid(assetPath, out var guid, out var metaFileContentsBuffer, log)) return None._;
 
       var guidsInFile = new HashSet<AssetGuid>();
 
       if (SpriteAtlasExts.isPathAnImage(assetPath.path.ToLowerInvariant())) {
         // Parse meta file only locally. Currently we have no use to parse it with custom resolvers.
-        parseBufferLocally(new SimpleBuffer(metaFileContentsBuffer, metaFileContentsBuffer.Length), guidsInFile);
+        if (useDefaultResolver) {
+          parseBufferLocally(new SimpleBuffer(metaFileContentsBuffer, metaFileContentsBuffer.Length), guidsInFile);
+        }
       }
       else {
         // Parse main file only if it is not an image asset.
@@ -330,10 +345,10 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
         var length = readAllBytesFast(assetPath, ref buffer);
         var simpleBuffer = new SimpleBuffer(buffer, length);
-        parseBufferLocally(simpleBuffer, guidsInFile);
-        if (useResolvers) {
-          parseBufferWithResolvers(simpleBuffer, guidsInFile);
+        if (useDefaultResolver) {
+          parseBufferLocally(simpleBuffer, guidsInFile);
         }
+        parseBufferWithExtraResolvers(simpleBuffer, guidsInFile, extraResolvers);
 
         parseFileOptimized_bufferCache.Value = buffer;
       }
@@ -352,15 +367,19 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
           i += STRING_GUID.Length;
           simpleBuffer.skipWhitespace(ref i);
-          var childGuid = simpleBuffer.readGuid(i);
-          i += childGuid.guid.Length;
-          if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
-
-          guidsInFile.Add(childGuid);
+          if (simpleBuffer.readGuid(i, out var childGuid)) {
+            i += childGuid.guid.Length;
+            if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
+            
+            guidsInFile.Add(childGuid);
+          }
         }
       }
 
-      static void parseBufferWithResolvers(SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile) {
+      static void parseBufferWithExtraResolvers(
+        SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile,
+        ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
+      ) {
         foreach (var resolver in extraResolvers) {
           guidsInFile.AddRange(resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length));
         }
@@ -546,7 +565,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       static readonly ThreadLocal<StringBuilder> stringBuilderCache = new(() => new StringBuilder());
 
       /// <summary>Reads Unity style guid from the buffer.</summary>
-      public AssetGuid readGuid(int index) {
+      /// <returns>Whether the guid parse was successful.</returns>
+      public bool readGuid(int index, out AssetGuid guid) {
         var sb = stringBuilderCache.Value;
         sb.Clear();
         while (
@@ -559,7 +579,15 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           sb.Append((char) buffer[index]);
           index++;
         }
-        return new AssetGuid(sb.ToString());
+
+        if (sb.Length == 32) {
+          guid = new AssetGuid(sb.ToString());
+          return true;
+        }
+        else {
+          guid = default;
+          return false;
+        }
       }
 
       /// <summary>Reads a number from the buffer and returns it as long. Advances <see cref="index"/>.</summary>

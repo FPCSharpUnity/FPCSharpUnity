@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Functional;
@@ -80,14 +81,16 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
     public static void processFiles(AssetUpdate data) {
       if (!enabled.value) return;
+
+      var extraResolvers = AssetReferences.extraResolversForProject.toImmutableArrayC();
       
-      foreach (var extraParser in AssetReferences.extraResolvers) {
+      foreach (var extraParser in extraResolvers._unsafeArray) {
         extraParser.initBeforeParsing();
       }
       
       worker.EnqueueItem(() => {
         try {
-          process(data, log);
+          process(data, log, extraResolvers);
         }
         catch (Exception e) {
           log.error(e);
@@ -95,13 +98,19 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       });
     }
 
-    static void process(AssetUpdate data, ILog log) {
+    static void process(
+      AssetUpdate data, ILog log,
+      ImmutableArrayC<AssetReferences.BytesParserAndGuidResolver> extraResolvers
+    ) {
       try {
         processing = true;
         needsRepaint = true;
 
         refsOpt.voidFoldM(
-          () => refsOpt = Some.a(AssetReferences.a(data, progress, log, useExtraResolvers: true)),
+          () => refsOpt = Some.a(AssetReferences.a(
+            data, progress, log, useDefaultResolver: true,
+            extraResolvers: extraResolvers
+          )),
           refs => refs.update(data, progress, log)
         );
       }
