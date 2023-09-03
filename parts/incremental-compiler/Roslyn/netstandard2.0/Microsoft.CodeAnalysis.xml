@@ -402,10 +402,10 @@
              don't know the actual IL offset, but only {block/offset-in-the-block} pair.
             
              Thus, whenever we need to mark some IL position we allocate a new marker id, store it
-             in allocatedILMarkers and reference this IL marker in the entity requiring the IL offset.
+             in <see cref="F:Microsoft.CodeAnalysis.CodeGen.ILBuilder._allocatedILMarkers"/> and reference this IL marker in the entity requiring the IL offset.
             
              IL markers will be 'materialized' when the builder is realized; the resulting offsets
-             will be put into allocatedILMarkers array. Note that only markers from reachable blocks
+             will be put into <see cref="F:Microsoft.CodeAnalysis.CodeGen.ILBuilder._allocatedILMarkers"/> array. Note that only markers from reachable blocks
              are materialized, the rest will have offset -1.
              </summary>
         </member>
@@ -1366,6 +1366,11 @@
             <param name="arg">The extra input used by mapping delegate</param>
             <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.ArrayBuilderExtensions.ToOneOrManyAndFree``1(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{``0})">
+            <summary>
+            Realizes the OneOrMany and disposes the builder in one operation.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.BitVector.Create(System.Int32)">
             <summary>
             Create BitArray with at least the specified number of bits.
@@ -1425,7 +1430,7 @@
             Thread safe.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Collections.CachingDictionary`2.#ctor(System.Func{`0,System.Collections.Immutable.ImmutableArray{`1}},System.Func{System.Collections.Generic.IEqualityComparer{`0},System.Collections.Generic.HashSet{`0}},System.Collections.Generic.IEqualityComparer{`0})">
+        <member name="M:Microsoft.CodeAnalysis.Collections.CachingDictionary`2.#ctor(System.Func{`0,System.Collections.Immutable.ImmutableArray{`1}},System.Func{System.Collections.Generic.IEqualityComparer{`0},Microsoft.CodeAnalysis.Collections.SegmentedHashSet{`0}},System.Collections.Generic.IEqualityComparer{`0})">
             <summary>
             Create a CachingLookup.
             </summary>
@@ -2335,12 +2340,6 @@
             This check is conceptually similar to <c>(void*)(&amp;source) == nullptr</c>.
             </remarks>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.Collections.Internal.SegmentedArrayHelper.FastPathMethodImplOptions">
-            <summary>
-            A combination of <see cref="F:System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining"/> and
-            <see cref="F:System.Runtime.CompilerServices.MethodImplOptions.AggressiveOptimization"/>.
-            </summary>
-        </member>
         <member name="M:Microsoft.CodeAnalysis.Collections.Internal.SegmentedArrayHelper.CalculateSegmentSize(System.Int32)">
             <summary>
             Calculates the maximum number of elements of size <paramref name="elementSize"/> which can fit into an array
@@ -3173,6 +3172,29 @@
             <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
             <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectAsArray``3(System.Collections.Immutable.ImmutableArray{``0},System.Func{``0,``1,System.Boolean},System.Func{``0,``1,``2},``1)">
+            <summary>
+            Maps a subset of immutable array to another immutable array.
+            </summary>
+            <typeparam name="TItem">Type of the source array items</typeparam>
+            <typeparam name="TResult">Type of the transformed array items</typeparam>
+            <typeparam name="TArg">Type of the extra argument</typeparam>
+            <param name="array">The array to transform</param>
+            <param name="predicate">The condition to use for filtering the array content.</param>
+            <param name="selector">A transform function to apply to each element that is not filtered out by <paramref name="predicate"/>.</param>
+            <param name="arg">The extra input used by <paramref name="predicate"/> and <paramref name="selector"/>.</param>
+            <returns>If the items's length is 0, this will return an empty immutable array.</returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectManyAsArray``2(System.Collections.Immutable.ImmutableArray{``0},System.Func{``0,System.Collections.Generic.IEnumerable{``1}})">
+            <summary>
+            Maps and flattens a subset of immutable array to another immutable array.
+            </summary>
+            <typeparam name="TItem">Type of the source array items</typeparam>
+            <typeparam name="TResult">Type of the transformed array items</typeparam>
+            <param name="array">The array to transform</param>
+            <param name="selector">A transform function to apply to each element.</param>
+            <returns>If the array's length is 0, this will return an empty immutable array.</returns>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectManyAsArray``2(System.Collections.Immutable.ImmutableArray{``0},System.Func{``0,System.Boolean},System.Func{``0,System.Collections.Generic.IEnumerable{``1}})">
             <summary>
             Maps and flattens a subset of immutable array to another immutable array.
@@ -3185,6 +3207,11 @@
             <returns>If the items's length is 0, this will return an empty immutable array.</returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectAsArrayAsync``2(System.Collections.Immutable.ImmutableArray{``0},System.Func{``0,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{``1}},System.Threading.CancellationToken)">
+            <summary>
+            Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.ImmutableArrayExtensions.SelectAsArrayAsync``3(System.Collections.Immutable.ImmutableArray{``0},System.Func{``0,``1,System.Threading.CancellationToken,System.Threading.Tasks.ValueTask{``2}},``1,System.Threading.CancellationToken)">
             <summary>
             Maps an immutable array through a function that returns ValueTasks, returning the new ImmutableArray.
             </summary>
@@ -3409,7 +3436,7 @@
             A helper class that contains a topological sort algorithm.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.TopologicalSort.TryIterativeSort``1(System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Collections.Immutable.ImmutableArray{``0}},System.Collections.Immutable.ImmutableArray{``0}@)">
+        <member name="M:Microsoft.CodeAnalysis.TopologicalSort.TryIterativeSort``1(System.Collections.Generic.IEnumerable{``0},Microsoft.CodeAnalysis.TopologicalSortAddSuccessors{``0},System.Collections.Immutable.ImmutableArray{``0}@)">
             <summary>
             Produce a topological sort of a given directed acyclic graph, given a set of nodes which include all nodes
             that have no predecessors. Any nodes not in the given set, but reachable through successors, will be added
@@ -3418,7 +3445,7 @@
             </summary>
             <typeparam name="TNode">The type of the node</typeparam>
             <param name="nodes">Any subset of the nodes that includes all nodes with no predecessors</param>
-            <param name="successors">A function mapping a node to its set of successors</param>
+            <param name="addSuccessors">A function that adds successor nodes to a provided <see cref="T:Microsoft.CodeAnalysis.Shared.Collections.TemporaryArray`1"/>.</param>
             <param name="result">A list of all reachable nodes, in which each node always precedes its successors</param>
             <returns>true if successful; false if not successful due to cycles in the graph</returns>
         </member>
@@ -3883,6 +3910,11 @@
             Report additional information related to analyzers, such as analyzer execution time.
             </value>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CommandLineArguments.ReportInternalsVisibleToAttributes">
+            <summary>
+            Report additional information related to InternalsVisibleToAttributes for all assemblies the compiler sees in this compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CommandLineArguments.SkipAnalyzers">
             <value>
             Skip execution of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer"/>s.
@@ -4316,6 +4348,11 @@
         <member name="M:Microsoft.CodeAnalysis.CommonCompiler.ReportDiagnostics(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.DiagnosticInfo},System.IO.TextWriter,Microsoft.CodeAnalysis.ErrorLogger,Microsoft.CodeAnalysis.Compilation)">
             <summary>Returns true if there were any errors, false otherwise.</summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CommonCompiler.ReportIVTInfos(System.IO.TextWriter,Microsoft.CodeAnalysis.ErrorLogger,Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic})">
+            <summary>
+            Reports all IVT information for the given compilation and references, to aid in troubleshooting otherwise inexplicable IVT failures.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CommonCompiler.HasUnsuppressableErrors(Microsoft.CodeAnalysis.DiagnosticBag)">
             <summary>
             Returns true if there are any error diagnostics in the bag which cannot be suppressed and
@@ -4396,13 +4433,41 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.BuildPaths.TempDirectory">
             <summary>
-            The temporary directory a compilation should use instead of <see cref="M:System.IO.Path.GetTempPath"/>.  The latter
+            The temporary directory a compilation should use instead of Path.GetTempPath.  The latter
             relies on global state individual compilations should ignore.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.ErrorLogger">
             <summary>
             Base class for logging compiler diagnostics.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.DiagnosticDescriptorErrorLoggerInfo">
+            <summary>
+            Contains information associated with a <see cref="T:Microsoft.CodeAnalysis.DiagnosticDescriptor"/>
+            for the <see cref="T:Microsoft.CodeAnalysis.ErrorLogger"/>. It contains the following:
+              1. Analyzer execution time in seconds for the analyzer owning the descriptor.
+              2. Analyzer execution time in percentage of the total analyzer execution time.
+              3. A boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
+                 external non-source suppression from editorconfig, ruleset, command line options, etc.,
+                 which disables the descriptor for either part of the compilation or the entire compilation.
+                 Note that this flag doesn't account for source suppressions from pragma directives,
+                 SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppress individual instances
+                 of reported diagnostics.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.DiagnosticDescriptorErrorLoggerInfo.#ctor(System.Double,System.Int32,System.Boolean)">
+            <summary>
+            Contains information associated with a <see cref="T:Microsoft.CodeAnalysis.DiagnosticDescriptor"/>
+            for the <see cref="T:Microsoft.CodeAnalysis.ErrorLogger"/>. It contains the following:
+              1. Analyzer execution time in seconds for the analyzer owning the descriptor.
+              2. Analyzer execution time in percentage of the total analyzer execution time.
+              3. A boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
+                 external non-source suppression from editorconfig, ruleset, command line options, etc.,
+                 which disables the descriptor for either part of the compilation or the entire compilation.
+                 Note that this flag doesn't account for source suppressions from pragma directives,
+                 SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppress individual instances
+                 of reported diagnostics.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.ErrorLogOptions">
@@ -4512,7 +4577,7 @@
             The total number of descriptors in the set.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.SarifV2ErrorLogger.DiagnosticDescriptorSet.Add(Microsoft.CodeAnalysis.DiagnosticDescriptor,System.Nullable{System.Boolean})">
+        <member name="M:Microsoft.CodeAnalysis.SarifV2ErrorLogger.DiagnosticDescriptorSet.Add(Microsoft.CodeAnalysis.DiagnosticDescriptor,System.Nullable{Microsoft.CodeAnalysis.DiagnosticDescriptorErrorLoggerInfo})">
             <summary>
             Adds a descriptor to the set if not already present.
             </summary>
@@ -4641,40 +4706,32 @@
             and then copied back to the original <see cref="T:System.IO.Stream"/>. Only when legacy signing is enabled though.
             </summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.Compilation.EmitStream._stream">
-            <summary>
-            The <see cref="T:System.IO.Stream"/> that is being emitted into. This value should _never_ be 
-            disposed. It is either returned from the <see cref="T:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider"/> instance in
-            which case it is owned by that. Or it is just an alias for the value that is stored 
-            in <see cref="F:Microsoft.CodeAnalysis.Compilation.EmitStream._tempInfo"/> in which case it will be disposed from there.
-            </summary>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.Compilation.EmitStream.CreateStream(Microsoft.CodeAnalysis.DiagnosticBag)">
+        <member name="M:Microsoft.CodeAnalysis.Compilation.EmitStream.CreateStream(Microsoft.CodeAnalysis.CommonMessageProvider,Microsoft.CodeAnalysis.DiagnosticBag)">
             <summary>
             Create the stream which should be used for Emit. This should only be called one time.
             </summary>
+            <remarks>
+            The <see cref="T:System.IO.Stream"/> returned here is owned by this type and should not be disposed 
+            by the caller.
+            </remarks>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider">
             <summary>
-            Abstraction that allows the caller to delay the creation of the <see cref="P:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.Stream"/> values 
-            until they are actually needed.
-            </summary>
-        </member>
-        <member name="P:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.Stream">
-            <summary>
-            Returns an existing open stream or null if no stream has been open.
+            Abstraction that allows the caller to delay the creation of the <see cref="T:System.IO.Stream"/> values 
+            until they are actually needed. The <see cref="T:System.IO.Stream"/> provided here is owned by 
+            this type and consumers should not dispose it.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.CreateStream(Microsoft.CodeAnalysis.DiagnosticBag)">
             <summary>
             This method will be called once during Emit at the time the Compilation needs 
             to create a stream for writing. It will not be called in the case of
-            user errors in code. Shall not be called when <see cref="P:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.Stream"/> returns non-null.
+            user errors in code. Shall not be called when <see cref="T:System.IO.Stream"/> returns non-null.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.GetOrCreateStream(Microsoft.CodeAnalysis.DiagnosticBag)">
             <summary>
-            Returns a <see cref="P:Microsoft.CodeAnalysis.Compilation.EmitStreamProvider.Stream"/>. If one cannot be gotten or created then a diagnostic will 
+            Returns a <see cref="T:System.IO.Stream"/>. If one cannot be gotten or created then a diagnostic will 
             be added to <paramref name="diagnostics"/>
             </summary>
         </member>
@@ -5412,6 +5469,20 @@
             within this compilation, the reference is considered to be used. Etc.
             The returned set is a subset of references returned by <see cref="P:Microsoft.CodeAnalysis.Compilation.References"/> API.
             The result is undefined if the compilation contains errors.
+            
+            The effect of imported namespaces on result of this API depends on whether reporting of
+            unused imports is disabled for the compilation. The reporting of unused imports is disabled
+            if <see cref="P:Microsoft.CodeAnalysis.ParseOptions.DocumentationMode"/> is set to <see cref="F:Microsoft.CodeAnalysis.DocumentationMode.None"/>.
+            
+            When unused imports reporting is disabled, all referenced assemblies containing any types
+            that belong to imported namespaces are included in the result. I.e. considered used.
+            
+            When unused imports reporting is enabled, imported namespaces do not have effect on the result
+            of this API. Therefore, removing assembly references that aren't in the result, could potentially
+            cause error "CS0246: The type or namespace name could not be found (are you missing a using directive or an assembly reference?)"
+            on an unused namespace import. However, that import would be reported by compiler as unused
+            for the compilation on which this API was invoked. In order to avoid the errors, it is recommended to
+            remove unused assembly references and unused imports at the same time.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Compilation.FilterAndAppendAndFreeDiagnostics(Microsoft.CodeAnalysis.DiagnosticBag,Microsoft.CodeAnalysis.DiagnosticBag@,System.Threading.CancellationToken)">
@@ -5465,7 +5536,7 @@
             Return true if the compilation contains any code or types.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Compilation.CompileMethods(Microsoft.CodeAnalysis.Emit.CommonPEModuleBuilder,System.Boolean,System.Boolean,System.Boolean,Microsoft.CodeAnalysis.DiagnosticBag,System.Predicate{Microsoft.CodeAnalysis.Symbols.ISymbolInternal},System.Threading.CancellationToken)">
+        <member name="M:Microsoft.CodeAnalysis.Compilation.CompileMethods(Microsoft.CodeAnalysis.Emit.CommonPEModuleBuilder,System.Boolean,Microsoft.CodeAnalysis.DiagnosticBag,System.Predicate{Microsoft.CodeAnalysis.Symbols.ISymbolInternal},System.Threading.CancellationToken)">
             <summary>
             Report declaration diagnostics and compile and synthesize method bodies.
             </summary>
@@ -6974,6 +7045,11 @@
             that do not declare their encoding via Byte Order Mark and are not UTF-8 encoded.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.EmitOptions._testOnly_AllowLocalStateTracing">
+            <summary>
+            Test only - allows us to test <see cref="F:Microsoft.CodeAnalysis.Emit.InstrumentationKindExtensions.LocalStateTracing"/>.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.EmitOptions.WithFileAlignment(System.Int32)">
             <summary>
             Sets the byte alignment for portable executable file sections.
@@ -7013,13 +7089,23 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage">
             <summary>
-            Instruments the binary to add test coverage.
+            Instruments the code to add test coverage.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Emit.IteratorMoveNextBodyDebugInfo">
             <summary>
             Represents additional info needed by iterator method implementation methods 
             (MoveNext methods) to properly emit necessary PDB data for iterator debugging.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Emit.MethodInstrumentation">
+            <summary>
+            Represents instrumentation of a method.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Emit.MethodInstrumentation.Kinds">
+            <summary>
+            Kinds of instrumentation to apply to the entire method body.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.NoPia.EmbeddedTypesManager`21.CommonEmbeddedMethod.ToString">
@@ -7082,7 +7168,14 @@
             should be preserved; false otherwise.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Emit.SemanticEdit.#ctor(Microsoft.CodeAnalysis.Emit.SemanticEditKind,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.ISymbol,System.Func{Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean)">
+        <member name="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.Instrumentation">
+            <summary>
+            Instrumentation update to be applied to a method.
+            If not empty, <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.OldSymbol"/> and <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol"/> must be non-null <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/>s, and
+            <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.Kind"/> must be <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Update"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.SemanticEdit.#ctor(Microsoft.CodeAnalysis.Emit.SemanticEditKind,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.ISymbol,System.Func{Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean,Microsoft.CodeAnalysis.Emit.MethodInstrumentation)">
             <summary>
             Initializes an instance of <see cref="T:Microsoft.CodeAnalysis.Emit.SemanticEdit"/>.
             </summary>
@@ -7101,12 +7194,22 @@
             <param name="preserveLocalVariables">
             True if the edit is an update of an active method and local values should be preserved; false otherwise.
             </param>
+            <param name="instrumentation">
+            Instrumentation update to be applied to a method.
+            </param>
             <exception cref="T:System.ArgumentNullException">
             <paramref name="oldSymbol"/> or <paramref name="newSymbol"/> is null and the edit isn't a <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Insert"/> or <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Delete"/>, respectively.
             </exception>
             <exception cref="T:System.ArgumentOutOfRangeException">
             <paramref name="kind"/> is not a valid kind.
             </exception>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.SemanticEdit.Equals(Microsoft.CodeAnalysis.Emit.SemanticEdit)">
+            <summary>
+            <see cref="T:Microsoft.CodeAnalysis.Emit.SemanticEdit"/>s are considered equal if they are of the same <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.Kind"/> and
+            the corresponding <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.OldSymbol"/> and <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol"/> symbols are the same.
+            The effects of edits that compare equal on the emitted metadata/IL are not necessarily the same.
+            </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.None">
             <summary>
@@ -10886,6 +10989,33 @@
             The operation representing the attribute. This can be a <see cref="T:Microsoft.CodeAnalysis.Operations.IObjectCreationOperation" /> in non-error cases, or an <see cref="T:Microsoft.CodeAnalysis.Operations.IInvalidOperation" /> in error cases.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation">
+            <summary>
+            Represents an element reference or a slice operation over an inline array type.
+            <para>
+              Current usage:
+              (1) C# inline array access.
+            </para>
+            </summary>
+            <remarks>
+            <para>This node is associated with the following operation kinds:</para>
+            <list type="bullet">
+            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.InlineArrayAccess"/></description></item>
+            </list>
+            <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+            change it in the future.</para>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation.Instance">
+            <summary>
+            Instance of the inline array type to be accessed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation.Argument">
+            <summary>
+            System.Int32, System.Index or System.Range value.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Operations.BlockOperation.CreateTemporaryBlock(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.SyntaxNode)">
             <summary>
             This creates a block that can be used for temporary, internal applications that require a block composed of
@@ -12307,9 +12437,14 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolsForNode(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)">
             <summary>
-            Gets the symbol associated with a declaration syntax node. Unlike <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolForNode(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)"/>,
-            this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-            which can declare multiple symbols, this method returns all declared symbols.
+            Gets the symbols associated with a declaration syntax node. Unlike <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolForNode(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)"/>,
+            this method returns all symbols declared by a given declaration syntax node. Specifically:
+            <list type="number">
+            <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+            all declared symbols.</item>
+            <item>in the case of type declarations with a primary constructor, both the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/>
+            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary contructor will be returned.</item>
+            </list>
             </summary>
             <param name="declaration">A syntax node that is a declaration. This can be any type
             derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
@@ -12320,9 +12455,14 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolsCore(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)">
             <summary>
-            Gets the symbol associated with a declaration syntax node. Unlike <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolForNode(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)"/>,
-            this method returns all symbols declared by a given declaration syntax node. Specifically, in the case of field declaration syntax nodes,
-            which can declare multiple symbols, this method returns all declared symbols.
+            Gets the symbols associated with a declaration syntax node. Unlike <see cref="M:Microsoft.CodeAnalysis.SemanticModel.GetDeclaredSymbolForNode(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)"/>,
+            this method returns all symbols declared by a given declaration syntax node. Specifically:
+            <list type="number">
+            <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
+            all declared symbols.</item>
+            <item>in the case of type declarations with a primary constructor, both the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/>
+            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary contructor will be returned.</item>
+            </list>
             </summary>
             <param name="declaration">A syntax node that is a declaration. This can be any type
             derived from MemberDeclarationSyntax, TypeDeclarationSyntax, EnumDeclarationSyntax,
@@ -13126,6 +13266,19 @@
             there were errors reading the file.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider`1">
+            <summary>
+            Provides custom values associated with <see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> instances using the given computeValue delegate.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider`1.#ctor(System.Func{Microsoft.CodeAnalysis.AdditionalText,`0},System.Collections.Generic.IEqualityComparer{Microsoft.CodeAnalysis.AdditionalText})">
+            <summary>
+            Provides custom values associated with <see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> instances using the given <paramref name="computeValue"/>.
+            </summary>
+            <param name="computeValue">Delegate to compute the value associated with a given <see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> instance.</param>
+            <param name="additionalTextComparer">Optional equality comparer to determine equivalent <see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> instances that have the same value.
+            If no comparer is provided, then <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/> is used by default.</param>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisContextInfo">
             <summary>
             this hold onto analyzer executor context which will be used later to put context information in analyzer exception if it occurs.
@@ -13206,6 +13359,28 @@
             could be scoped to a specific tree/span and/or a subset of analyzers (CompilationWithAnalyzers).
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.OriginalFilterFile">
+            <summary>
+            Original filter file for the input analysis scope.
+            Normally, this is the same as <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.FilterFileOpt"/>,
+            except for SymbolStart/End action execution where original input
+            file/span for diagnostic request can require analyzing other files/spans
+            which have partial definitions for the symbol being analyzed.
+            This property is used to ensure that SymbolStart action and SymbolEnd
+            action both receive this same original filter file.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.OriginalFilterSpan">
+            <summary>
+            Original filter span for the input analysis scope.
+            Normally, this is the same as <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.FilterSpanOpt"/>,
+            except for SymbolStart/End action execution where original input
+            file/span for diagnostic request can require analyzing other files/spans
+            which have partial definitions for the symbol being analyzed.
+            This property is used to ensure that SymbolStart action and SymbolEnd
+            action both receive this same original filter span.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.SyntaxTrees">
             <summary>
             Syntax trees on which we need to perform syntax analysis.
@@ -13214,11 +13389,6 @@
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.AdditionalFiles">
             <summary>
             Non-source files on which we need to perform analysis.
-            </summary>
-        </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.CategorizeDiagnostics">
-            <summary>
-            True if we need to categorize diagnostics into local and non-local diagnostics and track the analyzer reporting each diagnostic.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.IsSyntacticSingleFileAnalysis">
@@ -13231,10 +13401,18 @@
             True if we need to perform analysis for a single source or additional file.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.IsPartialAnalysis">
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.HasAllAnalyzers">
             <summary>
-            Flag indicating if this is a partial analysis for the corresponding <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>,
-            i.e. <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.IsSingleFileAnalysis"/> is true and/or <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.Analyzers"/> is a subset of <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/>.
+            Flag indicating if this analysis scope contains all analyzers from the corresponding <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>,
+            i.e. <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.Analyzers"/> is the same set as <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/>.
+            This flag is used to improve the performance for <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.Contains(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer)"/> check for
+            batch compilation scenario, where this flag is always true.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.IsSingleFileAnalysisForCompilerAnalyzer">
+            <summary>
+            True if we are performing syntactic or semantic analysis for a single source file with a single analyzer in scope,
+            which is a <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilerDiagnosticAnalyzer"/>.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisScope.IsSemanticSingleFileAnalysisForCompilerAnalyzer">
@@ -13671,7 +13849,7 @@
             <param name="severityFilter">Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.</param>
             <param name="isComment">Delegate to identify if the given trivia is a comment.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)">
             <summary>
             Initializes the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.AnalyzerActions"/> and related actions maps for the analyzer driver.
             It kicks off the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask"/> task for initialization.
@@ -13690,7 +13868,7 @@
             <param name="eventQueue">Compilation events to analyze.</param>
             <param name="analysisScope">Scope of analysis.</param>
             <param name="cancellationToken">Cancellation token to abort analysis.</param>
-            <remarks>Driver must be initialized before invoking this method, i.e. <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)"/> method must have been invoked and <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask"/> must be non-null.</remarks>
+            <remarks>Driver must be initialized before invoking this method, i.e. <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)"/> method must have been invoked and <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask"/> must be non-null.</remarks>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.AttachQueueAndStartProcessingEvents(Microsoft.CodeAnalysis.Diagnostics.AsyncQueue{Microsoft.CodeAnalysis.Diagnostics.CompilationEvent},Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,System.Boolean,System.Threading.CancellationToken)">
             <summary>
@@ -13700,7 +13878,7 @@
             <param name="analysisScope">Scope of analysis.</param>
             <param name="usingPrePopulatedEventQueue">Boolean flag indicating whether we should only process the already populated events or wait for <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationCompletedEvent"/>.</param>
             <param name="cancellationToken">Cancellation token to abort analysis.</param>
-            <remarks>Driver must be initialized before invoking this method, i.e. <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)"/> method must have been invoked and <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask"/> must be non-null.</remarks>
+            <remarks>Driver must be initialized before invoking this method, i.e. <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.DiagnosticQueue,Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationData,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,Roslyn.Utilities.ConcurrentSet{System.String},System.Threading.CancellationToken)"/> method must have been invoked and <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask"/> must be non-null.</remarks>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CreateAndAttachToCompilation(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions,Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,System.Action{Microsoft.CodeAnalysis.Diagnostic},System.Boolean,Microsoft.CodeAnalysis.Diagnostics.SeverityFilter,System.Boolean,Microsoft.CodeAnalysis.Compilation@,System.Threading.CancellationToken)">
             <summary>
@@ -13722,22 +13900,17 @@
             a new compilation. Any further actions on the compilation should use the new compilation.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.GetDiagnosticsAsync(Microsoft.CodeAnalysis.Compilation)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.GetDiagnosticsAsync(Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken)">
             <summary>
             Returns all diagnostics computed by the analyzers since the last time this was invoked.
             If <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.CompilationEventQueue"/> has been completed with all compilation events, then it waits for
             <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenCompletedTask"/> task for the driver to finish processing all events and generate remaining analyzer diagnostics.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.GetAllDescriptors">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.GetAllDiagnosticDescriptorsWithInfo(System.Threading.CancellationToken,System.Double@)">
             <summary>
-            Returns an array of all <see cref="T:Microsoft.CodeAnalysis.DiagnosticDescriptor"/>s for all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Analyzers"/> along
-            with a boolean value "HasAnyExternalSuppression" indicating if the diagnostic ID has any
-            external non-source suppression from editorconfig, ruleset, command line options, etc.,
-            which disables the descriptor for either part of the compilation or the entire compilation.
-            Note that this flag doesn't account for source suppressions from pragma directives,
-            SuppressMessageAttributes, DiagnosticSuppressors, etc. which suppresses individual instances
-            of reported diagnostics.
+            Returns an array of  <see cref="T:Microsoft.CodeAnalysis.DiagnosticDescriptor"/>s for all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.Analyzers"/>
+            along with <see cref="T:Microsoft.CodeAnalysis.DiagnosticDescriptorErrorLoggerInfo"/> to be logged by the <see cref="T:Microsoft.CodeAnalysis.ErrorLogger"/>.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.WhenInitializedTask">
@@ -13758,32 +13931,32 @@
             <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.EventProcessedState"/> indicating the current state of processing of the given compilation event.
             </returns>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.SeverityFilter)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,Microsoft.CodeAnalysis.Diagnostics.SeverityFilter,System.Threading.CancellationToken)">
             <summary>
             Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DeclaringReferenceSyntax">
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DeclaringReferenceSyntax">
             <summary>
             GetSyntax() for the given SyntaxReference.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.TopmostNodeForAnalysis">
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.TopmostNodeForAnalysis">
             <summary>
             Topmost declaration node for analysis.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DeclarationsInNode">
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DeclarationsInNode">
             <summary>
             All member declarations within the declaration.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DescendantNodesToAnalyze">
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.DescendantNodesToAnalyze">
             <summary>
             All descendant nodes for syntax node actions.
             </summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.IsPartialAnalysis">
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DeclarationAnalysisData.IsPartialAnalysis">
             <summary>
             Flag indicating if this is a partial analysis.
             </summary>
@@ -13841,12 +14014,21 @@
             a reported diagnostic from a syntax node action.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.AnalyzerDiagnosticReporter.FilterSpanForLocalDiagnostics">
+            <summary>
+            An optional filter span, which if non-null, indicates that diagnostics reported within this span
+            are considered local diagnostics, and those reported outside this span are considered non-local.
+            
+            NOTE: <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.AnalyzerDiagnosticReporter"/> is a pooled type that is always used from a single
+            thread, hence it is safe to expose a public mutable field.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor._analyzerExecutionTimeMap">
             <summary>
             The values in this map convert to <see cref="T:System.TimeSpan"/> using <see cref="M:System.TimeSpan.FromTicks(System.Int64)"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.Create(Microsoft.CodeAnalysis.Compilation,Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions,System.Action{Microsoft.CodeAnalysis.Diagnostic},System.Action{System.Exception,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostic},System.Func{System.Exception,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.Text.TextSpan,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Object},System.Func{Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SemanticModel},System.Boolean,System.Action{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},System.Action{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Action{Microsoft.CodeAnalysis.Diagnostics.Suppression},System.Threading.CancellationToken)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.Create(Microsoft.CodeAnalysis.Compilation,Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions,System.Action{Microsoft.CodeAnalysis.Diagnostic,System.Threading.CancellationToken},System.Action{System.Exception,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostic,System.Threading.CancellationToken},System.Func{System.Exception,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.Text.TextSpan,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider,System.Threading.CancellationToken,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Object},System.Func{Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SemanticModel},System.Boolean,System.Action{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean,System.Threading.CancellationToken},System.Action{Microsoft.CodeAnalysis.Diagnostic,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Threading.CancellationToken},System.Action{Microsoft.CodeAnalysis.Diagnostics.Suppression})">
             <summary>
             Creates <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor"/> to execute analyzer actions with given arguments
             </summary>
@@ -13878,39 +14060,29 @@
             <param name="addCategorizedLocalDiagnostic">Optional delegate to add categorized local analyzer diagnostics.</param>
             <param name="addCategorizedNonLocalDiagnostic">Optional delegate to add categorized non-local analyzer diagnostics.</param>
             <param name="addSuppression">Optional thread-safe delegate to add diagnostic suppressions from suppressors.</param>
-            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.CreateForSupportedDiagnostics(System.Action{System.Exception,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostic},Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager,System.Threading.CancellationToken)">
-            <summary>
-            Creates <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor"/> to fetch <see cref="P:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.SupportedDiagnostics"/>.
-            </summary>
-            <param name="onAnalyzerException">
-            Optional delegate which is invoked when an analyzer throws an exception.
-            Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-            </param>
-            <param name="analyzerManager">Analyzer manager to fetch supported diagnostics.</param>
-            <param name="cancellationToken">Cancellation token.</param>
-        </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteInitializeMethod(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.HostSessionStartAnalysisScope)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteInitializeMethod(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.HostSessionStartAnalysisScope,System.Threading.CancellationToken)">
             <summary>
             Executes the <see cref="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext)"/> for the given analyzer.
             </summary>
             <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
             <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
+            <param name="cancellationToken">Cancellation token.</param>
             <remarks>
             Note that this API doesn't execute any <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
-            Use <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationStartActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostCompilationStartAnalysisScope)"/> API
+            Use <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationStartActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostCompilationStartAnalysisScope,System.Threading.CancellationToken)"/> API
             to get execute these actions to get the per-compilation analyzer actions.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationStartActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostCompilationStartAnalysisScope)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationStartActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostCompilationStartAnalysisScope,System.Threading.CancellationToken)">
             <summary>
             Executes the compilation start actions.
             </summary>
             <param name="actions"><see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerActions"/> whose compilation start actions are to be executed.</param>
             <param name="compilationScope">Compilation scope to store the analyzer actions.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSymbolStartActions(Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostSymbolStartAnalysisScope,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSymbolStartActions(Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.HostSymbolStartAnalysisScope,System.Boolean,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
             <summary>
             Executes the symbol start actions.
             </summary>
@@ -13919,23 +14091,26 @@
             <param name="actions"><see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerActions"/> whose symbol start actions are to be executed.</param>
             <param name="symbolScope">Symbol scope to store the analyzer actions.</param>
             <param name="isGeneratedCodeSymbol">Flag indicating if the symbol being analyzed is generated code.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSuppressionAction(Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic})">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSuppressionAction(Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostic},System.Threading.CancellationToken)">
             <summary>
             Executes the given diagnostic suppressor.
             </summary>
             <param name="suppressor">Suppressor to be executed.</param>
             <param name="reportedDiagnostics">Reported analyzer/compiler diagnostics that can be suppressed.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.CompilationEvent)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCompilationActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.CompilationAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.CompilationEvent,System.Threading.CancellationToken)">
             <summary>
             Executes compilation actions or compilation end actions.
             </summary>
             <param name="compilationActions">Compilation actions to be executed.</param>
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="compilationEvent">Compilation event.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSymbolActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSymbolActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
             <summary>
             Execute the symbol actions on the given symbol.
             </summary>
@@ -13944,8 +14119,9 @@
             <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
             <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
             <param name="isGeneratedCodeSymbol">Flag indicating if this is a generated code symbol.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.TryExecuteSymbolEndActionsForContainer(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent@)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.TryExecuteSymbolEndActionsForContainer(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent@)">
             <summary>
             Execute the symbol end actions on the given namespace or type containing symbol for the process member symbol for the given analyzer.
             </summary>
@@ -13953,9 +14129,10 @@
             <param name="processedMemberSymbol">Completed member symbol.</param>
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+            <param name="filterSpan">Optional filter span for analysis.</param>
             <param name="isGeneratedCode">Flag indicating if the containing symbol being analyzed is generated code.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.TryExecuteSymbolEndActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolEndAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.TryExecuteSymbolEndActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SymbolEndAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SymbolDeclaredCompilationEvent,System.Func{Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.SyntaxReference,Microsoft.CodeAnalysis.Compilation,System.Threading.CancellationToken,Microsoft.CodeAnalysis.SyntaxNode},System.Boolean,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
             <summary>
             Tries to execute the symbol end actions on the given symbol for the given analyzer.
             </summary>
@@ -13963,56 +14140,62 @@
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="symbolDeclaredEvent">Symbol event to be analyzed.</param>
             <param name="getTopMostNodeForAnalysis">Delegate to get topmost declaration node for a symbol declaration reference.</param>
+            <param name="filterSpan">Optional filter span for analysis.</param>
             <param name="isGeneratedCode">Flag indicating if the symbol being analyzed is generated code.</param>
+            <param name="cancellationToken">Cancellation token.</param>
             <returns>
             True, if successfully executed the actions for the given analysis scope OR all the actions have already been executed for the given analysis scope.
             False, if there are some pending actions.
             </returns>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSemanticModelActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.Diagnostics.CompilationUnitCompletedEvent,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSemanticModelActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute the semantic model actions on the given semantic model.
             </summary>
             <param name="semanticModelActions">Semantic model actions to be executed.</param>
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="semanticModel">Semantic model to analyze.</param>
-            <param name="compilationUnitCompletedEvent">Compilation event for semantic model analysis.</param>
-            <param name="analysisScope">Scope for analyzer execution.</param>
+            <param name="filterSpan">Optional filter span for analysis.</param>
             <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSyntaxTreeActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SourceOrAdditionalFile,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSyntaxTreeActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SourceOrAdditionalFile,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute the syntax tree actions on the given syntax tree.
             </summary>
             <param name="syntaxTreeActions">Syntax tree actions to be executed.</param>
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="file">Syntax tree to analyze.</param>
+            <param name="filterSpan">Optional filter span within the <paramref name="file"/> for analysis.</param>
             <param name="isGeneratedCode">Flag indicating if the syntax tree being analyzed is generated code.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAdditionalFileActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SourceOrAdditionalFile)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAdditionalFileActions(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.SourceOrAdditionalFile,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
             <summary>
             Execute the additional file actions.
             </summary>
             <param name="additionalFileActions">Actions to be executed.</param>
             <param name="analyzer">Analyzer whose actions are to be executed.</param>
             <param name="file">Additional file to analyze.</param>
+            <param name="filterSpan">Optional filter span within the <paramref name="file"/> for analysis.</param>
+            <param name="cancellationToken">Cancellation token.</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCodeBlockActions``1(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalyzerAction{``0}},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ISymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.SyntaxNode},Microsoft.CodeAnalysis.SemanticModel,System.Func{Microsoft.CodeAnalysis.SyntaxNode,``0},System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteCodeBlockActions``1(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalyzerAction{``0}},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ISymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.SyntaxNode},Microsoft.CodeAnalysis.SemanticModel,System.Func{Microsoft.CodeAnalysis.SyntaxNode,``0},System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute code block actions for the given analyzer for the given declaration.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteOperationBlockActions(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ISymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.SemanticModel,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteOperationBlockActions(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalyzerAction},System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalyzerAction},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.ISymbol,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.SemanticModel,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute operation block actions for the given analyzer for the given declaration.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSyntaxNodeActions``1(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.SyntaxNode},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary{``0,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalyzerAction{``0}}},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,System.Func{Microsoft.CodeAnalysis.SyntaxNode,``0},Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.ISymbol,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteSyntaxNodeActions``1(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.SyntaxNode},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary{``0,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalyzerAction{``0}}},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,System.Func{Microsoft.CodeAnalysis.SyntaxNode,``0},Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.ISymbol,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute syntax node actions for the given analyzer for the given declaration.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteOperationActions(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary{Microsoft.CodeAnalysis.OperationKind,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.OperationAnalyzerAction}},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.ISymbol,System.Boolean)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteOperationActions(System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary{Microsoft.CodeAnalysis.OperationKind,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.OperationAnalyzerAction}},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.Text.TextSpan,Microsoft.CodeAnalysis.ISymbol,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
             <summary>
             Execute operation actions for the given analyzer for the given declaration.
             </summary>
@@ -14097,6 +14280,11 @@
             3) <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction"/> registered during Initialize are invoked only once per-compilation per-analyzer and analyzer options.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.s_localizableStringToException">
+            <summary>
+            Cached mapping of localizable strings in this descriptor to any exceptions thrown while obtaining them.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext._lazyPendingMemberSymbolsMap">
             <summary>
             Map from (symbol, analyzer) to count of its member symbols whose symbol declared events are not yet processed.
@@ -14133,46 +14321,51 @@
             Supported suppression descriptors for diagnostic suppressor, if any.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.ComputeDiagnosticDescriptors_NoLock(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.ComputeDiagnosticDescriptors_NoLock(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Compute <see cref="P:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.SupportedDiagnostics"/> and exception handler for the given <paramref name="analyzer"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetAnalyzerActionsAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetAnalyzerActionsAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Get all the analyzer actions to execute for the given analyzer against a given compilation.
             The returned actions include the actions registered during <see cref="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext)"/> method as well as
             the actions registered during <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalyzerAction"/> for the given compilation.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(Microsoft.CodeAnalysis.ISymbol,System.Boolean,Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetPerSymbolAnalyzerActionsAsync(Microsoft.CodeAnalysis.ISymbol,System.Boolean,Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Get the per-symbol analyzer actions to be executed by the given analyzer.
             These are the actions registered during the various RegisterSymbolStartAction method invocations for the given symbol on different analysis contexts.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.IsConcurrentAnalyzerAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.IsConcurrentAnalyzerAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="M:Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.EnableConcurrentExecution"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetGeneratedCodeAnalysisFlagsAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetGeneratedCodeAnalysisFlagsAsync(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Returns <see cref="T:Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags"/> for the given analyzer.
             If an analyzer hasn't configured generated code analysis, returns <see cref="F:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetSupportedDiagnosticDescriptors(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetSupportedDiagnosticDescriptors(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Return <see cref="P:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.SupportedDiagnostics"/> of given <paramref name="analyzer"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetSupportedSuppressionDescriptors(Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.GetSupportedSuppressionDescriptors(Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor,Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,System.Threading.CancellationToken)">
             <summary>
             Return <see cref="P:Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor.SupportedSuppressions"/> of given <paramref name="suppressor"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.SeverityFilter)">
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor,Microsoft.CodeAnalysis.Diagnostics.AnalysisScope,Microsoft.CodeAnalysis.Diagnostics.SeverityFilter,System.Threading.CancellationToken)">
+            <summary>
+            Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.IsDiagnosticAnalyzerSuppressed(Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,Microsoft.CodeAnalysis.CompilationOptions,System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Boolean},Microsoft.CodeAnalysis.Diagnostics.SeverityFilter,System.Func{Microsoft.CodeAnalysis.DiagnosticDescriptor,System.Boolean},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.DiagnosticDescriptor}},System.Func{Microsoft.CodeAnalysis.Diagnostics.DiagnosticSuppressor,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.SuppressionDescriptor}},System.Threading.CancellationToken)">
             <summary>
             Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
             </summary>
@@ -14434,11 +14627,6 @@
             See https://github.com/dotnet/roslyn/issues/56843 for details.
             </summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers._driverPool">
-            <summary>
-            Pool of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver"/>s used for analyzer execution.
-            </summary>
-        </member>
         <member name="F:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers._analysisResultBuilder">
             <summary>
             Builder for storing current, possibly partial, analysis results:
@@ -14449,11 +14637,6 @@
         <member name="F:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers._exceptionDiagnostics">
             <summary>
             Set of exception diagnostics reported for exceptions thrown by the analyzers.
-            </summary>
-        </member>
-        <member name="F:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers._eventQueuePool">
-            <summary>
-            Pool of event queues to serve each diagnostics request.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Compilation">
@@ -14478,13 +14661,15 @@
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.#ctor(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.#ctor(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.#ctor(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions)">
             <summary>
             Creates a new compilation by attaching diagnostic analyzers to an existing compilation.
             </summary>
             <param name="compilation">The original compilation.</param>
             <param name="analyzers">The set of analyzers to include in future analyses.</param>
             <param name="options">Options that are passed to analyzers.</param>
-            <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.#ctor(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions)">
             <summary>
@@ -14555,6 +14740,17 @@
             <param name="tree">Syntax tree to analyze.</param>
             <param name="cancellationToken">Cancellation token.</param>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
+            <summary>
+            Returns syntax diagnostics produced by all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+            Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
+            and some diagnostics that would be reported for the tree by an analysis of the complete compilation
+            can be absent.
+            </summary>
+            <param name="tree">Syntax tree to analyze.</param>
+            <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Threading.CancellationToken)">
             <summary>
             Returns syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>.
@@ -14566,12 +14762,34 @@
             <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
             <param name="cancellationToken">Cancellation token.</param>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Threading.CancellationToken)">
+            <summary>
+            Returns syntax diagnostics produced by given <paramref name="analyzers"/> from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+            Depending on analyzers' behavior, returned diagnostics can have locations outside the tree or filter span,
+            and some diagnostics that would be reported for the tree by an analysis of the complete compilation
+            can be absent.
+            </summary>
+            <param name="tree">Syntax tree to analyze.</param>
+            <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
+            <param name="filterSpan">Optional filter span to analyze within the tree.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Threading.CancellationToken)">
             <summary>
             Returns an <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult"/> populated with <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics"/> produced by all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/> from analyzing the given <paramref name="tree"/>.
             Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
             </summary>
             <param name="tree">Syntax tree to analyze.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
+            <summary>
+            Returns an <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult"/> populated with <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics"/> produced by all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/>
+            from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+            Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+            </summary>
+            <param name="tree">Syntax tree to analyze.</param>
+            <param name="filterSpan">Optional filter span to analyze within the tree.</param>
             <param name="cancellationToken">Cancellation token.</param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Threading.CancellationToken)">
@@ -14581,6 +14799,17 @@
             </summary>
             <param name="tree">Syntax tree to analyze.</param>
             <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Threading.CancellationToken)">
+            <summary>
+            Returns an <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult"/> populated with <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics"/> produced by given <paramref name="analyzers"/>
+            from analyzing the given <paramref name="tree"/>, optionally scoped to a <paramref name="filterSpan"/>.
+            Depending on analyzers' behavior, some diagnostics that would be reported for the tree by an analysis of the complete compilation can be absent.
+            </summary>
+            <param name="tree">Syntax tree to analyze.</param>
+            <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
+            <param name="filterSpan">Optional filter span to analyze within the tree.</param>
             <param name="cancellationToken">Cancellation token.</param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText,System.Threading.CancellationToken)">
@@ -14599,6 +14828,29 @@
             Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
             </summary>
             <param name="file">Additional file to analyze.</param>
+            <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
+            <summary>
+            Returns an <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult"/> populated with <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AdditionalFileDiagnostics"/> produced by all <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.Analyzers"/> from analyzing the given additional <paramref name="file"/>,
+            optionally scoped to a <paramref name="filterSpan"/>.
+            The given <paramref name="file"/> must be part of <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AdditionalFiles"/> for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+            Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
+            </summary>
+            <param name="file">Additional file to analyze.</param>
+            <param name="filterSpan">Optional filter span to analyze within the <paramref name="file"/>.</param>
+            <param name="cancellationToken">Cancellation token.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(Microsoft.CodeAnalysis.AdditionalText,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},System.Threading.CancellationToken)">
+            <summary>
+            Returns an <see cref="T:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult"/> populated with <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AdditionalFileDiagnostics"/> produced by given <paramref name="analyzers"/> from analyzing the given additional <paramref name="file"/>,
+            optionally scoped to a <paramref name="filterSpan"/>.
+            The given <paramref name="file"/> must be part of <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions.AdditionalFiles"/> for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.AnalysisOptions"/> for this CompilationWithAnalyzers instance.
+            Depending on analyzers' behavior, some diagnostics that would be reported for the file by an analysis of the complete compilation can be absent.
+            </summary>
+            <param name="file">Additional file to analyze.</param>
+            <param name="filterSpan">Optional filter span to analyze within the <paramref name="file"/>.</param>
             <param name="analyzers">Analyzers whose diagnostics are required. All the given analyzers must be from the analyzers passed into the constructor of <see cref="T:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers"/>.</param>
             <param name="cancellationToken">Cancellation token.</param>
         </member>
@@ -14687,7 +14939,7 @@
             <param name="onAnalyzerException">
             Optional delegate which is invoked when an analyzer throws an exception.
             Delegate can do custom tasks such as report the given analyzer exception diagnostic, report a non-fatal watson for the exception, etc.
-            </param>        
+            </param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.ClearAnalyzerState(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer})">
             <summary>
@@ -14978,6 +15230,18 @@
             <param name="value">Value associated with the key.</param>
             <returns>Returns true on success, false otherwise.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.TryGetValue``1(Microsoft.CodeAnalysis.AdditionalText,Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider{``0},``0@)">
+            <summary>
+            Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+            Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+            Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+            </summary>
+            <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+            <param name="text"><see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> for which the value is queried.</param>
+            <param name="valueProvider">Provider that computes the underlying value.</param>
+            <param name="value">Value associated with the key.</param>
+            <returns>Returns true on success, false otherwise.</returns>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.GeneratedCodeAnalysisFlags">
             <summary>
             Flags to configure mode of generated code analysis.
@@ -15179,6 +15443,18 @@
             <param name="value">Value associated with the key.</param>
             <returns>Returns true on success, false otherwise.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue``1(Microsoft.CodeAnalysis.AdditionalText,Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider{``0},``0@)">
+            <summary>
+            Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+            Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+            Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+            </summary>
+            <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+            <param name="text"><see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> instance for which the value is queried.</param>
+            <param name="valueProvider">Provider that computes the underlying value.</param>
+            <param name="value">Value associated with the key.</param>
+            <returns>Returns true on success, false otherwise.</returns>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.TryGetValue``1(Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider{``0},``0@)">
             <summary>
             Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
@@ -15230,6 +15506,18 @@
             <param name="value">Value associated with the key.</param>
             <returns>Returns true on success, false otherwise.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue``1(Microsoft.CodeAnalysis.AdditionalText,Microsoft.CodeAnalysis.Diagnostics.AdditionalTextValueProvider{``0},``0@)">
+            <summary>
+            Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="text"/>.
+            Note that the pair {<paramref name="valueProvider"/>, <paramref name="text"/>} acts as the key.
+            Reusing the same <paramref name="valueProvider"/> instance across analyzer actions and/or analyzer instances can improve the overall analyzer performance by avoiding recomputation of the values.
+            </summary>
+            <typeparam name="TValue">The type of the value associated with the key.</typeparam>
+            <param name="text"><see cref="T:Microsoft.CodeAnalysis.AdditionalText"/> for which the value is queried.</param>
+            <param name="valueProvider">Provider that computes the underlying value.</param>
+            <param name="value">Value associated with the key.</param>
+            <returns>Returns true on success, false otherwise.</returns>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.CompilationAnalysisContext.TryGetValue``1(Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeValueProvider{``0},``0@)">
             <summary>
             Attempts to compute or get the cached value provided by the given <paramref name="valueProvider"/> for the given <paramref name="tree"/>.
@@ -15263,9 +15551,16 @@
             Token to check for requested cancellation of the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.SemanticModel"/> being analyzed.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterSpan">
             <summary>
-            Optional filter span for which to compute diagnostics.
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.FilterTree"/>
+            or the entire compilation.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SemanticModelAnalysisContext.IsGeneratedCode">
@@ -15299,6 +15594,20 @@
             <summary>
             Options specified for the analysis.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree">
+            <summary>
+            Optional filter tree being analyzed.
+            <see langword="null"/> if we are analyzing the entire compilation.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree"/>
+            or the entire compilation.
+            </summary>
+            <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.FilterTree"/> is <see langword="null"/>.</remarks>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolAnalysisContext.CancellationToken">
             <summary>
@@ -15341,6 +15650,20 @@
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.Symbol"/> is generated code.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree">
+            <summary>
+            Optional filter tree being analyzed.
+            <see langword="null"/> if we are analyzing the entire compilation.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree"/>
+            or the entire compilation.
+            </summary>
+            <remarks>This property is guaranteed to be <see langword="null"/> if <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.FilterTree"/> is <see langword="null"/>.</remarks>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SymbolStartAnalysisContext.CancellationToken">
             <summary>
@@ -15458,6 +15781,18 @@
             Options specified for the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.FilterTree">
+            <summary>
+            Syntax tree corresponding to the code block being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.FilterTree"/>
+            or the entire compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.IsGeneratedCode">
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockStartAnalysisContext`1.CodeBlock"/> is generated code.
@@ -15519,6 +15854,18 @@
             Options specified for the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the code block being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.FilterTree"/>
+            or the entire compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.IsGeneratedCode">
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.CodeBlockAnalysisContext.CodeBlock"/> is generated code.
@@ -15571,6 +15918,18 @@
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.Options">
             <summary>
             Options specified for the analysis.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.OperationBlocks"/> being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.FilterTree"/>
+            or the entire compilation.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.IsGeneratedCode">
@@ -15643,6 +16002,18 @@
             Options specified for the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks"/> being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.FilterTree"/>
+            or the entire compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.IsGeneratedCode">
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext.OperationBlocks"/> is generated code.
@@ -15681,6 +16052,13 @@
             Options specified for the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.Tree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.Tree"/>
+            or the entire compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.IsGeneratedCode">
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxTreeAnalysisContext.Tree"/> is generated code.
@@ -15711,6 +16089,13 @@
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.Options">
             <summary>
             Options specified for the analysis.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.AdditionalFile"/>
+            or the entire compilation.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.AdditionalFileAnalysisContext.CancellationToken">
@@ -15761,6 +16146,18 @@
             Options specified for the analysis.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Node"/> being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.FilterTree"/>
+            or the entire compilation.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.IsGeneratedCode">
             <summary>
             Indicates if the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.SyntaxNodeAnalysisContext.Node"/> is generated code.
@@ -15801,6 +16198,18 @@
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Options">
             <summary>
             Options specified for the analysis.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterTree">
+            <summary>
+            Syntax tree for the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Operation"/> being analyzed.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterSpan">
+            <summary>
+            Optional filter span within the <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterTree"/> for which to compute diagnostics.
+            <see langword="null"/> if we are analyzing the entire <see cref="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.FilterTree"/>
+            or the entire compilation.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.IsGeneratedCode">
@@ -15900,13 +16309,15 @@
             <param name="additionalLanguages">Additional languages to which the analyzer applies. See <see cref="T:Microsoft.CodeAnalysis.LanguageNames"/>.</param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions,System.Threading.CancellationToken)">
+            <inheritdoc cref="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions)"/>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions)">
             <summary>
             Returns a new compilation with attached diagnostic analyzers.
             </summary>
             <param name="compilation">Compilation to which analyzers are to be added.</param>
             <param name="analyzers">The set of analyzers to include in future analyses.</param>
             <param name="options">Options that are passed to analyzers.</param>
-            <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(Microsoft.CodeAnalysis.Compilation,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer},Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzersOptions)">
             <summary>
@@ -16208,6 +16619,14 @@
             </summary>
             <param name="fullPath"></param>
             <returns></returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(System.String)">
+            <summary>
+            Return an <see cref="T:Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
+            most appropriate for the current platform.
+            </summary>
+            <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
+            will be the base directory where shadow copy assemblies are stored. </param>
         </member>
         <member name="T:Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader">
             <summary>
@@ -19958,6 +20377,9 @@
         <member name="F:Microsoft.CodeAnalysis.OperationKind.Attribute">
             <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IAttributeOperation"/>.</summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.OperationKind.InlineArrayAccess">
+            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation"/>.</summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.InternalUtilities.ConcurrentLruCache`2">
             <summary>
             Cache with a fixed size that evicts the least recently used members.
@@ -20115,6 +20537,12 @@
         <member name="T:Microsoft.CodeAnalysis.LittleEndianReader">
             <summary>
             A Span-compatible version of <see cref="T:System.IO.BinaryReader"/>.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.EmptyReadOnlyMemoryOfCharComparer">
+            <summary>
+            Very cheap trivial comparer that never matches the keys,
+            should only be used in empty dictionaries.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.StackGuard.EnsureSufficientExecutionStack(System.Int32)">
@@ -20701,9 +21129,21 @@
             Namespace name for top level types.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceNameMemory">
+            <summary>
+            <see cref="T:System.ReadOnlyMemory`1"/> version of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceName"/>.  Preferred when possible to avoid
+            the copy of the portion of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._fullName"/> used for <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceName"/>.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.MetadataTypeName._typeName">
             <summary>
             Name of the type without namespace prefix, but possibly with generic arity mangling present.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.MetadataTypeName._typeNameMemory">
+            <summary>
+            <see cref="T:System.ReadOnlyMemory`1"/> version of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._typeName"/>.  Preferred when possible to avoid
+            the copy of the portion of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._fullName"/> used for <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._typeName"/>.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.MetadataTypeName._unmangledTypeName">
@@ -20739,20 +21179,35 @@
             Individual parts of qualified namespace name.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceSegmentsMemory">
+            <summary>
+            <see cref="T:System.ReadOnlyMemory`1"/> version of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceSegments"/>.  Preferred when possible to
+            avoid the copies of the portions of <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._fullName"/> used for <see cref="F:Microsoft.CodeAnalysis.MetadataTypeName._namespaceSegments"/>.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.FullName">
             <summary>
             Full metadata name of a type, includes namespace name for top level types.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceNameMemory">
+            <inheritdoc cref="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceName"/>
         </member>
         <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceName">
             <summary>
             Namespace name for top level types, empty string for nested types.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.TypeNameMemory">
+            <inheritdoc cref="P:Microsoft.CodeAnalysis.MetadataTypeName.TypeName"/>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.TypeName">
             <summary>
             Name of the type without namespace prefix, but possibly with generic arity mangling present.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.UnmangledTypeNameMemory">
+            <inheritdoc cref="P:Microsoft.CodeAnalysis.MetadataTypeName.UnmangledTypeName"/>
         </member>
         <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.UnmangledTypeName">
             <summary>
@@ -20785,6 +21240,9 @@
             If ForcedArity >= 0 and UseCLSCompliantNameArityEncoding, lookup may
             fail because ForcedArity doesn't match the one encoded in the name.
             </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceSegmentsMemory">
+            <inheritdoc cref="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceSegments"/>
         </member>
         <member name="P:Microsoft.CodeAnalysis.MetadataTypeName.NamespaceSegments">
             <summary>
@@ -21513,6 +21971,17 @@
         <member name="M:Microsoft.CodeAnalysis.AssemblyIdentity.ToString">
             <summary>
             Returns the display name of the current instance.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.AssemblyIdentity.s_TryParseDisplayNameCache">
+            <summary>
+            Perf: ETW traces show 2%+ of all allocations parsing assembly identity names.  This is due to how large
+            these strings can be (600+ characters in some cases), and how many substrings are continually produced as
+            the string is broken up into the pieces needed by AssemblyIdentity.  The capacity of 1024 was picked as
+            around 700 unique strings were found in a solution the size of Roslyn.sln.  So this seems like a reasonable
+            starting point for a large solution.  This cache takes up around 240k in memory, but ends up saving >80MB of
+            garbage over typing even a few characters.  And, of course, that savings just grows over the lifetime of a
+            session this is hosted within.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.AssemblyIdentity.TryParseDisplayName(System.String,Microsoft.CodeAnalysis.AssemblyIdentity@,Microsoft.CodeAnalysis.AssemblyIdentityParts@)">
@@ -22920,13 +23389,13 @@
             </param>
             <returns>Boolean.</returns>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.AssemblyData.BindAssemblyReferences(Roslyn.Utilities.MultiDictionary{System.String,System.ValueTuple{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData,System.Int32}},Microsoft.CodeAnalysis.AssemblyIdentityComparer)">
+        <member name="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.AssemblyData.BindAssemblyReferences(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData},Microsoft.CodeAnalysis.AssemblyIdentityComparer)">
             <summary>
             Resolve assembly references against assemblies described by provided AssemblyData objects. 
             In other words, match assembly identities returned by AssemblyReferences property against 
             assemblies described by provided AssemblyData objects.
             </summary>
-            <param name="assemblies">AssemblyData objects to match against.</param>
+            <param name="assemblies">An array of AssemblyData objects to match against.</param>
             <param name="assemblyIdentityComparer">Used to compare assembly identities.</param>
             <returns>
             For each assembly referenced by this assembly (<see cref="P:Microsoft.CodeAnalysis.CommonReferenceManager`2.AssemblyData.AssemblyReferences"/>) 
@@ -23097,7 +23566,7 @@
             
              -    Result of resolving assembly references of the corresponding assembly 
                  against provided set of assembly definitions. Essentially, this is an array returned by
-                 <see cref="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.AssemblyData.BindAssemblyReferences(Roslyn.Utilities.MultiDictionary{System.String,System.ValueTuple{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData,System.Int32}},Microsoft.CodeAnalysis.AssemblyIdentityComparer)"/> method.
+                 <see cref="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.AssemblyData.BindAssemblyReferences(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData},Microsoft.CodeAnalysis.AssemblyIdentityComparer)"/> method.
              </return>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.TryResolveMissingReference(Microsoft.CodeAnalysis.MetadataReference,Microsoft.CodeAnalysis.AssemblyIdentity,System.Collections.Immutable.ImmutableDictionary{Microsoft.CodeAnalysis.AssemblyIdentity,Microsoft.CodeAnalysis.PortableExecutableReference}@,Microsoft.CodeAnalysis.MetadataReferenceResolver,Microsoft.CodeAnalysis.DiagnosticBag,Microsoft.CodeAnalysis.AssemblyIdentity@,Microsoft.CodeAnalysis.AssemblyMetadata@,Microsoft.CodeAnalysis.PortableExecutableReference@)">
@@ -23271,12 +23740,12 @@
             For each given directive return a bound PE reference, or null if the binding fails.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.ResolveReferencedAssembly(Microsoft.CodeAnalysis.AssemblyIdentity,Roslyn.Utilities.MultiDictionary{System.String,System.ValueTuple{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData,System.Int32}},System.Boolean,Microsoft.CodeAnalysis.AssemblyIdentityComparer)">
+        <member name="M:Microsoft.CodeAnalysis.CommonReferenceManager`2.ResolveReferencedAssembly(Microsoft.CodeAnalysis.AssemblyIdentity,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CommonReferenceManager{`0,`1}.AssemblyData},System.Int32,Microsoft.CodeAnalysis.AssemblyIdentityComparer)">
             <summary>
             Used to match AssemblyRef with AssemblyDef.
             </summary>
-            <param name="definitions">Definitions to match against.</param>
-            <param name="resolveAgainstAssemblyBeingBuilt">Whether to attempt to resolve the reference against the assembly being built (index 0).</param>
+            <param name="definitions">Array of definition identities to match against.</param>
+            <param name="definitionStartIndex">An index of the first definition to consider, <paramref name="definitions"/> preceding this index are ignored.</param>
             <param name="reference">Reference identity to resolve.</param>
             <param name="assemblyIdentityComparer">Assembly identity comparer.</param>
             <returns>
@@ -23788,6 +24257,11 @@
             Indicates that this version of runtime supports virtual static members of interfaces.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.RuntimeCapability.InlineArrayTypes">
+            <summary>
+            Indicates that this version of runtime supports inline array types.
+            </summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.TextEncodingKind">
             <summary>
             Well known encodings. Used to distinguish serialized encodings with BOM and without BOM.
@@ -23927,6 +24401,10 @@
             <remarks>
             The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="P:Microsoft.CodeAnalysis.GeneratorExecutionContext.Compilation"/> settings.
             </remarks>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="diagnostic"/> is located in a syntax tree which is not part of the compilation,
+            its location span is outside of the given file, or its identifier is not valid.
+            </exception>
         </member>
         <member name="T:Microsoft.CodeAnalysis.GeneratorInitializationContext">
             <summary>
@@ -24222,8 +24700,12 @@
             </summary>
             <param name="diagnostic">The diagnostic that should be added to the compilation</param>
             <remarks>
-            The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="T:Microsoft.CodeAnalysis.Compilation"/> settings.
+            The severity of the diagnostic may cause the compilation to fail, depending on the <see cref="F:Microsoft.CodeAnalysis.SourceProductionContext.Compilation"/> settings.
             </remarks>
+            <exception cref="T:System.ArgumentException">
+            <paramref name="diagnostic"/> is located in a syntax tree which is not part of the compilation,
+            its location span is outside of the given file, or its identifier is not valid.
+            </exception>
         </member>
         <member name="T:Microsoft.CodeAnalysis.IncrementalGeneratorRunStep">
             <summary>
@@ -24237,7 +24719,7 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.IncrementalStepRunReason.New">
             <summary>
-            The output of this step is a new output produced from a new input.
+            The input to this step was added or modified from a previous run, and it produced a new output.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.IncrementalStepRunReason.Modified">
@@ -24257,7 +24739,7 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.IncrementalStepRunReason.Removed">
             <summary>
-            The input that this output is generated from was removed from the input step's outputs, so this value will be removed from the output step results.
+            The input to this step was removed or modified from a previous run, and the output it used to generate is no longer present.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.IncrementalValueProvider`1">
@@ -24454,7 +24936,22 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.NodeStateTable`1.IsCached">
             <summary>
-            Indicates if every entry in this table has a state of <see cref="F:Microsoft.CodeAnalysis.EntryState.Cached"/>
+            Indicates that this table is unchanged from the previous version.
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.NodeStateTable`1.Builder">
+            <remarks>
+            The builder is <b>not</b> threadsafe.
+            </remarks>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry.s_allRemovedEntries">
+            <summary>
+            All items removed as part of a transformation from non-empty input.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry.s_allRemovedDueToInputRemoval">
+            <summary>
+            All items removed because the input has been removed.
             </summary>
         </member>
         <member name="F:Microsoft.CodeAnalysis.NodeStateTable`1.TableEntry._states">
@@ -24625,13 +25122,20 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.GeneratorRunResult.TrackedSteps">
             <summary>
-            A collection of the named incremental steps executed during the generator pass this result represents.
+            A collection of the named incremental steps (both intermediate and final output ones)
+            executed during the generator pass this result represents.
             </summary>
+            <remarks>
+            Steps can be named by extension method WithTrackingName.
+            </remarks>
         </member>
         <member name="P:Microsoft.CodeAnalysis.GeneratorRunResult.TrackedOutputSteps">
             <summary>
-            A collection of the named incremental steps executed during the generator pass this result represents.
+            A collection of the named output steps executed during the generator pass this result represents.
             </summary>
+            <remarks>
+            Steps can be named by extension method WithTrackingName.
+            </remarks>
         </member>
         <member name="T:Microsoft.CodeAnalysis.GeneratedSourceResult">
             <summary>
@@ -24963,6 +25467,11 @@
             An attribute that is placed on each method with a 'methodimpl" aka ".override" in metadata.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute">
+            <summary>
+            An attribute that is placed on an inline array type.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.SpecialType.Count">
             <summary>
             Count of special types. This is not a count of enum members.
@@ -25277,11 +25786,17 @@
             Display `MyType@File.cs` instead of `MyType`.
             </summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.IncludeParameterNameIfStandalone">
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.ExcludeParameterNameIfStandalone">
             <summary>
-            Equivalent to <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayParameterOptions.IncludeName"/>
-            but only if the parameter is displayed on its own
+            Does not include parameter name if the parameter is displayed on its own
             (i.e., not as part of a method, delegate, or indexer).
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.IncludeFileLocalTypesPrefix">
+            <summary>
+            Display `&lt;File&gt;F&lt;sha256-hex-string&gt;_MyType` instead of `MyType`.
+            Differs from <see cref="F:Microsoft.CodeAnalysis.SymbolDisplayCompilerInternalOptions.IncludeContainingFileForFileTypes"/> because it guarantees that
+            the prefix will be unique for all files which are permitted to declare file-local types.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.SymbolDisplayDelegateStyle">
@@ -26508,14 +27023,19 @@
             is to use it on a symbol that is a definition.
             </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.Symbols.ISymbolInternal.IsDefinedInSourceTree(Microsoft.CodeAnalysis.SyntaxTree,System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)">
+            <summary>
+            <see langword="true"/> if this symbol has any location that is within <paramref name="tree"/>. <see
+            langword="false"/> otherwise. Can be more efficient than iteration over all the <see
+            cref="P:Microsoft.CodeAnalysis.ISymbol.Locations"/> as it will avoid an unnecessary array allocation.
+            </summary>
+            <param name="definedWithinSpan">Optional span.  If present, the location of this symbol must be both inside
+            this tree and within the span passed in.</param>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Symbols.ISynthesizedMethodBodyImplementationSymbol">
             <summary>
             Synthesized symbol that implements a method body feature (iterator, async, lambda, etc.)
             </summary>
-            <remarks>
-            This interface is reserved for implementation by its associated APIs. We reserve the right to
-            change it in the future.
-            </remarks>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Symbols.ISynthesizedMethodBodyImplementationSymbol.Method">
             <summary>
@@ -26648,7 +27168,7 @@
             Decode the arguments to DeprecatedAttribute. DeprecatedAttribute can have 3 or 4 arguments.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.AttributeData.DecodeExperimentalAttribute">
+        <member name="M:Microsoft.CodeAnalysis.AttributeData.DecodeWindowsExperimentalAttribute">
             <summary>
             Decode the arguments to ExperimentalAttribute. ExperimentalAttribute has 0 arguments.
             </summary>
@@ -28939,8 +29459,12 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.ITypeSymbol.IsRecord">
             <summary>
-            True if the type is a record.
+            For source symbols, true if the type is a record.
+            For metadata symbols, true if the type is a record and a reference type.
             </summary>
+            <remarks>
+            Returns false for record structs in metadata since they don't have any distinctive marker.
+            </remarks>
         </member>
         <member name="M:Microsoft.CodeAnalysis.ITypeSymbol.ToDisplayString(Microsoft.CodeAnalysis.NullableFlowState,Microsoft.CodeAnalysis.SymbolDisplayFormat)">
             <summary>
@@ -29283,6 +29807,11 @@
         <member name="F:Microsoft.CodeAnalysis.RefKind.RefReadOnly">
             <summary>
             Indicates a "ref readonly" return type.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter">
+            <summary>
+            Indicates a "ref readonly" parameter.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.ScopedKind">
@@ -33836,6 +34365,12 @@
             converted to the type against which it is being matched.
             </summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.SynthesizedLocalKind.LocalStoreTracker">
+            <summary>
+            Variable that stores the context object used to track local variable and parameter stores in method bodies instrumented with <see cref="F:Microsoft.CodeAnalysis.Emit.InstrumentationKindExtensions.LocalStateTracing"/>.
+            Associated with the method body syntax.
+            </summary>
+        </member>
         <member name="F:Microsoft.CodeAnalysis.SynthesizedLocalKind.MaxValidValueForLocalVariableSerializedToDebugInformation">
             <summary>
             All values have to be less than or equal to <see cref="F:Microsoft.CodeAnalysis.SynthesizedLocalKind.MaxValidValueForLocalVariableSerializedToDebugInformation"/> 
@@ -34547,6 +35082,12 @@
              <paramref name="argument"/>.</param>
              <returns>A disposable <see cref="T:Microsoft.CodeAnalysis.PooledObjects.PooledDelegates.Releaser"/> which returns the object to the delegate pool.</returns>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.PooledObjects.PooledDelegates.GetPooledCreateValueCallback``3(System.Func{``0,``1,``2},``1,System.Runtime.CompilerServices.ConditionalWeakTable{``0,``2}.CreateValueCallback@)">
+            <summary>
+            Equivalent to <see cref="M:Microsoft.CodeAnalysis.PooledObjects.PooledDelegates.GetPooledFunction``2(System.Func{``0,``1},``0,System.Func{``1}@)"/>,
+            except typed such that it can be used to create a pooled <see cref="T:System.Runtime.CompilerServices.ConditionalWeakTable`2.CreateValueCallback"/>.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.PooledObjects.PooledDelegates.GetPooledFunction``3(System.Func{``0,``1,``2},``1,System.Func{``0,``2}@)">
              <summary>
              Gets a <see cref="T:System.Func`2"/> delegate, which calls <paramref name="unboundFunction"/> with the
@@ -34860,7 +35401,7 @@
             <summary>'start' must not be negative</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EndMustNotBeLessThanStart">
-            <summary>'end' must not be less than 'start'</summary>
+            <summary>'end' must not be less than 'start'. start='{0}' end='{1}'.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidContentType">
             <summary>Invalid content type</summary>
@@ -35298,8 +35839,35 @@
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.HintNameInvalidSegment">
             <summary>The hintName '{0}' contains an invalid segment '{1}' at position {2}.</summary>
         </member>
-        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.HintNameNotWithinCurrentDirectory">
-            <summary>The hintName '{0}' is not within the current directory.</summary>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.MethodSymbolExpected">
+            <summary>Method symbol expected</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidInstrumentationKind">
+            <summary>Invalid instrumentation kind: {0}</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.LineCannotBeGreaterThanEnd">
+            <summary>The requested line number {0} must be less than the number of lines {1}.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InternalsVisibleToHeaderSummary">
+            <summary>Printing 'InternalsVisibleToAttribute' information for the current compilation and all referenced assemblies.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InternalsVisibleToCurrentAssembly">
+            <summary>Current assembly: '{0}'</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InternalsVisibleToReferencedAssembly">
+            <summary>Assembly reference: '{0}'
+              Grants IVT to current assembly: {1}
+              Grants IVTs to:</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.InternalsVisibleToReferencedAssemblyDetails">
+            <summary>Assembly name: '{0}'
+                Public Keys:</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.Nothing">
+            <summary>Nothing</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.SigningTempPathUnavailable">
+            <summary>The temporary path for legacy file signing is unavailable.</summary>
         </member>
         <member name="M:Microsoft.DiaSymReader.IMetadataImport.ResolveTypeRef(System.Int32,System.Guid@,System.Object@,System.Int32@)">
             <summary>
@@ -36451,6 +37019,17 @@
             or null if the method isn't the kickoff method of a state machine.
             </summary>
         </member>
+        <member name="P:Microsoft.Cci.IMethodBody.CodeCoverageSpans">
+            <summary>
+            Code coverage spans produced by <see cref="F:Microsoft.CodeAnalysis.Emit.InstrumentationKind.TestCoverage"/> instrumentation.
+            <see cref="F:System.Collections.Immutable.ImmutableArray`1.Empty"/> if not applicable.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Cci.IMethodBody.IsPrimaryConstructor">
+            <summary>
+            True if this is a body of a Primary Constructor.
+            </summary>
+        </member>
         <member name="T:Microsoft.Cci.IMethodDefinition">
             <summary>
             This interface models the metadata representation of a method.
@@ -37217,6 +37796,32 @@
             Serialize the method local signature to the blob.
             </summary>
             <returns>Standalone signature token</returns>
+        </member>
+        <member name="F:Microsoft.Cci.MetadataWriter.RawTokenEncoding.RowId">
+            <summary>
+            Emit ldc.i4 of row id of an entity represented by the pseudo-token.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Cci.MetadataWriter.RawTokenEncoding.GreatestMethodDefinitionRowId">
+            <summary>
+            Emit ldc.i4 of the greatest row id assigned to a method definition in the module being built.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Cci.MetadataWriter.RawTokenEncoding.DocumentRowId">
+            <summary>
+            Emit ldc.i4 of row id of a source document represented by the pseudo-token.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Cci.MetadataWriter.RawTokenEncoding.LiftedVariableId">
+            <summary>
+            Emit ldc.i4 of row id of the hoisted local variable or parameter field that the pseudo-token represents, 
+            increased by <see cref="F:Microsoft.Cci.MetadataWriter.LiftedVariableBaseIndex"/>.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Cci.MetadataWriter.LiftedVariableBaseIndex">
+            <summary>
+            Greater than any valid ordinal of a local variable or a parameter (0xffff).
+            </summary>
         </member>
         <member name="M:Microsoft.Cci.MetadataWriter.StrongName(Microsoft.Cci.IAssemblyReference)">
             <summary>
@@ -38987,6 +39592,70 @@
             <param name="data">The string to combine</param>
             <returns>The result of combining <paramref name="hashCode"/> with <paramref name="data"/> using the FNV-1a algorithm</returns>
         </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``1(``0@,System.Func{``0})">
+            <summary>
+            Ensure that the given target value is initialized (not null) in a thread-safe manner.
+            </summary>
+            <typeparam name="T">The type of the target value. Must be a reference type.</typeparam>
+            <param name="target">The target to initialize.</param>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+            more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+            <returns>The target value.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``2(``0@,System.Func{``1,``0},``1)">
+            <summary>
+            Ensure that the given target value is initialized (not null) in a thread-safe manner.
+            </summary>
+            <typeparam name="T">The type of the target value. Must be a reference type.</typeparam>
+            <param name="target">The target to initialize.</param>
+            <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+            more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+            <param name="arg">An argument passed to the value factory.</param>
+            <returns>The target value.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``1(System.Int32@,System.Int32,System.Func{``0,System.Int32},``0)">
+            <summary>
+            Ensure that the given target value is initialized in a thread-safe manner.
+            </summary>
+            <param name="target">The target to initialize.</param>
+            <param name="uninitializedValue">The value indicating <paramref name="target"/> is not yet initialized.</param>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+            more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+            <param name="arg">An argument passed to the value factory.</param>
+            <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
+            <remarks>
+            If <paramref name="valueFactory"/> returns a value equal to <paramref name="uninitializedValue"/>, future
+            calls to the same method may recalculate the target value.
+            </remarks>
+            <returns>The target value.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``1(System.Runtime.CompilerServices.StrongBox{``0}@,System.Func{``0})">
+            <summary>
+            Ensure that the given target value is initialized in a thread-safe manner. This overload supports the
+            initialization of value types, and reference type fields where <see langword="null"/> is considered an
+            initialized value.
+            </summary>
+            <typeparam name="T">The type of the target value.</typeparam>
+            <param name="target">A target value box to initialize.</param>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+            more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+            <returns>The target value.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``2(System.Runtime.CompilerServices.StrongBox{``0}@,System.Func{``1,``0},``1)">
+            <summary>
+            Ensure that the given target value is initialized in a thread-safe manner. This overload supports the
+            initialization of value types, and reference type fields where <see langword="null"/> is considered an
+            initialized value.
+            </summary>
+            <typeparam name="T">The type of the target value.</typeparam>
+            <param name="target">A target value box to initialize.</param>
+            <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this delegate may be called
+            more than once by multiple threads, but only one of those values will successfully be written to the target.</param>
+            <param name="arg">An argument passed to the value factory.</param>
+            <returns>The target value.</returns>
+        </member>
         <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``1(``0@,``0)">
             <summary>
             Initialize the value referenced by <paramref name="target"/> in a thread-safe manner.
@@ -39023,6 +39692,29 @@
             <returns>The new value referenced by <paramref name="target"/>. Note that this is
             nearly always more useful than the usual return from <see cref="M:System.Threading.Interlocked.CompareExchange``1(``0@,``0,``0)"/>
             because it saves another read to <paramref name="target"/>.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``1(System.Collections.Immutable.ImmutableArray{``0}@,System.Func{System.Collections.Immutable.ImmutableArray{``0}})">
+            <summary>
+            Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
+            </summary>
+            <typeparam name="T">Elemental type of the array.</typeparam>
+            <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  May be
+            called multiple times in the event of concurrent initialization of <paramref name="target"/>.  Will not be
+            called if 'target' is already not 'default' at the time this is called.</param>
+            <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
+            already initialized, that value value will be returned.</returns>
+        </member>
+        <member name="M:Roslyn.Utilities.InterlockedOperations.Initialize``2(System.Collections.Immutable.ImmutableArray{``0}@,System.Func{``1,System.Collections.Immutable.ImmutableArray{``0}},``1)">
+            <summary>
+            Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
+            </summary>
+            <typeparam name="T">Elemental type of the array.</typeparam>
+            <typeparam name="TArg">The type of the <paramref name="arg"/> argument passed to the value factory.</typeparam>
+            <param name="createArray">Callback to produce the array if <paramref name="target"/> is 'default'.  May be
+            called multiple times in the event of concurrent initialization of <paramref name="target"/>.  Will not be
+            called if 'target' is already not 'default' at the time this is called.</param>
+            <returns>The value of <paramref name="target"/> after initialization.  If <paramref name="target"/> is
+            already initialized, that value value will be returned.</returns>
         </member>
         <member name="T:Roslyn.Utilities.JsonWriter">
             <summary>
@@ -39061,6 +39753,11 @@
             <remarks>
             Used when a collection usually contains a single item but sometimes might contain multiple.
             </remarks>
+        </member>
+        <member name="P:Roslyn.Utilities.OneOrMany`1.HasOneItem">
+            <summary>
+            True if the collection has a single item. This item is stored in <see cref="F:Roslyn.Utilities.OneOrMany`1._one"/>.
+            </summary>
         </member>
         <member name="T:Roslyn.Utilities.PlatformInformation">
             <summary>
