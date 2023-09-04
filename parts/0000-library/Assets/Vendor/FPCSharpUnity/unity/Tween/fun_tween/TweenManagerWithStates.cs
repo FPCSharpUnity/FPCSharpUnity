@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.pools;
 using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Concurrent;
@@ -56,9 +57,7 @@ public class TweenManagerWithStates<State, EnumTypeAType>
 
     for (var i = 0; i < EnumUtils<State>.valuesArray.Count; i++) {
       var state = EnumUtils<State>.valuesArray[i];
-      if (setDefaultValues) _timestamps._editor_set(
-        state, new Percentage(i / (float)(EnumUtils<State>.valuesArray.Count - 1))
-      );
+      if (setDefaultValues) _timestamps[state] = new Percentage(i / (float)(EnumUtils<State>.valuesArray.Count - 1));
       if (GUILayout.Button($"Apply `{state}`")) {
         _tween.timeline.timePassed = timeAtState(state);
         _editor_currentStatePreview = state;

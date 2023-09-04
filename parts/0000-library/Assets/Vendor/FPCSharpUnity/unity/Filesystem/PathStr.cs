@@ -68,6 +68,8 @@ namespace FPCSharpUnity.unity.Filesystem {
         }
       }
     }
+    
+    public PathStr toDirectory => a(Path.GetDirectoryName(path));
 
     public PathStr ensureBeginsWith(PathStr p) => path.StartsWithFast(p.path) ? this : p / path;
     public override string ToString() => asString();
