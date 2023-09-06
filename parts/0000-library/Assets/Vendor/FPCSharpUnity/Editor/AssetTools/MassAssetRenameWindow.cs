@@ -8,9 +8,11 @@ using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using GenerationAttributes;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Extensions;
 using UnityEditor;
 using UnityEngine;
 using static FPCSharpUnity.core.typeclasses.Str;
@@ -136,7 +138,7 @@ namespace FPCSharpUnity.unity.Editor.AssetTools {
       var orderedReplacementPaths = 
         _replacementPaths.SelectMany(_ => _.Value).OrderByDescendingSafe(_ => _.from).ToArrayFast();
       foreach (var path in orderedReplacementPaths) {
-        AssetDatabase.MoveAsset(path.from.unityPath, path.to.unityPath);
+        AssetDatabase.MoveAsset(path.from.unityPath(), path.to.unityPath());
       }
 
       log.mInfo(

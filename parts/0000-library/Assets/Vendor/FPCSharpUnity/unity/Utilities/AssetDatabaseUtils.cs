@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.unity.Filesystem;
@@ -123,7 +124,7 @@ namespace FPCSharpUnity.unity.Utilities {
     
     public static string copyAssetAndGetPath<T>(T obj, PathStr path) where T: Object {
       var originalPath = AssetDatabase.GetAssetPath(obj);
-      var newPath = path.unityPath + "/" + obj.name + Path.GetExtension(originalPath);
+      var newPath = path.unityPath() + "/" + obj.name + Path.GetExtension(originalPath);
       Log.d.mVerbose($"{nameof(AssetDatabaseUtils)}#{nameof(copyAssetAndGetPath)}: " +
         $"copying asset from {originalPath} to {newPath}");
       if (!AssetDatabase.CopyAsset(originalPath, newPath))

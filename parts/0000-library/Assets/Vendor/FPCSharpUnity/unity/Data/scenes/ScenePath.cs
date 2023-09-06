@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Filesystem;
 using GenerationAttributes;
 
