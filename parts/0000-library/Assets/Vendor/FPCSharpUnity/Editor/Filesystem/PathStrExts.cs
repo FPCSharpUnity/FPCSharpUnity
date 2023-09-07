@@ -12,16 +12,5 @@ namespace FPCSharpUnity.unity.Filesystem {
 
       return new PathStr(Path.GetFullPath(full));
     }
-
-    /// <summary>
-    /// Ensures that a directory exits for a given path.
-    /// <para/>
-    /// If a directory does not exist it will get created.
-    /// </summary>
-    public static void ensureDirectoryExists(this PathStr path) {
-      if (!Directory.Exists(path)) {
-        Directory.CreateDirectory(path);
-      }
-    }
   }
 }
