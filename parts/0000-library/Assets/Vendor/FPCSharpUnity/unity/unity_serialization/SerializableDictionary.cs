@@ -31,7 +31,7 @@ public class SerializableDictionary<K, V>
 
   public ImmutableDictionary<K, V> a {
     get {
-      if (!Application.isPlaying) return _keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value);
+      if (!Application.isPlaying) return getValuesAsDictionary;
       if (cachedValue.isNone) updateCachedValue();
       return cachedValue.get;
     }
@@ -41,7 +41,7 @@ public class SerializableDictionary<K, V>
   public void OnAfterDeserialize() => updateCachedValue();
 
   void updateCachedValue() {
-    cachedValue = Some.a(_keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value));
+    cachedValue = Some.a(getValuesAsDictionary);
   }
 
   public override void valueChanged() => cachedValue = None._;
