@@ -2,6 +2,7 @@
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
@@ -19,7 +20,8 @@ namespace FPCSharpUnity.unity.Data {
     ) where A : Component =>
       Future.successful(
         Try.a(() => SceneManagerBetter.instance.loadSceneAsyncWithAutomaticActivation(scenePath, loadSceneMode))
-          .toEither().mapLeftM(err => new ErrorMsg($"Error while loading scene '{scenePath}': {err}"))
+          .toEither()
+          .wrapLeftWithError(prefix: $"Error while loading scene '{scenePath}'")
       ).flatMapT(op => op.future.map(scene =>
         scene.findComponentOnRootGameObjects<A>()
       ));
