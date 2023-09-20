@@ -361,7 +361,10 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_FILE_ID)) continue;
           i += STRING_FILE_ID.Length;
           simpleBuffer.skipWhitespace(ref i);
+          
+          simpleBuffer.skipOptionalCharacter(ref i, '-');
           simpleBuffer.skipNumerals(ref i);
+          
           if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
           simpleBuffer.skipWhitespace(ref i);
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
@@ -540,7 +543,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
       
       /// <summary>
-      /// Skips all specified characters from given <see cref="index"/> or until buffer end is reached.
+      /// Skips one specified character from given <see cref="index"/>. Returns false if character was not there.
       /// </summary>
       public bool skipCharacter(ref int index, char character) {
         if (index < length && buffer[index] == character) {
@@ -551,7 +554,16 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
       
       /// <summary>
-      /// Skips all numeric characters from given <see cref="index"/> or until buffer end is reached.
+      /// Skips one specified character from given <see cref="index"/>. Does nothing if character is not there.
+      /// </summary>
+      public void skipOptionalCharacter(ref int index, char character) {
+        if (index < length && buffer[index] == character) {
+          index++;
+        }
+      }
+      
+      /// <summary>
+      /// Skips all numeric characters [0-9] from given <see cref="index"/> or until buffer end is reached.
       /// </summary>
       public void skipNumerals(ref int index) {
         while (

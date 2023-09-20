@@ -17,7 +17,7 @@ public partial class SerializableDictionaryMutable<K, V>
   : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver 
 {
   [LazyProperty, PublicReadOnlyAccessor] IRxRef<ImmutableDictionary<K, V>> _dict => 
-    RxRef.a(_keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value));
+    RxRef.a(getValuesAsDictionary);
     
   public SerializableDictionaryMutable(Pair[] keyValuePairs) : base(keyValuePairs) { }
 
@@ -26,8 +26,7 @@ public partial class SerializableDictionaryMutable<K, V>
 
   [Button, OnInspectorGUI] void updateCachedValue() => valueChanged();
 
-  public override void valueChanged() => 
-    _dict.value = _keyValuePairs.ToImmutableDictionary(_ => _.key, _ => _.value);
+  public override void valueChanged() => _dict.value = getValuesAsDictionary;
 
   /// <summary>
   /// Sets the <see cref="value"/> for specified <see cref="key"/>. If application is not playing, then it also sets the
