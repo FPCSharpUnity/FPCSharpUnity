@@ -343,7 +343,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         
         var buffer = parseFileOptimized_bufferCache.Value;
 
-        var length = readAllBytesFast(assetPath, ref buffer);
+        var length = SimpleBuffer.readAllBytesFast(assetPath, ref buffer);
         var simpleBuffer = new SimpleBuffer(buffer, length);
         if (useDefaultResolver) {
           parseBufferLocally(simpleBuffer, guidsInFile);
@@ -370,11 +370,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
           i += STRING_GUID.Length;
           simpleBuffer.skipWhitespace(ref i);
-          if (simpleBuffer.readGuid(i, out var childGuid)) {
-            i += childGuid.guid.Length;
+          if (simpleBuffer.readGuid(i, out var childGuidStr)) {
+            var assetGuid = new AssetGuid(childGuidStr);
+            i += assetGuid.guid.Length;
             if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
             
-            guidsInFile.Add(childGuid);
+            guidsInFile.Add(assetGuid);
           }
         }
       }
@@ -412,35 +413,6 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     //     m = m.NextMatch();
     //   }
     // }
-    
-    /// <summary>
-    /// Fast way to read all bytes from file to memory.
-    ///
-    /// Code adapted from <see cref="File.ReadAllBytes"/> implementation.
-    /// </summary>
-    /// <returns>
-    /// Length of the bytes read to the buffer. Buffer may be resized if it does not fit the file.
-    /// </returns>
-    static int readAllBytesFast(string path, ref byte[] buffer) {
-      using var fileStream = new FileStream(
-        path, FileMode.Open, FileSystemRights.Read, FileShare.Read, 4096, FileOptions.SequentialScan
-      );
-      var offset = 0;
-      var length = fileStream.Length;
-      var count = length <= (long) int.MaxValue ? (int) length : throw new Exception("File too big.");
-      if (buffer.Length < length) {
-        buffer = new byte[length];
-      }
-      int num;
-      for (; count > 0; count -= num)
-      {
-        num = fileStream.Read(buffer, offset, count);
-        if (num == 0)
-          throw new Exception("Could not read file.");
-        offset += num;
-      }
-      return (int) length;
-    }
 
     static void addParents(
       Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
@@ -498,120 +470,6 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       public readonly AssetGuid assetGuid;
       public readonly AssetPath assetPath;
       public readonly HashSet<AssetGuid> childGuids;
-    }
-    
-    /// <summary>
-    /// Simple structure that encapsulates a buffer array and its length.
-    /// It also has methods that we need for parsing guids from asset files.
-    /// </summary>
-    public readonly struct SimpleBuffer {
-      public readonly byte[] buffer;
-      /// <summary>
-      /// Length of the data in buffer. Actual <see cref="buffer"/> length may be larger.
-      /// </summary>
-      public readonly int length;
-
-      public SimpleBuffer(byte[] buffer, int length) {
-        this.buffer = buffer;
-        this.length = length;
-      }
-
-      public bool match(int index, byte[] str) {
-        for (var i = 0; i < str.Length; i++) {
-          if (index + i >= length) return false;
-          if (buffer[index + i] != str[i]) return false;
-        }
-        return true;
-      }
-
-      /// <summary>
-      /// Is <see cref="char"/> at <see cref="index"/> is a white space character.
-      /// </summary>
-      /// <param name="index">Index in <see cref="buffer"/>.</param>
-      /// <returns></returns>
-      public bool isWhiteSpace(int index) => (char)buffer[index] is '\n' or '\r' or ' ' or '\t';
-      
-      /// <summary>
-      /// Skips all whitespace characters from given <see cref="index"/> or until buffer end is reached.
-      /// </summary>
-      public void skipWhitespace(ref int index) {
-        while (
-          index < length && isWhiteSpace(index)
-        ) {
-          index++;
-        }
-      }
-      
-      /// <summary>
-      /// Skips one specified character from given <see cref="index"/>. Returns false if character was not there.
-      /// </summary>
-      public bool skipCharacter(ref int index, char character) {
-        if (index < length && buffer[index] == character) {
-          index++;
-          return true;
-        }
-        return false;
-      }
-      
-      /// <summary>
-      /// Skips one specified character from given <see cref="index"/>. Does nothing if character is not there.
-      /// </summary>
-      public void skipOptionalCharacter(ref int index, char character) {
-        if (index < length && buffer[index] == character) {
-          index++;
-        }
-      }
-      
-      /// <summary>
-      /// Skips all numeric characters [0-9] from given <see cref="index"/> or until buffer end is reached.
-      /// </summary>
-      public void skipNumerals(ref int index) {
-        while (
-          index < length && 
-          buffer[index] >= (byte) '0' && buffer[index] <= (byte) '9'
-        ) {
-          index++;
-        }
-      }
-      
-      static readonly ThreadLocal<StringBuilder> stringBuilderCache = new(() => new StringBuilder());
-
-      /// <summary>Reads Unity style guid from the buffer.</summary>
-      /// <returns>Whether the guid parse was successful.</returns>
-      public bool readGuid(int index, out AssetGuid guid) {
-        var sb = stringBuilderCache.Value;
-        sb.Clear();
-        while (
-          index < length && 
-          (
-            buffer[index] >= (byte) '0' && buffer[index] <= (byte) '9' 
-            || buffer[index] >= (byte) 'a' && buffer[index] <= (byte) 'f'
-          )
-        ) {
-          sb.Append((char) buffer[index]);
-          index++;
-        }
-
-        if (sb.Length == 32) {
-          guid = new AssetGuid(sb.ToString());
-          return true;
-        }
-        else {
-          guid = default;
-          return false;
-        }
-      }
-
-      /// <summary>Reads a number from the buffer and returns it as long. Advances <see cref="index"/>.</summary>
-      public long readLong(ref int index) {
-        var sb = stringBuilderCache.Value;
-        sb.Clear();
-        while (index < length && buffer[index] >= (byte) '0' && buffer[index] <= (byte) '9') {
-          sb.Append((char) buffer[index]);
-          index++;
-        }
-        return long.Parse(sb.ToString());
-      }
     }
   }
 }
