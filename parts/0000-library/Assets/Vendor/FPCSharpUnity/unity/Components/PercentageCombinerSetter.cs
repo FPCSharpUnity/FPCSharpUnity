@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using ExhaustiveMatching;
+using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Tween.fun_tween.serialization.manager;
@@ -34,7 +35,7 @@ namespace FPCSharpUnity.unity.Components {
 #pragma warning restore 649
 
     public void set(string id, Percentage value) {
-      _variables.set(id, value);
+      _variables.setOne(id, value);
       update();
     }
 
