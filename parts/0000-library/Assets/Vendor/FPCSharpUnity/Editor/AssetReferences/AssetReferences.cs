@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.AccessControl;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -17,6 +16,7 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using Sirenix.Utilities;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Editor.extensions;
 using UnityEditor;
@@ -370,7 +370,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           if (!simpleBuffer.match(i, STRING_GUID)) continue;
           i += STRING_GUID.Length;
           simpleBuffer.skipWhitespace(ref i);
-          if (simpleBuffer.readGuid(i, out var childGuidStr)) {
+          if (simpleBuffer.readUnityGuid(i, out var childGuidStr)) {
             var assetGuid = new AssetGuid(childGuidStr);
             i += assetGuid.guid.Length;
             if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
