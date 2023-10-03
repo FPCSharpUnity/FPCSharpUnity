@@ -105,24 +105,36 @@ namespace FPCSharpUnity.unity.Utilities {
       return rect;
     }
     
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Left one will have width of <paramref name="leftWidth"/>.
+    /// </summary>
     public static (Rect left, Rect right) splitIntoTwoHorizontalLeft(this Rect r, float leftWidth) {
       var left = new Rect(r.x, r.y, leftWidth, r.height);
       var right = new Rect(r.x + leftWidth, r.y, r.width - leftWidth, r.height);
       return (left, right);
     }
     
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Right one will have width of <paramref name="rightWidth"/>.
+    /// </summary>
     public static (Rect left, Rect right) splitIntoTwoHorizontalRight(this Rect r, float rightWidth) {
       var left = new Rect(r.x, r.y, r.width - rightWidth, r.height);
       var right = new Rect(r.x + r.width - rightWidth, r.y, rightWidth, r.height);
       return (left, right);
     }
     
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Both will have equal width.
+    /// </summary>
     public static (Rect left, Rect right) splitIntoTwoHorizontalEqual(this Rect r) {
       var left = new Rect(r.x, r.y, r.width / 2, r.height);
       var right = new Rect(r.x + r.width / 2, r.y, r.width / 2, r.height);
       return (left, right);
     }
     
+    /// <summary>
+    /// Split <see cref="Rect"/> into <see cref="count"/> horizontal ones. All will have equal width.
+    /// </summary>
     public static ImmutableArrayC<Rect> splitIntoHorizontalEqual(this Rect r, int count) {
       var width = r.width / count;
       var result = new ImmutableArrayCBuilder<Rect>();
