@@ -2,12 +2,14 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Filesystem;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.functional;
 using UnityEditor;
 using UnityEngine;
+using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.Editor.Utils {
   public class CodePreprocessorMenuItems : MonoBehaviour {
@@ -58,7 +60,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
 
     public static Either<string, ImmutableList<PathStr>> getFilePaths(PathStr rootPath, string fileExt) {
       if (!Directory.Exists(rootPath))
-        return (string.Equals($"*{rootPath.extension}", fileExt)).either(
+        return (string.Equals($"*{s(rootPath.extension)}", fileExt)).either(
           $"Not a '*.{fileExt}' file.",
           () => ImmutableList.Create(new PathStr(rootPath.path))
         );

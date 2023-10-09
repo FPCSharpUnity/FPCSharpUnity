@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;
@@ -37,27 +38,27 @@ namespace FPCSharpUnity.unity.Functional {
   public class EitherTestSequenceValidations {
     [Test]
     public void WhenHasOneError() {
-      var l = ImmutableList.Create("error");
+      var l = ImmutableArrayC.create("error");
       new[] {
-        Either<ImmutableList<string>, int>.Left(l),
-        Either<ImmutableList<string>, int>.Right(4)
+        Either<ImmutableArrayC<string>, int>.Left(l),
+        Either<ImmutableArrayC<string>, int>.Right(4)
       }.sequenceValidations().shouldBeLeftEnum(l);
     }
 
     [Test]
     public void WhenHasMultipleErrors() {
       new[] {
-        Either<ImmutableList<string>, int>.Left(ImmutableList.Create("error")),
-        Either<ImmutableList<string>, int>.Left(ImmutableList.Create("error2"))
-      }.sequenceValidations().shouldBeLeftEnum(ImmutableList.Create("error", "error2"));
+        Either<ImmutableArrayC<string>, int>.Left(ImmutableArrayC.create("error")),
+        Either<ImmutableArrayC<string>, int>.Left(ImmutableArrayC.create("error2"))
+      }.sequenceValidations().shouldBeLeftEnum(ImmutableArrayC.create("error", "error2"));
     }
 
     [Test]
     public void WhenHasNoErrors() {
       new[] {
-        Either<ImmutableList<string>, int>.Right(3),
-        Either<ImmutableList<string>, int>.Right(4)
-      }.sequenceValidations().shouldBeRightEnum(ImmutableList.Create(3, 4));
+        Either<ImmutableArrayC<string>, int>.Right(3),
+        Either<ImmutableArrayC<string>, int>.Right(4)
+      }.sequenceValidations().shouldBeRightEnum(ImmutableArrayC.create(3, 4));
     }
   }
 

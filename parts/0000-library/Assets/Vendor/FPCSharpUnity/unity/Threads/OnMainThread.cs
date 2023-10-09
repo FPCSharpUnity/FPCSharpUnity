@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FPCSharpUnity.unity.Concurrent;
@@ -11,6 +12,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using UnityEditor;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Threads; 
@@ -21,8 +23,8 @@ namespace FPCSharpUnity.unity.Threads;
 #if UNITY_EDITOR
 [UnityEditor.InitializeOnLoad]
 #endif
-[PublicAPI] 
 public static class OnMainThread {
+[PublicAPI] 
   static readonly Queue<(Action action, CallerData callerData)> actions = new();
   static Thread mainThread;
     
@@ -91,7 +93,7 @@ public static class OnMainThread {
     }
 #if UNITY_EDITOR
     else {
-      UnityEditor.EditorApplication.update += () => onUpdate();
+      EditorApplication.update += () => onUpdate();
     }
 #endif
     

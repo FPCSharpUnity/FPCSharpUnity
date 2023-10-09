@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.log;
 using GenerationAttributes;

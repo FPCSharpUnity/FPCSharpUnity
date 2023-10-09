@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.IO;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Filesystem;
 using FPCSharpUnity.core.test_framework;
 using NUnit.Framework;

@@ -11,6 +11,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.Extensions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -22,7 +23,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
     
     [PublicAPI]
     public static Either<ErrorMsg, A> load<A>(PathStr loadPath) where A : Object {
-      var path = loadPath.unityPath;
+      var path = loadPath.unityPath();
       var a = Resources.Load<A>(path);
       if (a) return a;
       return notFound<A>(path);
@@ -31,7 +32,7 @@ namespace FPCSharpUnity.unity.ResourceReference {
     public static Tpl<IAsyncOperation, Future<Either<ErrorMsg, A>>> loadAsync<A>(
       PathStr loadPath
     ) where A : Object {
-      var path = loadPath.unityPath;
+      var path = loadPath.unityPath();
       IResourceRequest request = new WrappedResourceRequest(Resources.LoadAsync<A>(path));
       return Tpl.a(
         request.upcast(default(IAsyncOperation)), 

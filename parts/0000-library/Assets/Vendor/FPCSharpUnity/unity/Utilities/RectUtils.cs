@@ -1,5 +1,7 @@
 ﻿using System;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Utilities {
@@ -102,5 +104,49 @@ namespace FPCSharpUnity.unity.Utilities {
       rect.yMin = Math.Max(rect.yMin, rect.yMax - height);
       return rect;
     }
+    
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Left one will have width of <paramref name="leftWidth"/>.
+    /// </summary>
+    public static (Rect left, Rect right) splitIntoTwoHorizontalLeft(this Rect r, float leftWidth) {
+      var left = new Rect(r.x, r.y, leftWidth, r.height);
+      var right = new Rect(r.x + leftWidth, r.y, r.width - leftWidth, r.height);
+      return (left, right);
+    }
+    
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Right one will have width of <paramref name="rightWidth"/>.
+    /// </summary>
+    public static (Rect left, Rect right) splitIntoTwoHorizontalRight(this Rect r, float rightWidth) {
+      var left = new Rect(r.x, r.y, r.width - rightWidth, r.height);
+      var right = new Rect(r.x + r.width - rightWidth, r.y, rightWidth, r.height);
+      return (left, right);
+    }
+    
+    /// <summary>
+    /// Split <see cref="Rect"/> into two horizontal ones. Both will have equal width.
+    /// </summary>
+    public static (Rect left, Rect right) splitIntoTwoHorizontalEqual(this Rect r) {
+      var left = new Rect(r.x, r.y, r.width / 2, r.height);
+      var right = new Rect(r.x + r.width / 2, r.y, r.width / 2, r.height);
+      return (left, right);
+    }
+    
+    /// <summary>
+    /// Split <see cref="Rect"/> into <see cref="count"/> horizontal ones. All will have equal width.
+    /// </summary>
+    public static ImmutableArrayC<Rect> splitIntoHorizontalEqual(this Rect r, int count) {
+      var width = r.width / count;
+      var result = new ImmutableArrayCBuilder<Rect>();
+      for (var i = 0; i < count; i++) {
+        result.add(new Rect(r.x + i * width, r.y, width, r.height));
+      }
+      return result.build();
+    }
+    
+    public static Rect withHeight(this Rect r, float height) => new Rect(r.x, r.y, r.width, height);
+    public static Rect withWidth(this Rect r, float width) => new Rect(r.x, r.y, width, r.height);
+    public static Rect withX(this Rect r, float x) => new Rect(x, r.y, r.width, r.height);
+    public static Rect withY(this Rect r, float y) => new Rect(r.x, y, r.width, r.height);
   }
 }
