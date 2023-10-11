@@ -1,8 +1,11 @@
+using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.unity.Concurrent;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
+using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.reactive;
+using FPCSharpUnity.unity.Functional;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Reactive {
@@ -34,5 +37,21 @@ namespace FPCSharpUnity.unity.Reactive {
         },
         targetInspectable: target
       ));
+    
+    /// <summary> Delays each event by given number of frames. </summary>
+    public static IRxObservable<A> delayed<A>(
+      this IRxObservable<A> o, int frames, ITracker tracker
+    ) {
+      var disposable = F.emptyDisposable;
+      tracker.track(() => disposable.Dispose());
+      return new Observable<A>((onEvent, self) => o.subscribe(
+        NoOpDisposableTracker.instance,
+        v => {
+          disposable.Dispose();
+          disposable = ASync.AfterXFrames(frames, () => onEvent(v));
+        },
+        targetInspectable: self
+      ));
+    }
   }
 }
