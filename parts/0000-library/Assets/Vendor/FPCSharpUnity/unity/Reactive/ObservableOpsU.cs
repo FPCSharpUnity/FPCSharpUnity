@@ -1,11 +1,8 @@
-using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.unity.Concurrent;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.dispose;
-using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.reactive;
-using FPCSharpUnity.unity.Functional;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Reactive {
