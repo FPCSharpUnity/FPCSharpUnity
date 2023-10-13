@@ -34,5 +34,15 @@ namespace FPCSharpUnity.unity.Reactive {
         },
         targetInspectable: target
       ));
+    
+    /// <summary> Delays each event by given number of frames. </summary>
+    public static IRxObservable<A> delayed<A>(
+      this IRxObservable<A> o, int frames
+    ) =>
+      new Observable<A>(subscribeFn: (onEvent, self) => o.subscribe(
+        NoOpDisposableTracker.instance,
+        onEvent: v => ASync.AfterXFrames(frames, () => onEvent(v)),
+        targetInspectable: self
+      ));
   }
 }
