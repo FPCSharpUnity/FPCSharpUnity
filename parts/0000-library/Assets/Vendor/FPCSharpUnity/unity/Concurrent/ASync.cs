@@ -221,14 +221,15 @@ namespace FPCSharpUnity.unity.Concurrent;
           : responseCode == 0 && req.error == "Unknown Error" ? new WebRequestError(new NoInternetError(url))
           : new WebRequestError(new NonSuccessResult(
             url, nonSuccessfulResult, responseCode: responseCode, error: req.error,
+            bodyText: Try.a(() => Option.a(req.downloadHandler).flatMapM(_ => Option.a(_.text))).toOption().flatten(),
             // When a UnityWebRequest ends with the result, DataProcessingError, the message describing the error is in
             // the download handler.
             //
             // https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
             dataProcessingError:
-            req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
-              ? Some.a(req.downloadHandler.error)
-              : None._
+              req.result == UnityWebRequest.Result.DataProcessingError && req.downloadHandler != null
+                ? Some.a(req.downloadHandler.error)
+                : None._
           ));
         disposeReq("non-successful result");
         promise.complete(error);

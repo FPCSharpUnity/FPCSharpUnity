@@ -103,6 +103,9 @@ namespace FPCSharpUnity.unity.Data {
     /// https://docs.unity3d.com/ScriptReference/Networking.DownloadHandler-error.html
     /// </summary>
     public readonly Option<string> dataProcessingError;
+
+    /// <summary>Contains the body text. Can be `None` if the body was not available.</summary>
+    public readonly Option<string> bodyText;
   }
 
   /// <summary>
