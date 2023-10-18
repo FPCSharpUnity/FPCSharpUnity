@@ -111,6 +111,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.eases {
     protected override void BuildSelectionTree(OdinMenuTree tree) {
       tree.Config.DrawSearchToolbar = true;
       tree.Selection.SupportsMultiSelect = false;
+      tree.Config.SelectMenuItemsOnMouseDown = true;
       tree.DefaultMenuStyle = menuStyle;
 
       foreach (var tpl in source) {
