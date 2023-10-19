@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using FPCSharpUnity.core.data;
-using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Utilities;
 using GenerationAttributes;
 using JetBrains.Annotations;
@@ -15,8 +14,6 @@ using Object = UnityEngine.Object;
 namespace FPCSharpUnity.unity.resources {
   /// <summary>
   /// Allows you to have a reference to Resources folder and have it validated by an object validator.
-  ///
-  /// Must be subclassed and made non-generic to use.
   /// </summary>
   [PublicAPI, Serializable] public partial class ReferenceToResource<A> : OnObjectValidate where A : Object {
 #pragma warning disable 649
@@ -31,20 +28,23 @@ namespace FPCSharpUnity.unity.resources {
     public bool onObjectValidateIsThreadSafe => false;
     
     public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) {
-      if (load().leftValueOut(out var error)) {
+      if (maybeLoad(_name).leftValueOut(out var error)) {
         yield return new ErrorMsg(error);
       }
     }
 
-    static bool validate(string name) => load(name).isRight;
+    static bool validate(string name) => maybeLoad(name).isRight;
 
-    public Either<string, A> load() => load(_name);
+    public A load() => load(_name);
     
-    public static Either<string, A> load(string name) {
+    public static A load(string name) =>
+      maybeLoad(name)
+        .mapLeftM(err => $"{s(err)} This should never happen as the build validation should have caught this!")
+        .rightOrThrow;
+
+    public static Either<string, A> maybeLoad(string name) {
       var maybeA = Resources.Load<A>(name);
-      return maybeA 
-        ? Either<string, A>.Right(maybeA) 
-        : $"Can't load {typeof(A).FullName} from path '{name}' in Resources!";
+      return maybeA ? maybeA : $"Can't load {typeof(A).FullName} from path '{name}' in Resources!";
     }
   }
   [Serializable] public sealed class ReferenceToResourceImage : ReferenceToResource<Image> {}
