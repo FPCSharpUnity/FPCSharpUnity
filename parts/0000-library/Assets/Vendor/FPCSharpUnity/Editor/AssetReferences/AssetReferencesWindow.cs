@@ -153,10 +153,36 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           GUILayout.Label("Selected");
           objectDisplay(currentGUID);
           refsOpt.ifSomeM(refs => {
-            displayObjects(currentGUID, "Used by objects (parents)", refs.parents, ref foldout1);
-            displayObjects(currentGUID, "Contains (children)", refs.children, ref foldout2);
+            displayObjects(
+              currentGUID, "Used by objects (parents)", refs.parents, ref foldout1, 
+              getTags: parentGuid => getTags(parent: parentGuid, child: currentGUID)
+            );
+            displayObjects(
+              currentGUID, "Contains (children)", refs.children, ref foldout2,
+              getTags: childGuid => getTags(parent: currentGUID, child: childGuid)
+            );
             displayObjects("Placed in scenes", refs.findParentScenes(currentGUID), ref foldout3);
             displayObjects("Placed in resources", refs.findParentResources(currentGUID), ref foldout4);
+
+            string getTags(AssetGuid parent, AssetGuid child) {
+              if (AssetDatabaseUtils.loadMainAssetByGuid(child) is Texture2D) {
+                return refs.children.children.get(parent)
+                  .flatMapM(_ => _.guidsInFile.get(child))
+                  .mapM(set => {
+                    var containsTexture = set.Contains(AssetReferences.FileId.texture);
+                    // Sprite references will have random file ids.
+                    var containsSprite = set.Count > (containsTexture ? 1 : 0);
+                    return (containsTexture, containsSprite) switch {
+                      (true, true) => "T S",
+                      (true, false) => "T",
+                      (false, true) => "S",
+                      _ => ""
+                    };
+                  })
+                  .getOrElse("");
+              }
+              else return "";
+            }
 
             {
               EditorGUI.BeginChangeCheck();
@@ -193,10 +219,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     void displayObjects(
-      AssetGuid curGuid, string name, AssetReferences.Neighbors neighbors, ref bool foldout
+      AssetGuid curGuid, string name, AssetReferences.Neighbors neighbors, ref bool foldout,
+      Func<AssetGuid, string> getTags
     ) {
       {if (neighbors.getNeighbors(curGuid).valueOut(out var assets)) {
-        displayObjects(name, assets, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout);
+        displayObjects(name, assets, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout, getTags);
       } else {
         GUILayout.Label(name + " 0");
       }}
@@ -204,11 +231,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
     void displayObjects(
       string name, IReadOnlyCollection<AssetReferences.Chain> chains, ref bool foldout
-    ) => displayObjects(name, chains, _ => _.mainGuid, _ => _.guids, ref foldout);
+    ) => displayObjects(name, chains, _ => _.mainGuid, _ => _.guids, ref foldout, getTags: _ => "");
     
     void displayObjects<A>(
       string name, IReadOnlyCollection<A> datas, Func<A, AssetGuid> getMainGuid, 
-      Func<A, ImmutableList<AssetGuid>> getChain, ref bool foldout
+      Func<A, ImmutableList<AssetGuid>> getChain, ref bool foldout,
+      Func<AssetGuid, string> getTags
     ) {
       foldout = EditorGUILayout.Foldout(foldout, name + " " + datas.Count);
       if (foldout) {
@@ -229,7 +257,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           var guid = getMainGuid(a);
           var asset = AssetDatabaseUtils.loadMainAssetByGuid(guid);
           if (asset != null) {
-            objectDisplay(guid);
+            objectDisplay(guid, tags: getTags(guid));
             
             if (showChains) {
               var chain = getChain(a);
@@ -240,7 +268,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
                   first = false;
                   continue;
                 }
-                objectDisplay(chainGuid, 1);
+                objectDisplay(chainGuid, indent: 1);
               }
             }
           }
@@ -261,9 +289,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     static IEnumerable<Object> loadGuids(IEnumerable<AssetGuid> guids) =>
       guids.ToArray().Select(guid => AssetDatabaseUtils.loadMainAssetByGuid(guid.guid));
 
-    void objectDisplay(string guid, uint indent = 0) {
+    void objectDisplay(AssetGuid guid, string tags = "", uint indent = 0) {
       EditorGUILayout.BeginHorizontal();
       if (indent != 0) GUILayout.Space(indent * 20);
+      if (tags.nonEmpty()) {
+        GUILayout.Label(tags, GUILayout.ExpandWidth(false));
+      }
       var obj = AssetDatabaseUtils.loadMainAssetByGuid(guid);
       EditorGUILayout.ObjectField(obj, typeof(Object), false);
       var etype = Event.current.type;
