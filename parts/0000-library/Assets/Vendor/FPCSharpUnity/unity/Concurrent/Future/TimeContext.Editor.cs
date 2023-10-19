@@ -14,12 +14,15 @@ namespace FPCSharpUnity.unity.Concurrent {
     [LazyProperty] static ILog log => Log.d.withScope(nameof(EditorTimeContext));
     
     public TimeSpan passedSinceStartup => TimeSpan.FromSeconds(EditorApplication.timeSinceStartup);
-    
+
     IDisposable ITimeContext.after(TimeSpan duration, Action act, string name) => 
       after(duration, act, name);
 
-    public ICoroutine after(TimeSpan duration, Action act, string name = null) => 
-      new EditorCoroutine(duration, act, name ?? "unnamed");
+    public ICoroutine after(TimeSpan duration, Action act, string name = null) =>
+      after(duration, act, LogLevel.VERBOSE, name);
+
+    public ICoroutine after(TimeSpan duration, Action act, LogLevel logLevel = LogLevel.VERBOSE, string name = null) => 
+      new EditorCoroutine(duration, act, name ?? "unnamed", logLevel);
 
     class EditorCoroutine : ICoroutine {
       public event CoroutineFinishedOrStopped onFinish;
@@ -29,15 +32,17 @@ namespace FPCSharpUnity.unity.Concurrent {
       readonly Action action;
       readonly double startedAt;
       readonly string name;
+      readonly LogLevel logLevel;
 
       double scheduledAt => startedAt + duration.TotalSeconds;
       
-      public EditorCoroutine(TimeSpan duration, Action action, string name) {
+      public EditorCoroutine(TimeSpan duration, Action action, string name, LogLevel logLevel) {
         this.duration = duration;
         this.action = action;
         this.name = name;
+        this.logLevel = logLevel;
         startedAt = EditorApplication.timeSinceStartup;
-        log.mDebug($"Scheduling '{name}' at {scheduledAt}, {startedAt.echo()}");
+        log.mLog(logLevel, $"Scheduling '{name}' at {scheduledAt}, {startedAt.echo()}");
         
         EditorApplication.update += onUpdate;
       }
@@ -46,7 +51,7 @@ namespace FPCSharpUnity.unity.Concurrent {
         var now = EditorApplication.timeSinceStartup;
         if (now >= scheduledAt) {
           state = CoroutineState.Finished;
-          log.mDebug($"Running '{name}' at {now.echo()}, {scheduledAt.echo()}, {startedAt.echo()}");
+          log.mLog(logLevel, $"Running '{name}' at {now.echo()}, {scheduledAt.echo()}, {startedAt.echo()}");
           action();
           onFinish?.Invoke(finished: true);
           onFinish = null;
@@ -60,7 +65,9 @@ namespace FPCSharpUnity.unity.Concurrent {
       }
 
       void dispose(bool doLog) {
-        if (doLog && log.isDebug()) log.debug($"Disposing '{name}' scheduled at {scheduledAt}, {startedAt.echo()}");
+        if (doLog) {
+          log.mLog(logLevel, $"Disposing '{name}' scheduled at {scheduledAt}, {startedAt.echo()}");
+        }
         EditorApplication.update -= onUpdate;
         state = CoroutineState.Stopped;
         onFinish?.Invoke(finished: false);
