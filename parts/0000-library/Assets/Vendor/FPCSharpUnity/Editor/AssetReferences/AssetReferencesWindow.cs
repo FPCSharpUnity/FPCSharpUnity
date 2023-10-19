@@ -193,14 +193,13 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     void displayObjects(
-      AssetGuid curGuid, string name, Dictionary<AssetGuid, HashSet<AssetGuid>> dict, ref bool foldout
+      AssetGuid curGuid, string name, AssetReferences.Neighbors neighbors, ref bool foldout
     ) {
-      if (dict.ContainsKey(curGuid)) {
-        displayObjects(name, dict[curGuid], _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout);
-      }
-      else {
+      {if (neighbors.getNeighbors(curGuid).valueOut(out var assets)) {
+        displayObjects(name, assets, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout);
+      } else {
         GUILayout.Label(name + " 0");
-      }
+      }}
     }
 
     void displayObjects(

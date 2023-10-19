@@ -14,8 +14,8 @@ using GenerationAttributes;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
-using Sirenix.Utilities;
 using FPCSharpUnity.core.collection;
+using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Editor.extensions;
@@ -34,8 +34,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <summary> Extra resolvers are project specific reference resolvers that resolve links between assets. </summary>
     public readonly ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers;
     
-    public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> parents = new();
-    public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> children = new();
+    public readonly Parents parents = new();
+    public readonly Children children = new();
     readonly Dictionary<AssetPath, AssetGuid> pathToGuid = new();
     public string scanDuration = "";
 
@@ -115,8 +115,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         res.Add(currentGuid);
         var path = new AssetPath(AssetDatabase.GUIDToAssetPath(currentGuid));
         if (!shouldConsiderPath(path)) continue;
-        if (children.TryGetValue(currentGuid, out var currentChildren)) {
-          foreach (var child in currentChildren) {
+        if (children.children.TryGetValue(currentGuid, out var currentChildren)) {
+          foreach (var child in currentChildren.guidsInFile.Keys) {
             if (!visited.Contains(child)) q.Enqueue(child);
           }
         }
@@ -144,7 +144,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       AssetGuid guid, ChildOrParent childOrParent, Func<AssetPath, bool> pathPredicate
     ) {
       // TODO: expensive operation. Need to cache results
-      var neighbors = childOrParent switch {
+      
+      Neighbors neighbors = childOrParent switch {
         ChildOrParent.Child => children,
         ChildOrParent.Parent => parents,
         _ => throw ExhaustiveMatch.Failed(childOrParent)
@@ -166,11 +167,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         if (pathPredicate(path)) {
           res.Add(makeChain(current));
         }
-        if (neighbors.TryGetValue(current, out var currentNeighbors)) {
+        neighbors.getNeighbors(current).ifSomeM(currentNeighbors => {
           foreach (var neighbor in currentNeighbors) {
             if (!visited.ContainsKey(neighbor)) q.Enqueue((neighbor, Some.a(current)));
           }
-        }
+        });
       }
       return res.ToImmutable();
 
@@ -191,8 +192,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     static void process(
       AssetUpdate data, int workers,
       Dictionary<AssetPath, AssetGuid> pathToGuid,
-      Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
-      Dictionary<AssetGuid, HashSet<AssetGuid>> children,
+      Parents parents,
+      Children children,
       Ref<float> progress, ILog log,
       bool useDefaultResolver,
       ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
@@ -211,11 +212,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
       
       var assets = data.filter(predicate, _ => predicate(_.fromPath));
-      var firstScan = children.isEmpty() && parents.isEmpty();
+      var firstScan = children.children.isEmpty() && parents.parents.isEmpty();
       var updatedChildren =
         firstScan
         ? children
-        : new Dictionary<AssetGuid, HashSet<AssetGuid>>();
+        : new Children();
 
       var progressIdx = 0;
       void updateProgress() => progress.value = (float) progressIdx / assets.totalAssets;
@@ -243,10 +244,11 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
           lock (updatedChildren) {
             foreach (var result in results) {
               pathToGuid[result.assetPath] = result.assetGuid;
-              {if (updatedChildren.TryGetValue(result.assetGuid, out var existing)) {
-                existing.AddRange(result.childGuids);
+              {if (updatedChildren.children.TryGetValue(result.assetGuid, out var existing)) {
+                // TODO: error
+                // existing.AddRange(result.childGuids);
               } else {
-                updatedChildren.Add(result.assetGuid, result.childGuids);
+                updatedChildren.children.Add(result.assetGuid, result.childGuids);
               }}
             }
           }
@@ -256,7 +258,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       foreach (var deleted in assets.deletedAssets) {
         updateProgress();
         if (pathToGuid.ContainsKey(deleted)) {
-          updatedChildren.getOrUpdate(pathToGuid[deleted], () => new HashSet<AssetGuid>());
+          updatedChildren.children.getOrUpdate(pathToGuid[deleted], () => new GuidsInFile());
           pathToGuid.Remove(deleted);
         }
         progressIdx++;
@@ -270,18 +272,18 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       updateProgress();
 
       if (!firstScan) {
-        foreach (var parent in updatedChildren.Keys) {
-          if (children.ContainsKey(parent)) {
-            var set = children[parent];
-            foreach (var child in set) parents[child].Remove(parent);
-            children.Remove(parent);
+        foreach (var parent in updatedChildren.children.Keys) {
+          if (children.children.ContainsKey(parent)) {
+            var dict = children.children[parent];
+            foreach (var child in dict.guidsInFile.Keys) parents.parents[child].Remove(parent);
+            children.children.Remove(parent);
           }
         }
       }
       addParents(parents, updatedChildren);
       if (!firstScan) {
-        foreach (var kv in updatedChildren) {
-          if (kv.Value.Count > 0) children.Add(kv.Key, kv.Value);
+        foreach (var kv in updatedChildren.children) {
+          if (kv.Value.guidsInFile.Count > 0) children.children.Add(kv.Key, kv.Value);
         }
       }
     }
@@ -330,7 +332,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     ) {
       if (!getGuid(assetPath, out var guid, out var metaFileContentsBuffer, log)) return None._;
 
-      var guidsInFile = new HashSet<AssetGuid>();
+      var guidsInFile = new GuidsInFile();
 
       if (SpriteAtlasExts.isPathAnImage(assetPath.path.ToLowerInvariant())) {
         // Parse meta file only locally. Currently we have no use to parse it with custom resolvers.
@@ -355,12 +357,14 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
       return Some.a(new ParseFileResult(assetGuid: guid, assetPath: assetPath, guidsInFile));
 
-      static void parseBufferLocally(SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile) {
+      static void parseBufferLocally(SimpleBuffer simpleBuffer, GuidsInFile guidsInFile) {
         for (var i = 0; i < simpleBuffer.length; i++) {
           // Regex for reference: @"{fileID:\s+(\d+),\s+guid:\s+(\w+),\s+type:\s+\d+}",
           if (!simpleBuffer.match(i, STRING_FILE_ID)) continue;
           i += STRING_FILE_ID.Length;
           simpleBuffer.skipWhitespace(ref i);
+          
+          if (!simpleBuffer.readLong(ref i, out var fileId)) continue;
           
           simpleBuffer.skipOptionalCharacter(ref i, '-');
           simpleBuffer.skipNumerals(ref i);
@@ -375,17 +379,22 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
             i += assetGuid.guid.Length;
             if (!simpleBuffer.skipCharacter(ref i, ',')) continue;
             
-            guidsInFile.Add(assetGuid);
+            var fileIds = guidsInFile.guidsInFile.getOrUpdateM(assetGuid, () => new());
+            fileIds.Add(new FileId(fileId));
           }
         }
       }
 
       static void parseBufferWithExtraResolvers(
-        SimpleBuffer simpleBuffer, HashSet<AssetGuid> guidsInFile,
+        SimpleBuffer simpleBuffer, GuidsInFile guidsInFile,
         ImmutableArrayC<BytesParserAndGuidResolver> extraResolvers
       ) {
         foreach (var resolver in extraResolvers) {
-          guidsInFile.AddRange(resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length));
+          var resolverResults = resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length);
+          foreach (var assetGuid in resolverResults) {
+            var fileIds = guidsInFile.guidsInFile.getOrUpdateM(assetGuid, () => new());
+            fileIds.Add(FileId.notAvailable);
+          }
         }
       }
     }
@@ -415,12 +424,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     // }
 
     static void addParents(
-      Dictionary<AssetGuid, HashSet<AssetGuid>> parents,
-      Dictionary<AssetGuid, HashSet<AssetGuid>> updatedChildren
+      Parents parents,
+      Children updatedChildren
     ) {
-      foreach (var (parent, children) in updatedChildren) {
-        foreach (var child in children) {
-          parents.getOrUpdate(child, () => new HashSet<AssetGuid>()).Add(parent);
+      foreach (var (parent, children) in updatedChildren.children) {
+        foreach (var child in children.guidsInFile.Keys) {
+          parents.parents.getOrUpdate(child, () => new HashSet<AssetGuid>()).Add(parent);
         }
       }
     }
@@ -469,7 +478,60 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     [Record] readonly partial struct ParseFileResult {
       public readonly AssetGuid assetGuid;
       public readonly AssetPath assetPath;
-      public readonly HashSet<AssetGuid> childGuids;
+      public readonly GuidsInFile childGuids;
+    }
+    
+    /// <summary>File ID that is used internally in serialized Unity files.</summary>
+    [Record(ConstructorFlags.Constructor), NewTypeImplicitTo] 
+    public readonly partial struct FileId {
+      public readonly long id;
+      
+      /// <summary>
+      /// All Texture references use this id.
+      /// Sprite references use other ids.
+      /// </summary>
+      public static readonly FileId texture = new(2800000);
+      
+      /// <summary>
+      /// Custom references do not have file ids.
+      /// </summary>
+      public static readonly FileId notAvailable = new(0);
+
+    }
+    
+    /// <summary>
+    /// Represents all references from a single file to objects in other files.
+    /// <para/>
+    /// One file may contain many references to other objects (<see cref="AssetGuid"/>s). And each guid reference may
+    /// have a different <see cref="FileId"/>
+    /// </summary>
+    public class GuidsInFile {
+      /// <summary>
+      /// Key: guid of the asset that is referenced in the file.
+      /// Value: unique file ids that are used to reference the asset.
+      /// </summary>
+      public readonly Dictionary<AssetGuid, HashSet<FileId>> guidsInFile = new();
+    }
+
+    /// <summary>
+    /// Represents either children or parents of an asset.
+    /// </summary>
+    public interface Neighbors {
+      public Option<IReadOnlyCollection<AssetGuid>> getNeighbors(AssetGuid guid);
+    }
+    
+    public class Children : Neighbors {
+      public readonly Dictionary<AssetGuid, GuidsInFile> children = new();
+
+      public Option<IReadOnlyCollection<AssetGuid>> getNeighbors(AssetGuid guid) =>
+        children.get(guid).mapM<GuidsInFile, IReadOnlyCollection<AssetGuid>>(_ => _.guidsInFile.Keys);
+    }
+    
+    public class Parents : Neighbors {
+      public readonly Dictionary<AssetGuid, HashSet<AssetGuid>> parents = new();
+      
+      public Option<IReadOnlyCollection<AssetGuid>> getNeighbors(AssetGuid guid) =>
+        parents.get(guid).mapM<HashSet<AssetGuid>, IReadOnlyCollection<AssetGuid>>(_ => _);
     }
   }
 }
