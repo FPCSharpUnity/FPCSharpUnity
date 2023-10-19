@@ -14,7 +14,6 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.typeclasses;
 using FPCSharpUnity.core.utils;
 using UnityEngine;
-using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole {
   [PublicAPI] public readonly struct DConsoleRegistrar {

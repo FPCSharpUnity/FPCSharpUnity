@@ -12,7 +12,6 @@ using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Dispose;
 using UnityEngine;
-using static FPCSharpUnity.core.typeclasses.Str;
 using Debug = UnityEngine.Debug;
 
 namespace FPCSharpUnity.unity.Logger {

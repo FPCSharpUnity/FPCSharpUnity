@@ -9,7 +9,6 @@ using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using UnityEngine;
 using UnityEngine.Networking;
-using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.Extensions; 
 

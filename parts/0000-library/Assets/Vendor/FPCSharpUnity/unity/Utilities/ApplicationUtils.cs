@@ -3,7 +3,6 @@ using FPCSharpUnity.unity.Logger;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.log;
 using UnityEngine;
-using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.core.Utilities {
   [PublicAPI, HasLogger] public static partial class ApplicationUtils {

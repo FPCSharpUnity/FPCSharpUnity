@@ -4,7 +4,6 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.unity.Data;
-using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.Components.DebugConsole; 
 

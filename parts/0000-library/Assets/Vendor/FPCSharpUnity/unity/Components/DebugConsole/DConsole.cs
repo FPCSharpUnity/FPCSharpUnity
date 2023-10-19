@@ -25,7 +25,6 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.Utilities;
 using UnityEngine;
 using UnityEngine.Scripting;
-using static FPCSharpUnity.core.typeclasses.Str;
 using static FPCSharpUnity.unity.Data.KeyModifier;
 using AnyExts = FPCSharpUnity.core.exts.AnyExts;
 using Debug = UnityEngine.Debug;

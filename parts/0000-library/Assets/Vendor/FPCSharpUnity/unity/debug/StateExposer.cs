@@ -8,7 +8,6 @@ using FPCSharpUnity.core.macros;
 using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.unity.core.Utilities;
 using UnityEngine;
-using static FPCSharpUnity.core.typeclasses.Str;
 
 namespace FPCSharpUnity.unity.debug {
   /// <summary>
