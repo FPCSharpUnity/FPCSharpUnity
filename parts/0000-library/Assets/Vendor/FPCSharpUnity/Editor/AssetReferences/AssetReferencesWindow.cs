@@ -46,6 +46,8 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
   // Ugly code ahead 🚧
   public class AssetReferencesWindow : EditorWindow, IMB_OnGUI, IMB_Update, IMB_OnEnable, IMB_OnDisable {
     [LazyProperty, Implicit] static ILog log => Log.d.withScope(nameof(AssetReferencesWindow));
+    
+    List<bool> enabledResolvers = new();
 
     Vector2 scrollPos;
     // disables automatically on code refresh
@@ -78,11 +80,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     static volatile bool processing, needsRepaint;
     static Option<AssetReferences> refsOpt;
     static readonly PCQueue worker = new PCQueue(1);
+    static readonly List<AssetReferences.BytesParserAndGuidResolver> enabledExtraResolvers = new();
 
     public static void processFiles(AssetUpdate data) {
       if (!enabled.value) return;
 
-      var extraResolvers = AssetReferences.extraResolversForProject.toImmutableArrayC();
+      var extraResolvers = enabledExtraResolvers.toImmutableArrayC();
       
       foreach (var extraParser in extraResolvers._unsafeArray) {
         extraParser.initBeforeParsing();
@@ -119,12 +122,16 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
     }
 
+    bool foldoutSelected = true;
     bool foldout1 = true, foldout2 = true, foldout3 = true, foldout4 = true, foldout5 = true;
-    Object hoverItem, previousHoverItem, lockedObj;
-    readonly IRxRef<bool> locked = RxRef.a(false);
+    Object hoverItem, previousHoverItem;
+
+    bool locked;
+    Object[] selectedObjects = {};
     bool showActions, showChains;
     
     string searchQuery = "";
+    string searchFolder = "";
     AssetReferences.ChildOrParent searchDirection = AssetReferences.ChildOrParent.Child;
     HashSet<string> searchResults = new();
 
@@ -137,32 +144,71 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       else {
         scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
         enabled.value = EditorGUILayout.Toggle("Enabled", enabled.value);
-        foreach (var _ in enabled.value.opt(F.unit)) {
+        if (!enabled.value) {
+          GUILayout.Label("You can disable custom resolvers before enabling.");
+          var extraResolvers = AssetReferences.extraResolversForProject;
+          if (extraResolvers.Count != enabledResolvers.Count) {
+            enabledResolvers.Clear();
+            foreach (var _ in extraResolvers) {
+              enabledResolvers.Add(true);
+            }
+            refreshEnabledList();
+          }
+          EditorGUI.BeginChangeCheck();
+          for (var i = 0; i < enabledResolvers.Count; i++) {
+            enabledResolvers[i] = EditorGUILayout.Toggle(extraResolvers[i].GetType().Name, enabledResolvers[i]);
+          }
+          if (EditorGUI.EndChangeCheck()) refreshEnabledList();
+
+          void refreshEnabledList() {
+            enabledExtraResolvers.Clear();
+            for (var i = 0; i < enabledResolvers.Count; i++) {
+              if (enabledResolvers[i]) {
+                enabledExtraResolvers.Add(extraResolvers[i]);
+              }
+            }
+          }
+        }
+        else {
+          drawWhenEnabled();
+        }
+        
+        void drawWhenEnabled() {
           foreach (var refs in refsOpt) {
             GUILayout.Label($"Scan duration: {refs.scanDuration}");
           }
-          locked.value = EditorGUILayout.Toggle("Lock", locked.value);
+          locked = EditorGUILayout.Toggle("Lock", locked);
           showActions = EditorGUILayout.Toggle("Show Actions", showActions);
           showChains = EditorGUILayout.Toggle("Show Dependency Chains", showChains);
-          var cur = locked.value ? lockedObj : Selection.activeObject;
-          if (cur == null) break;
-          var curPath = AssetDatabase.GetAssetPath(cur);
-          if (curPath == null) break;
-          var currentGUID = new AssetGuid(AssetDatabase.AssetPathToGUID(curPath));
-          if (currentGUID.guid == null) break;
-          GUILayout.Label("Selected");
-          objectDisplay(currentGUID);
+          if (!locked) {
+            selectedObjects = Selection.objects;
+          }
+          if (selectedObjects.Length == 0) return;
+          var selectedPaths = selectedObjects.Select(AssetDatabase.GetAssetPath).Where(_ => _ != null).ToArray();
+          var selectedGuids = selectedPaths.Select(_ => new AssetGuid(AssetDatabase.AssetPathToGUID(_))).ToArray();
+          if (selectedGuids.Length == 0) return;
+          var firstGuid = selectedGuids[0];
+          foldoutSelected = EditorGUILayout.Foldout(foldoutSelected, "Selected");
+          if (foldoutSelected) {
+            foreach (var guid in selectedGuids) {
+              objectDisplay(guid);
+            }
+          }
           refsOpt.ifSomeM(refs => {
             displayObjects(
-              currentGUID, "Used by objects (parents)", refs.parents, ref foldout1, 
-              getTags: parentGuid => getTags(parent: parentGuid, child: currentGUID)
+              selectedGuids, "Used by objects (parents)", refs.parents, ref foldout1, 
+              getTags: selectedGuids.Length == 1 
+                ? parentGuid => getTags(parent: parentGuid, child: firstGuid)
+                : _ => ""
             );
             displayObjects(
-              currentGUID, "Contains (children)", refs.children, ref foldout2,
-              getTags: childGuid => getTags(parent: currentGUID, child: childGuid)
+              selectedGuids, "Contains (children)", refs.children, ref foldout2,
+              getTags: selectedGuids.Length == 1 
+                ? childGuid => getTags(parent: firstGuid, child: childGuid)
+                : _ => ""
             );
-            displayObjects("Placed in scenes", refs.findParentScenes(currentGUID), ref foldout3);
-            displayObjects("Placed in resources", refs.findParentResources(currentGUID), ref foldout4);
+            displayObjects("Placed in scenes", refs.findParentScenes(selectedGuids), ref foldout3);
+            displayObjects("Placed in resources", refs.findParentResources(selectedGuids), ref foldout4);
 
             string getTags(AssetGuid parent, AssetGuid child) {
               if (AssetDatabaseUtils.loadMainAssetByGuid(child) is Texture2D) {
@@ -187,10 +233,12 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
             {
               EditorGUI.BeginChangeCheck();
               searchQuery = EditorGUILayout.TextField("Custom search query", searchQuery);
+              searchFolder = EditorGUILayout.TextField("Custom search folder", searchFolder);
               if (EditorGUI.EndChangeCheck()) {
                 searchResults.Clear();
                 if (searchQuery.Length > 0) {
-                  var paths = AssetDatabase.FindAssets(searchQuery)
+                  var folders = searchFolder.Length > 0 ? new[] {searchFolder} : Array.Empty<string>();
+                  var paths = AssetDatabase.FindAssets(searchQuery, folders)
                     .Select(_ => new AssetPath(AssetDatabase.GUIDToAssetPath(_)));
                   foreach (var path in paths) {
                     searchResults.Add(path);
@@ -202,7 +250,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
                 "Custom search direction", searchDirection
               );
 
-              var chains = refs.findDependencyChains(currentGUID, searchDirection, path => searchResults.Contains(path));
+              var chains = refs.findDependencyChains(selectedGuids, searchDirection, path => searchResults.Contains(path));
               displayObjects("Custom search results:", chains, ref foldout5);
             }
           });
@@ -219,14 +267,33 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     }
 
     void displayObjects(
-      AssetGuid curGuid, string name, AssetReferences.Neighbors neighbors, ref bool foldout,
+      ReadOnlySpan<AssetGuid> selectedGuids, string name, AssetReferences.Neighbors neighbors, ref bool foldout,
       Func<AssetGuid, string> getTags
     ) {
-      {if (neighbors.getNeighbors(curGuid).valueOut(out var assets)) {
-        displayObjects(name, assets, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout, getTags);
-      } else {
-        GUILayout.Label(name + " 0");
-      }}
+      if (selectedGuids.Length == 0) {
+        var guid = selectedGuids[0];
+        {if (neighbors.getNeighbors(guid).valueOut(out var assets)) {
+          displayObjects(name, assets, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout, getTags);
+        } else {
+          GUILayout.Label(name + " 0");
+        }}
+      }
+      else {
+        var items = new HashSet<AssetGuid>();
+        foreach (var guid in selectedGuids) {
+          neighbors.getNeighbors(guid).ifSomeM(assets => {
+            foreach (var asset in assets) {
+              items.Add(asset);
+            }
+          });
+        }
+        if (items.Count > 0) {
+          displayObjects(name, items, _ => _, _ => ImmutableList<AssetGuid>.Empty, ref foldout, getTags);
+        }
+        else {
+          GUILayout.Label(name + " 0");
+        }
+      }
     }
 
     void displayObjects(
@@ -329,9 +396,6 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
     public void OnEnable() {
       wantsMouseMove = true;
-      locked.subscribe(tracker, v => {
-        if (v) lockedObj = Selection.activeObject;
-      });
     }
 
     public void OnDisable() => tracker.Dispose();

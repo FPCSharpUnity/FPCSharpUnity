@@ -89,15 +89,15 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// Given an object GUID find all scenes where that particular GUID is being used.
     /// </summary>
     /// <returns>guids for scenes where given guid is used</returns>
-    public System.Collections.Immutable.ImmutableList<Chain> findParentScenes(AssetGuid guid) => 
-      findDependencyChains(guid, ChildOrParent.Parent, path => path.path.EndsWithFast(".unity"));
+    public System.Collections.Immutable.ImmutableList<Chain> findParentScenes(ReadOnlySpan<AssetGuid> guids) => 
+      findDependencyChains(guids, ChildOrParent.Parent, path => path.path.EndsWithFast(".unity"));
     
     /// <summary>
     /// Given an object GUID find all resources where that particular GUID is being used.
     /// </summary>
     /// <returns>guids for resources where given guid is used</returns>
-    public System.Collections.Immutable.ImmutableList<Chain> findParentResources(AssetGuid guid) => 
-      findDependencyChains(guid, ChildOrParent.Parent, path => path.path.ToLowerInvariant().Contains("/resources/"));
+    public System.Collections.Immutable.ImmutableList<Chain> findParentResources(ReadOnlySpan<AssetGuid> guids) => 
+      findDependencyChains(guids, ChildOrParent.Parent, path => path.path.ToLowerInvariant().Contains("/resources/"));
 
     /// <summary>
     /// Given an object GUID find all children that are referenced by this object, either directly or indirectly.
@@ -141,7 +141,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     /// <param name="pathPredicate"></param>
     /// <returns></returns>
     public System.Collections.Immutable.ImmutableList<Chain> findDependencyChains(
-      AssetGuid guid, ChildOrParent childOrParent, Func<AssetPath, bool> pathPredicate
+      ReadOnlySpan<AssetGuid> guids, ChildOrParent childOrParent, Func<AssetPath, bool> pathPredicate
     ) {
       // TODO: expensive operation. Need to cache results
       
@@ -157,7 +157,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       var visited = new Dictionary<AssetGuid, Option<AssetGuid>>();
       
       var q = new Queue<(AssetGuid current, Option<AssetGuid> previous)>();
-      q.Enqueue((guid, None._));
+      foreach (var guid in guids) {
+        q.Enqueue((guid, None._));
+      }
       var res = ImmutableList.CreateBuilder<Chain>();
       while (q.Count > 0) {
         var (current, maybePrevious) = q.Dequeue();
