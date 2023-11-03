@@ -9,6 +9,7 @@ using FPCSharpUnity.unity.Utilities;
 using GenerationAttributes;
 using JetBrains.Annotations;
 using Sirenix.OdinInspector;
+using Unity.Profiling;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -24,13 +25,15 @@ namespace FPCSharpUnity.unity.unity_serialization {
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
     
-    protected ImmutableDictionary<A, B> getValuesAsDictionary =>
-      _keyValuePairs
+    protected ImmutableDictionary<A, B> getValuesAsDictionary { get {
+      using var _ = SerializableDictionaryBase.markerGetValuesAsDictionary.Auto();
+      return _keyValuePairs
         // Adding new values in editor will create new elements with null key. Dictionary doesn't let us to have null
         // keys. Filter them out until developer sets the correct key in inspector, because inspector is not being
         // drawn until then.
         .Where(kv => kv.key != null)
         .ToImmutableDictionary(_ => _.key, _ => _.value);
+    } }
 
     /// <summary> This doesn't work if inspector draws array as table. So we show it above table as extra button. </summary>
     [Button, ShowIf(nameof(showAddButton)), PropertyOrder(-1)] void addKey() => selector();
@@ -75,5 +78,9 @@ namespace FPCSharpUnity.unity.unity_serialization {
 
       public void setValue(B newValue) => _value = newValue;
     }
+  }
+
+  static class SerializableDictionaryBase {
+    public static readonly ProfilerMarker markerGetValuesAsDictionary = new ("getValuesAsDictionary");
   }
 }

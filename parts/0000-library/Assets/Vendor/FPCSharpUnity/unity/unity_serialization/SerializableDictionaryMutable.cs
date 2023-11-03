@@ -8,6 +8,7 @@ using FPCSharpUnity.core.reactive;
 using FPCSharpUnity.core.utils;
 using GenerationAttributes;
 using Sirenix.OdinInspector;
+using Unity.Profiling;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.unity_serialization; 
@@ -19,7 +20,7 @@ namespace FPCSharpUnity.unity.unity_serialization;
 public partial class SerializableDictionaryMutable<K, V> 
   : SerializableDictionaryBase<K, V>, ISerializationCallbackReceiver 
 {
-  [LazyProperty, PublicReadOnlyAccessor] IRxRef<ImmutableDictionary<K, V>> _dict => 
+  [LazyProperty, PublicReadOnlyAccessor] IRxRef<ImmutableDictionary<K, V>> _dict =>
     RxRef.a(getValuesAsDictionary);
     
   public SerializableDictionaryMutable(Pair[] keyValuePairs) : base(keyValuePairs) { }
@@ -29,7 +30,10 @@ public partial class SerializableDictionaryMutable<K, V>
 
   [Button, OnInspectorGUI] void updateCachedValue() => valueChanged();
 
-  public override void valueChanged() => _dict.value = getValuesAsDictionary;
+  public override void valueChanged() {
+    using var _ = SerializableDictionaryMutable.markerValueChanged.Auto();
+    _dict.value = getValuesAsDictionary;
+  }
 
   /// <summary>
   /// Sets values for specified keys. If application is not playing, then it also sets the values in the serialized data.
@@ -93,4 +97,8 @@ public partial class SerializableDictionaryMutable<K, V>
     array[0] = key;
     remove(array);
   }
+}
+
+static class SerializableDictionaryMutable {
+  public static readonly ProfilerMarker markerValueChanged = new ("valueChanged");
 }

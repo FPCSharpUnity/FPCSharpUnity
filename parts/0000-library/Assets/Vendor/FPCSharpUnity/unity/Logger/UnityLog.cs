@@ -1,5 +1,4 @@
 using System;
-using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.unity.Functional;
 using GenerationAttributes;
 using FPCSharpUnity.core.reactive;
@@ -8,6 +7,7 @@ using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.utils.registry;
 using FPCSharpUnity.unity.Threads;
+using Unity.Profiling;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -18,6 +18,8 @@ namespace FPCSharpUnity.unity.Logger {
     /// our logging framework in Unity console.
     /// </summary>
     const string MESSAGE_PREFIX = "[FPC#Log]";
+    
+    public static readonly ProfilerMarker markerConvertUnityMessageToLogEvent = new ("convertUnityMessageToLogEvent");
 
     public override Option<RegisterToRegistry<LogRegistryName, ILogProperties>> registerToRegistry { get; }
 
@@ -51,6 +53,7 @@ namespace FPCSharpUnity.unity.Logger {
       string message, string backtraceS, LogType type, int stackFramesToSkipWhenGenerating
     ) {
       try {
+        using var _ = markerConvertUnityMessageToLogEvent.Auto();
         var level = convertLevel(type);
 
         // We want to collect backtrace on the current thread
@@ -60,7 +63,7 @@ namespace FPCSharpUnity.unity.Logger {
               // backtrace may be empty in release mode.
               string.IsNullOrEmpty(backtraceS)
                 ? Backtrace.generateFromHere(stackFramesToSkipWhenGenerating + 1 /*this stack frame*/)
-                : Backtrace.parseStringBacktrace(backtraceS, BacktraceElemUnity.parseBacktraceLine)
+                : Backtrace.parseStringBacktraceOptimized(backtraceS, BacktraceElemUnity.parseBacktraceLineNonAlloc)
             : None._;
         var logEvent = new LogEvent(level, new LogEntry(
           message, reportToErrorTracking: true, backtrace: backtrace.toNullable()
