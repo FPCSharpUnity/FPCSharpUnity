@@ -23,7 +23,7 @@ namespace FPCSharpUnity.unity.Data {
     typeof(SuccessHandlerFailed)
   })] public readonly partial struct WebRequestError {
     /// <summary>Turns this into <see cref="LogEntry"/>.</summary>
-    public LogEntry simplify => this.foldM(
+    public ErrorMsg simplify => this.foldM(
       onUnacceptableResponseCode: err => new ErrorMsg(err.ToString()),
       onNonSuccessResult: err => new ErrorMsg(err.ToString()),
       onSuccessHandlerFailed: err => new ErrorMsg(err.ToString()),

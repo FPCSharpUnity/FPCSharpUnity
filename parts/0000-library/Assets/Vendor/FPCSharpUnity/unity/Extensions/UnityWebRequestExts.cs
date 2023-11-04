@@ -1,6 +1,7 @@
 ﻿using System;
 using FPCSharpUnity.unity.Concurrent;
 using FPCSharpUnity.core.concurrent;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.unity.Concurrent.unity_web_request;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.core.log;
@@ -29,7 +30,7 @@ public static class UnityWebRequestExts {
     this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
   ) => req.toFuture(acceptedResponseCodes, static _ => _.downloadHandler.text);
 
-  public static Future<Either<LogEntry, byte[]>> downloadToRamSimpleError(
+  public static Future<Either<ErrorMsg, byte[]>> downloadToRamSimpleError(
     this UnityWebRequest req, AcceptedResponseCodes acceptedResponseCodes
   ) => req.downloadToRam(acceptedResponseCodes).map(_ => _.mapLeftM(err => err.simplify));
 
