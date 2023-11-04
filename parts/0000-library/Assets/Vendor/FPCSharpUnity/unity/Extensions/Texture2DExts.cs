@@ -88,5 +88,12 @@ namespace FPCSharpUnity.unity.Extensions {
       try { return SystemInfo.SupportsRenderTextureFormat(f); }
       catch { return false; }
     }
+
+    public static void compressIfPossible(this Texture2D texture) {
+      // Texture compress needs texture dimensions to be a multiple of 4. Otherwise it logs an error.
+      if (texture.width % 4 == 0 && texture.height % 4 == 0) {
+        texture.Compress(highQuality: false);
+      }
+    }
   }
 }
