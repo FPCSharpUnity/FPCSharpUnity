@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.exts;
+using System;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Android.Bindings.java.lang {
@@ -16,10 +17,10 @@ namespace FPCSharpUnity.unity.Android.Bindings.java.lang {
   }
 
   public static class StackTraceElementExts {
-    public static StackTraceElement asAndroid(this BacktraceElem e) => new StackTraceElement(
-      e.method.methodAsAndroid(), "_",
-      e.fileInfo.foldM((string) null, fi => fi.file),
-      e.fileInfo.foldM(-1, fi => fi.lineNo)
+    public static StackTraceElement asAndroid(this BacktraceElem e) => new(
+      declaringClass: e.method.methodAsAndroid(), methodName: "_",
+      fileName: e.fileInfo.foldM((string) null, fi => fi.file.ToString()),
+      lineNumber: e.fileInfo.foldM(-1, fi => fi.lineNo)
     );
 
     // The "Java letters" include uppercase and lowercase ASCII Latin
@@ -29,10 +30,10 @@ namespace FPCSharpUnity.unity.Android.Bindings.java.lang {
     // rarely, to access pre-existing names on legacy systems.
     //
     // The "Java digits" include the ASCII digits 0-9 (\u0030-\u0039).
-    static readonly Regex javaDeclaringClassRegex = new Regex(@"[^A-Za-z_\.$0-9]");
+    static readonly Regex javaDeclaringClassRegex = new(@"[^A-Za-z_\.$0-9]");
 
-    public static string methodAsAndroid(this string method) =>
-      javaDeclaringClassRegex.Replace(method, "$");
+    public static string methodAsAndroid(this ReadOnlyMemory<char> method) =>
+      javaDeclaringClassRegex.Replace(method.ToString(), "$");
   }
 }
 #endif
