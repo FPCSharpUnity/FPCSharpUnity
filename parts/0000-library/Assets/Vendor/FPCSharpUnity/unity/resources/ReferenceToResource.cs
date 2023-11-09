@@ -6,6 +6,8 @@ using GenerationAttributes;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
+using FPCSharpUnity.unity.editor;
+using FPCSharpUnity.unity.ResourceReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,6 +45,16 @@ namespace FPCSharpUnity.unity.resources {
         .rightOrThrow;
 
     public static Either<string, A> maybeLoad(string name) {
+#if UNITY_EDITOR
+      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted) {
+        var message =
+          $"Can't load {typeof(A).FullName} from path '{name}' in Resources because the domain is not loaded yet!\n"
+          + $"Use `ResourceLoadHelper.domainLoadedFuture` to wait for domain load.";
+        // Log message separately so we could explore call stack easily.
+        Debug.LogError(message);
+        return message;
+      }
+#endif
       var maybeA = Resources.Load<A>(name);
       return maybeA ? maybeA : $"Can't load {typeof(A).FullName} from path '{name}' in Resources!";
     }
