@@ -96,19 +96,30 @@ namespace FPCSharpUnity.unity.Logger {
                   logEventTry.__unsafeException
                 ));
 
+            if (OnMainThread.isMainThread) {
+              tryToLogEvent(logEvent);
+            }
+            else {
+              logOnMainThread(logEvent);
+            }
+          }
+
+          // Separate method to avoid allocation if we are on main thread already.
+          void logOnMainThread(LogEvent logEvent) =>
             OnMainThread.run(
-              () => {
-                try {
-                  onEvent(logEvent);
-                }
-                catch (Exception e) {
-                  // subscriber may throw an exception
-                  // log that exception to our logger to prevent endless loop
-                  log.error(e);
-                }
-              },
+              () => tryToLogEvent(logEvent),
               runNowIfOnMainThread: true
             );
+
+          void tryToLogEvent(LogEvent logEvent) {
+            try {
+              onEvent(logEvent);
+            }
+            catch (Exception e) {
+              // subscriber may throw an exception
+              // log that exception to our logger to prevent endless loop
+              log.error(e);
+            }
           }
         },
         callback => Application.logMessageReceivedThreaded -= callback
