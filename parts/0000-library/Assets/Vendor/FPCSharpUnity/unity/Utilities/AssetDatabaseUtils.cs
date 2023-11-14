@@ -14,6 +14,7 @@ using FPCSharpUnity.core.dispose;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.unity.editor;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -105,11 +106,22 @@ namespace FPCSharpUnity.unity.Utilities {
     /// </summary>
     /// <typeparam name="A"></typeparam>
     /// <returns></returns>
-    public static IEnumerable<A> getScriptableObjectsOfType<A>() where A : ScriptableObject =>
-      AssetDatabase.FindAssets($"t:{typeof(A).Name}")
-      .Select(loadMainAssetByGuid)
-      .OfType<A>();
-    
+    public static IEnumerable<A> getScriptableObjectsOfType<A>() where A : ScriptableObject {
+#if UNITY_EDITOR
+      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted) {
+        var message =
+          $"Can't load {typeof(A).FullName} from assets because the domain is not loaded yet!\n"
+          + $"Use `ResourceLoadHelper.domainLoadedFuture` to wait for domain load.";
+        // Log message separately so we could explore call stack easily.
+        Debug.LogError(message);
+        return Array.Empty<A>();
+      }
+#endif
+      return AssetDatabase.FindAssets($"t:{typeof(A).Name}")
+        .Select(loadMainAssetByGuid)
+        .OfType<A>();
+    }
+
     /// <summary>
     /// Get all asset importers of some type.
     /// </summary>
