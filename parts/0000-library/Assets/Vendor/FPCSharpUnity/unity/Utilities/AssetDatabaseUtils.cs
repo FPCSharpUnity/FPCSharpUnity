@@ -108,7 +108,7 @@ namespace FPCSharpUnity.unity.Utilities {
     /// <returns></returns>
     public static IEnumerable<A> getScriptableObjectsOfType<A>() where A : ScriptableObject {
 #if UNITY_EDITOR
-      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted) {
+      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted && !Application.isBatchMode) {
         var message =
           $"Can't load {typeof(A).FullName} from assets because the domain is not loaded yet!\n"
           + $"Use `ResourceLoadHelper.domainLoadedFuture` to wait for domain load.";
