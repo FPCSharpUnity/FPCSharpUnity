@@ -247,6 +247,11 @@
             Determines if the compiler server is supported in this environment.
             </summary>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CommandLine.BuildServerConnection.CreateBuildRequest(System.Guid,Microsoft.CodeAnalysis.CommandLine.RequestLanguage,System.Collections.Generic.List{System.String},System.String,System.String,System.String,System.String)">
+            <summary>
+            Create a build request for processing on the server. 
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CommandLine.BuildServerConnection.RunServerShutdownRequestAsync(System.String,System.Nullable{System.Int32},System.Boolean,Microsoft.CodeAnalysis.CommandLine.ICompilerServerLogger,System.Threading.CancellationToken)">
             <summary>
             Shutting down the server is an inherently racy operation.  The server can be started or stopped by
@@ -284,9 +289,10 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.CommandLine.BuildServerConnection.GetTempPath(System.String)">
             <summary>
-            Gets the value of the temporary path for the current environment assuming the working directory
-            is <paramref name="workingDir"/>.  This function must emulate <see cref="M:System.IO.Path.GetTempPath"/> as 
-            closely as possible.
+            Gets the value of the temporary path for the provided environment settings. This behavior
+            is OS specific.
+              - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
+                provided working directory.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CommandLine.ServerFileMutex">
@@ -342,8 +348,9 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.RuntimeHostInfo.GetDotNetPathOrDefault">
             <summary>
-            Get the path to the dotnet executable. In the case the host did not provide this information
-            in the environment this will return simply "dotnet".
+            Get the path to the dotnet executable. In the case the .NET SDK did not provide this information
+            in the environment this tries to find "dotnet" on the PATH. In the case it is not found,
+            this will return simply "dotnet".
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.NamedPipeUtil">
@@ -370,6 +377,31 @@
             <summary>
             Create a server for the current user only
             </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.CompilerServer.AnalyzerConsistencyChecker">
+             <summary>
+             The compiler server is a long lived process and loads analyzers from a series of build 
+             commands. This type is responsible for ensuring that analyzers loaded into the server 
+             match, as closely as possible, what would be loaded from a single invocation of csc / vbc.
+            
+             There are a few type of events that can lead to incorrect <see cref="T:System.Reflection.Assembly"/> loads:
+            
+              1. <see cref="T:System.AppDomain"/> pollution: On .NET Framework all analyzers are loaded into the same 
+                 <see cref="T:System.AppDomain"/> instance. When analyzers have dependencies at different versions 
+                 that can lead to them binding to different dependencies than they would through a single 
+                 invocation of csc.
+              2. File system changes: The implementations of <see cref="T:Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader"/> assume 
+                 that the file system is unchanged during build. If the file system does change (say if 
+                 an analyzer is rebuilt) then the new instances need to be loaded not the previous ones.
+            
+             When these type of events happen the consistency checker should fail.
+             </summary>
+             <remarks>
+             The fact that <see cref="T:Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader"/> believe the file system is unchanging
+             makes sense for environments like IDEs but makes little sense for a build server. A  possible
+             future improvement is reworking the server implementation to be resilient to file system
+             changing events. At least on .NET Core that could lead to less server restarts.
+             </remarks>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CompilerServer.BuildServerController">
             <summary>
