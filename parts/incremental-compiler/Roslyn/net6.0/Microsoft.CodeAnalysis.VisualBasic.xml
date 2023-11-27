@@ -3716,6 +3716,11 @@ Figure out the set of best candidates in the following preference order:
  removed and exposed as an explicit receiver type.
  </summary>
 </member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag.GetConcurrentInstance">
+ <summary>
+ Get an instance suitable for concurrent additions to both underlying bags.
+ </summary>
+</member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.BindingLocation">
  <summary>
  A specific location for binding.
@@ -4003,13 +4008,12 @@ Figure out the set of best candidates in the following preference order:
         element type.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.GetTypeBinder.OpenTypeVisitor.Visit(Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax,System.Collections.Generic.Dictionary{Microsoft.CodeAnalysis.VisualBasic.Syntax.GenericNameSyntax,System.Boolean}@,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.GetTypeBinder.OpenTypeVisitor.Visit(Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax,System.Collections.Generic.Dictionary{Microsoft.CodeAnalysis.VisualBasic.Syntax.GenericNameSyntax,System.Boolean}@)">
  <param name="typeSyntax">The argument to typeof.</param>
  <param name="allowedMap">
  Keys are GenericNameSyntax nodes representing unbound generic types.
  Values are false if the node should result in an error and true otherwise.
  </param>
- <param name="isOpenType">True if no constructed generic type was encountered.</param>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.IgnoreBaseClassesBinder">
  <summary>
@@ -5661,7 +5665,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.TypeArguments">
  <summary>
  Returns the type arguments that have been substituted for the type parameters. 
- If nothing has been substituted for a give type parameters,
+ If nothing has been substituted for a given type parameter,
  then the type parameter itself is consider the type argument.
  </summary>
 </member>
@@ -5878,6 +5882,11 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  True if the method has declarative security information (HasSecurity flags).
  </summary>
 </member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.RequiresSecurityObject">
+ <summary>
+ True if the method calls another method containing security code (metadata flag RequiresSecurityObject is set).
+ </summary>
+</member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol.IsExtensionMethod">
  <summary>
  Returns true if this method is an extension method from the VB language perspective; 
@@ -6090,6 +6099,13 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Should return Nothing if there are none.
  </summary>
 </member>
+<member name="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol._lazyRequiredMembers">
+ <summary>
+ <see langword="Nothing" /> if uninitialized. <see cref="F:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.s_requiredMembersErrorSentinel"/> if there are errors.
+ <see cref="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary`2.Empty"/> if there are no required members. Otherwise,
+ the required members.
+ </summary>
+</member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.Arity">
  <summary>
  Returns the arity of this type, or the number of type parameters it takes.
@@ -6112,7 +6128,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.TypeArgumentsNoUseSiteDiagnostics">
  <summary>
  Returns the type arguments that have been substituted for the type parameters. 
- If nothing has been substituted for a give type parameters,
+ If nothing has been substituted for a given type parameter,
  then the type parameter itself is consider the type argument.
  </summary>
 </member>
@@ -6641,6 +6657,18 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.GetSynthesizedWithEventsOverrides">
  <summary>
  Get synthesized WithEvents overrides that aren't returned by <see cref="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.GetMembers"/>
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.AllRequiredMembers">
+ <summary>
+ Gets all of the required members from this type and all base types. This will be a set of the most derived overrides. If <see cref="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.HasRequiredMembersError"/> is true,
+ this will be <see cref="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary`2.Empty"/>.
+ </summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.HasRequiredMembersError">
+ <summary>
+ True if this or any base type has a required members error, and constructors should be blocked unless attributed with SetsRequiredMembersAttribute. When this is
+ true, <see cref="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.AllRequiredMembers"/> will be <see cref="F:Microsoft.CodeAnalysis.Collections.ImmutableSegmentedDictionary`2.Empty"/>
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol.IsTupleCompatible(System.Int32@)">
@@ -7714,12 +7742,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Does this symbol represent a missing assembly.
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.ObsoleteAttributeData">
- <summary>
- Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
- This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
- </summary>
-</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.AssemblySymbol.LookupDeclaredTopLevelMetadataType(Microsoft.CodeAnalysis.MetadataTypeName@)">
  <summary>
  Lookup a top level type referenced from metadata, names should be
@@ -7942,7 +7964,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  <param name="typeName"></param>
  <returns>True if the attribute data matches.</returns>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEAttributeData.GetTargetAttributeSignatureIndex(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.AttributeDescription)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.PEAttributeData.GetTargetAttributeSignatureIndex(Microsoft.CodeAnalysis.AttributeDescription)">
  <summary>
  Matches an attribute by metadata namespace, metadata type name and metadata signature. Does not load the
  type symbol for the attribute.
@@ -8573,13 +8595,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Represents a retargeting custom attribute
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting.RetargetingAttributeData.GetSystemType(Microsoft.CodeAnalysis.VisualBasic.Symbol)">
- <summary>
- Gets the retargeted System.Type type symbol.
- </summary>
- <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
- <returns>Retargeted System.Type type symbol.</returns>
-</member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting.RetargetingAssemblySymbol">
  <summary>
  Essentially this is a wrapper around another AssemblySymbol that is responsible for retargeting
@@ -9041,7 +9056,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  This is for perf, not for correctness.
  </remarks>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceAttributeData.GetTargetAttributeSignatureIndex(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.AttributeDescription)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceAttributeData.GetTargetAttributeSignatureIndex(Microsoft.CodeAnalysis.AttributeDescription)">
  <summary>
  This method finds an attribute by metadata name and signature. The algorithm for signature matching is similar to the one
  in Module.GetTargetAttributeSignatureIndex. Note, the signature matching is limited to primitive types
@@ -9050,12 +9065,10 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  </summary>
  <param name="description">Attribute to match.</param>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceAttributeData.GetSystemType(Microsoft.CodeAnalysis.VisualBasic.Symbol)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceAttributeData.IsTargetAttribute(System.String,System.String,System.Boolean)">
  <summary>
- Gets the System.Type type symbol from targetSymbol's containing assembly.
+ Compares the namespace and type name with the attribute's namespace and type name.  Returns true if they are the same.
  </summary>
- <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
- <returns>System.Type type symbol.</returns>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.Symbols.EventWellKnownAttributeData">
  <summary>
@@ -10111,12 +10124,6 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  !!! from True to False, as we learn more about the module.           !!! 
  </summary>
 </member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbols.ModuleSymbol.ObsoleteAttributeData">
- <summary>
- Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
- This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
- </summary>
-</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbolExtensions.IsOrInGenericType(Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol)">
  <summary>
  Safe to call on a null reference.
@@ -10470,7 +10477,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  done for Metadata symbol easily whereas trying to do this for source symbols could result in cycles.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObsoleteAttributeHelpers.GetObsoleteContextState(Microsoft.CodeAnalysis.VisualBasic.Symbol,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.ObsoleteAttributeHelpers.GetObsoleteContextState(Microsoft.CodeAnalysis.VisualBasic.Symbol,System.Boolean,System.Func{Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.ThreeState})">
  <summary>
  This method checks to see if the given symbol is Obsolete or if any symbol in the parent hierarchy is Obsolete.
  </summary>
@@ -12877,7 +12884,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Class to represent a synthesized attribute
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedAttributeData.Create(Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol,Microsoft.CodeAnalysis.WellKnownMember,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.TypedConstant},System.Collections.Immutable.ImmutableArray{System.Collections.Generic.KeyValuePair{System.String,Microsoft.CodeAnalysis.TypedConstant}})">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedAttributeData.Create(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation,Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol,Microsoft.CodeAnalysis.WellKnownMember,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.TypedConstant},System.Collections.Immutable.ImmutableArray{System.Collections.Generic.KeyValuePair{System.String,Microsoft.CodeAnalysis.TypedConstant}})">
  <summary>
  Synthesizes attribute data for given constructor symbol.
  If the constructor has UseSiteErrors and the attribute is optional returns Nothing.
@@ -14873,6 +14880,12 @@ we see that namespaces A and B and C are declared.  This declaration is represen
  Emit an element store instruction for a single dimensional array.
  </summary>
 </member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.CodeGen.CodeGenerator.TryEmitComparison(Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean)">
+ <summary>
+ Emits boolean expression without branching if possible (i.e., no logical operators, only comparisons).
+ Leaves a boolean (int32, 0 or 1) value on the stack which conforms to sense, i.e., <c>condition = sense</c>.
+ </summary>
+</member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.CodeGen.CodeGenerator.ShouldNoteProjectErrors">
  <summary>
  Tells if we should emit [Set/Clear]ProjectErrors when entering/leaving handlers
@@ -16093,7 +16106,7 @@ we see that namespaces A and B and C are declared.  This declaration is represen
 
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.CompileMethodBodies(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation,Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder,System.Boolean,System.Boolean,System.Boolean,System.Predicate{Microsoft.CodeAnalysis.VisualBasic.Symbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Threading.CancellationToken)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.MethodCompiler.CompileMethodBodies(Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation,Microsoft.CodeAnalysis.VisualBasic.Emit.PEModuleBuilder,System.Boolean,System.Boolean,System.Predicate{Microsoft.CodeAnalysis.VisualBasic.Symbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Threading.CancellationToken)">
  <summary>
  Compiles given compilation into provided module.
 
@@ -17720,16 +17733,17 @@ End Class
  <param name="specificDiagnosticOptions">How specific diagnostics should be reported</param>
  <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFilter.GetDiagnosticReport(Microsoft.CodeAnalysis.DiagnosticSeverity,System.Boolean,System.String,Microsoft.CodeAnalysis.Location,System.String,Microsoft.CodeAnalysis.ReportDiagnostic,System.Collections.Generic.IDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider,System.Threading.CancellationToken,System.Boolean@)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.VisualBasicDiagnosticFilter.GetDiagnosticReport(Microsoft.CodeAnalysis.DiagnosticSeverity,System.Boolean,System.String,Microsoft.CodeAnalysis.Location,System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.ReportDiagnostic,System.Collections.Generic.IDictionary{System.String,Microsoft.CodeAnalysis.ReportDiagnostic},Microsoft.CodeAnalysis.SyntaxTreeOptionsProvider,System.Threading.CancellationToken,System.Boolean@)">
  <summary>
  Take a warning And return the final disposition of the given warning,
  based on both command line options And pragmas. The diagnostic options
  have precedence in the following order:
      1. Warning level
      2. Command line options (/nowarn, /warnaserror)
-     3. Editor config options (syntax tree level)
-     4. Global analyzer config options (compilation level)
-     5. Global warning level
+     3. Custom severity configuration applied by analyzer
+     4. Editor config options (syntax tree level)
+     5. Global analyzer config options (compilation level)
+     6. Global warning level
 
  Global overrides are complicated. Global options never override suppression.
  Even if you have generalDiagnosticOption = ReportDiagnostic.Error, a
@@ -18158,9 +18172,15 @@ End Class
  This property returns Unknown if the Obsolete Attribute hasn't been cracked yet.
  </summary>
 </member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbol.ExperimentalState">
+ <summary>
+ True if this symbol has been marked with the Experimental attribute. 
+ This property returns Unknown if the Experimental attribute hasn't been cracked yet.
+ </summary>
+</member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.Symbol.ObsoleteAttributeData">
  <summary>
- Returns data decoded from Obsolete attribute or null if there is no Obsolete attribute.
+ Returns data decoded from Obsolete/Experimental attribute or null if there is no Obsolete/Experimental attribute.
  This property returns ObsoleteAttributeData.Uninitialized if attribute arguments haven't been decoded yet.
  </summary>
 </member>
@@ -18265,13 +18285,6 @@ End Class
  <summary>
  Is this lambda method a query lambda? 
  If it is, IsLambdaMethod == True as well.
- </summary>
-</member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.GetGuidStringDefaultImplementation(System.String@)">
- <summary>
- Returns true and a <see cref="T:System.String"/> from the first <see cref="T:System.Runtime.InteropServices.GuidAttribute"/> on the symbol, 
- the string might be null or an invalid guid representation. False, 
- if there is no <see cref="T:System.Runtime.InteropServices.GuidAttribute"/> with string argument.
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.GetDocumentationCommentId">
@@ -18453,7 +18466,7 @@ End Class
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.Symbol.ForceCompleteObsoleteAttribute">
  <summary>
- Ensure that attributes are bound and the ObsoleteState of this symbol is known.
+ Ensure that attributes are bound and the ObsoleteState/ExperimentalState of this symbol is known.
  </summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.VisualBasic.BadSymbolDiagnostic">
@@ -67473,13 +67486,7 @@ Parse the input for leading trivia.
  Represents a VB location in source code or metadata.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.AsyncMethodToClassRewriter.SpillExpressionsWithReceiver(Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.SpillBuilder@)">
- <summary>
- Spill an expression list with a receiver (e.g. array access, method call), 
- where at least one of the receiver or the arguments contains an await expression.
- </summary>
-</member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.AsyncMethodToClassRewriter.SpillExpressionList(Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.SpillBuilder@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression},System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.AsyncMethodToClassRewriter.SpillExpressionList(Microsoft.CodeAnalysis.VisualBasic.AsyncRewriter.SpillBuilder@,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.VisualBasic.BoundExpression})">
  <summary>
  Spill a list of expressions (e.g. the arguments of a method call).
  
@@ -68532,7 +68539,7 @@ Parse the input for leading trivia.
  involves overloaded comparison/IsTrue operators
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.TryGetSpecialMember``1(``0@,Microsoft.CodeAnalysis.SpecialMember,Microsoft.CodeAnalysis.SyntaxNode)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.TryGetSpecialMember``1(``0@,Microsoft.CodeAnalysis.SpecialMember,Microsoft.CodeAnalysis.SyntaxNode,System.Boolean)">
  <summary>
  Attempt to retrieve the specified special member, reporting a use-site diagnostic if the member is not found.
  </summary>
@@ -68561,7 +68568,7 @@ Parse the input for leading trivia.
  are returned in temp/init
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.NullableValueOrDefault(Microsoft.CodeAnalysis.VisualBasic.BoundExpression)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LocalRewriter.NullableValueOrDefault(Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean)">
  <summary>
  Returns expression that -
  a) evaluates the operand if needed
@@ -69154,7 +69161,7 @@ Parse the input for leading trivia.
  Synthesizes an expression that evaluates to the index of a source document in the table of debug source documents.
  </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.UseTwiceRewriter.UseTwice(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedLocal})">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.UseTwiceRewriter.UseTwice(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.VisualBasic.Symbols.SynthesizedLocal})">
  <summary>
  Given an expression that produces some result and 
  has some observable evaluation side effects, return two expressions:
@@ -69173,7 +69180,7 @@ Parse the input for leading trivia.
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.WithExpressionRewriter.Result.Initializers">
  <summary> Locals initialization expressions </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.WithExpressionRewriter.AnalyzeWithExpression(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Boolean)">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.WithExpressionRewriter.AnalyzeWithExpression(Microsoft.CodeAnalysis.VisualBasic.Symbol,Microsoft.CodeAnalysis.VisualBasic.BoundExpression,System.Boolean,System.Boolean,Microsoft.CodeAnalysis.VisualBasic.Binder,System.Boolean)">
  <summary>
  Given an expression specified for With statement produces:
    1) Expression - an expression to be used instead of expression placeholder
@@ -70534,7 +70541,7 @@ Parse the input for leading trivia.
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaUtilities.IsLambdaBodyStatementOrExpression(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode@)">
  <summary>
- Returns true if the specified <paramref name="node"/> is part of a lambda body. 
+ Returns true if the specified <paramref name="node"/> is part of a lambda body and its parent is not.
  Returns the node (<paramref name="lambdaBody"/>) that represents the containing lambda body.
  </summary>
  <remarks>
@@ -70545,6 +70552,12 @@ Parse the input for leading trivia.
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaUtilities.TryGetLambdaBodies(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode@,Microsoft.CodeAnalysis.SyntaxNode@)">
  <summary>
  If the specified node represents a lambda returns a node (or nodes) that represent its body (bodies).
+ </summary>
+</member>
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaUtilities.GetLambdaBodyExpressionsAndStatements(Microsoft.CodeAnalysis.SyntaxNode)">
+ <summary>
+ Enumerates all nodes that belong to the given <paramref name="lambdaBody"/> and their parents do not
+ (they are the top-most expressions and statements of the body).
  </summary>
 </member>
 <member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaUtilities.TryGetSimpleLambdaBody(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode@)">
@@ -81378,21 +81391,15 @@ Parse the input for leading trivia.
  <summary>Attribute is not supported in VB</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringGeneration">
- <summary>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</summary>
-</member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringGeneration_Description">
- <summary>Generator threw the following exception:
- '{0}'.</summary>
+ <summary>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+ {3}</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringGeneration_Title">
  <summary>Generator failed to generate source.</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringInitialization">
- <summary>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</summary>
-</member>
-<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringInitialization_Description">
- <summary>Generator threw the following exception:
- '{0}'.</summary>
+ <summary>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+ {3}</summary>
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_GeneratorFailedDuringInitialization_Title">
  <summary>Generator failed to initialize.</summary>
@@ -81456,6 +81463,30 @@ Parse the input for leading trivia.
 </member>
 <member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.WRN_DuplicateAnalyzerReference_Title">
  <summary>Analyzer reference specified multiple times</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_RequiredMemberMustBeSet">
+ <summary>Required member '{0}' must be set in the object initializer or attribute arguments.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_CannotInheritFromTypeWithRequiredMembers">
+ <summary>Cannot inherit from '{0}' because it has required members.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_RequiredMembersInvalid">
+ <summary>The required members list for '{0}' is malformed and cannot be interpreted.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_NewConstraintCannotHaveRequiredMembers">
+ <summary>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_DoNotUseRequiredMember">
+ <summary>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_UnsupportedRefReturningCallInWithStatement">
+ <summary>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_SymbolDefinedInAssembly">
+ <summary>'{0}' is defined in assembly '{1}'.</summary>
+</member>
+<member name="P:Microsoft.CodeAnalysis.VisualBasic.VBResources.ERR_InvalidExperimentalDiagID">
+ <summary>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</summary>
 </member>
 <member name="T:Microsoft.CodeAnalysis.Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer">
  <summary>

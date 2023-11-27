@@ -7,7 +7,6 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.unity.editor;
-using FPCSharpUnity.unity.ResourceReference;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.UI;
@@ -46,7 +45,7 @@ namespace FPCSharpUnity.unity.resources {
 
     public static Either<string, A> maybeLoad(string name) {
 #if UNITY_EDITOR
-      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted) {
+      if (!ResourceLoadHelper.domainLoadedFuture.isCompleted && !Application.isBatchMode) {
         var message =
           $"Can't load {typeof(A).FullName} from path '{name}' in Resources because the domain is not loaded yet!\n"
           + $"Use `ResourceLoadHelper.domainLoadedFuture` to wait for domain load.";
