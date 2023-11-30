@@ -157,7 +157,7 @@
                <li><b>name</b>: string</li>
                <li><b>return_type</b>: Type</li>
                <li><b>is_read_only</b>: bool</li>
-               <li><b>parameters</b>: { name: string, type: Type }</li>
+               <li><b>parameters</b>: { name: string, type: Type, ref_kind: string }</li>
                <li><b>type_parameters</b>: {
                  name: string,
                  additional_constraint: string? ("struct" | "class" | "unmanaged" | null),
