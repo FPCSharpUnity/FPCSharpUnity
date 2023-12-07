@@ -23,5 +23,17 @@ namespace FPCSharpUnity.unity.Utilities {
       var rect = new Rect(position.x - extent, position.y - extent, extent * 2, extent * 2);
       drawRect(rect, color, duration);
     }
+    
+    public static void drawCircle(Vector2 center, float radius, Color color, float duration = 0) {
+      var segments = 32;
+      var angle = 0f;
+      var prevPos = center + new Vector2(radius, 0);
+      for (var i = 0; i < segments; i++) {
+        angle += 2 * Mathf.PI / segments;
+        var pos = center + new Vector2(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius);
+        Debug.DrawLine(prevPos, pos, color, duration);
+        prevPos = pos;
+      }
+    }
   }
 }
