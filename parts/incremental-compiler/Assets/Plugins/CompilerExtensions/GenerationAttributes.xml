@@ -242,6 +242,7 @@
                  Type, public = true, private = true, protected = true, instance = true, static = false
                  include_base_types = false, include_base_interfaces = false
                ): Method[]</li>
+               <li><b>type_is_pointer</b>(Type): bool</li>
                <li><b>type_get_all_properties</b>(
                  Type, public = true, private = true, protected = true, instance = true, static = false
                  include_base_types = false, include_base_interfaces = false
