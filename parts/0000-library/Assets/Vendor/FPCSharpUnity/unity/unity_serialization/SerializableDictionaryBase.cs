@@ -4,7 +4,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
+using FPCSharpUnity.core.log;
 using FPCSharpUnity.unity.Data;
+using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
 using GenerationAttributes;
 using JetBrains.Annotations;
@@ -31,6 +33,20 @@ namespace FPCSharpUnity.unity.unity_serialization {
         // Adding new values in editor will create new elements with null key. Dictionary doesn't let us to have null
         // keys. Filter them out until developer sets the correct key in inspector, because inspector is not being
         // drawn until then.
+        .GroupBy(kv => kv.key)
+        .Select(gr => {
+          Pair pair = null;
+          foreach (var kv in gr) {
+            if (pair != null) {
+              // Log.d.error(); causes errors, because it is accessing unity stuff while it can't after compilation.
+              Debug.LogError(
+                $"More than one value for key {kv.key} in {nameof(SerializableDictionary<A, B>)}!"
+              );
+            }
+            pair = kv;
+          }
+          return pair;
+        })
         .Where(kv => kv.key != null)
         .ToImmutableDictionary(_ => _.key, _ => _.value);
     } }
