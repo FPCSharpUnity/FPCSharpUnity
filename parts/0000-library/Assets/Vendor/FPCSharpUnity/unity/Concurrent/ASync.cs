@@ -40,6 +40,9 @@ namespace FPCSharpUnity.unity.Concurrent;
         // Notice that DontDestroyOnLoad can only be used in play mode and, as such, cannot
         // be part of an editor script.
         if (Application.isPlaying) UnityEngine.Object.DontDestroyOnLoad(go);
+        else {
+          log.error("ASync Helper should not be used in edit mode.");
+        }
         behaviour = go.EnsureComponent<ASyncHelperBehaviour>();
         _behaviour = Some.a(behaviour.weakRef());
         return behaviour;
