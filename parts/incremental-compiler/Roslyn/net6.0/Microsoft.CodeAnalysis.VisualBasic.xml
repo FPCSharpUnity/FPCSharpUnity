@@ -68075,7 +68075,7 @@ Parse the input for leading trivia.
 <member name="F:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter._rewrittenNodes">
  <summary> WARNING: used ONLY in DEBUG </summary>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.Rewrite(Microsoft.CodeAnalysis.VisualBasic.BoundBlock,Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo},System.Int32@,Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.VisualBasic.TypeCompilationState,System.Collections.Generic.ISet{Microsoft.CodeAnalysis.VisualBasic.Symbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.VisualBasic.BoundNode})">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.Rewrite(Microsoft.CodeAnalysis.VisualBasic.BoundBlock,Microsoft.CodeAnalysis.VisualBasic.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncLambdaInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo},System.Int32@,Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.VisualBasic.TypeCompilationState,System.Collections.Generic.ISet{Microsoft.CodeAnalysis.VisualBasic.Symbol},Microsoft.CodeAnalysis.VisualBasic.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.VisualBasic.BoundNode})">
  <summary>
  Rewrite the given node to eliminate lambda expressions.  Also returned are the method symbols and their
  bound bodies for the extracted lambda bodies. These would typically be emitted by the caller such as
@@ -68085,11 +68085,14 @@ Parse the input for leading trivia.
  <param name="node">The bound node to be rewritten</param>
  <param name="method">The containing method of the node to be rewritten</param>
  <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
+ <param name="lambdaDebugInfoBuilder">Information on lambdas defined in <paramref name="method"/> needed for debugging.</param>
+ <param name="lambdaRuntimeRudeEditsBuilder">EnC rude edit information on lambdas defined in <paramref name="method"/>.</param>
+ <param name="closureDebugInfoBuilder">Information on closures defined in <paramref name="method"/> needed for debugging.</param>
  <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
  <param name="symbolsCapturedWithoutCopyCtor">Set of symbols that should not be captured using a copy constructor</param>
  <param name="diagnostics">The caller's buffer into which we place any diagnostics for problems encountered</param>
 </member>
-<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.MakeFrames(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo})">
+<member name="M:Microsoft.CodeAnalysis.VisualBasic.LambdaRewriter.MakeFrames(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo})">
  <summary>
  Create the frame types.
  </summary>
