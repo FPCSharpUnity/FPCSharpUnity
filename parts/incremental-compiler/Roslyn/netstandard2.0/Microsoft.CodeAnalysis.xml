@@ -733,6 +733,22 @@
             Compares scopes by their start (ascending) and then size (descending).
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo">
+            <summary>
+            Debug information maintained for each closure.
+            </summary>
+            <remarks>
+            The information is emitted to PDB in Custom Debug Information record for a method containing the closure.
+            </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo.#ctor(System.Int32,Microsoft.CodeAnalysis.CodeGen.DebugId)">
+            <summary>
+            Debug information maintained for each closure.
+            </summary>
+            <remarks>
+            The information is emitted to PDB in Custom Debug Information record for a method containing the closure.
+            </remarks>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.CodeGen.DebugId">
             <summary>
             Unique identification of an emitted entity (method, lambda, closure) used for debugging purposes (EnC).
@@ -796,7 +812,7 @@
         </member>
         <member name="F:Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo.ClosureOrdinal">
             <summary>
-            The ordinal of the closure frame the lambda belongs to, or
+            The ordinal of the closure frame the lambda or local function belongs to, or
             <see cref="F:Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo.StaticClosureOrdinal"/> if the lambda is static, or
             <see cref="F:Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo.ThisOnlyClosureOrdinal"/> if the lambda is closed over "this" pointer only.
             </summary>
@@ -941,6 +957,11 @@
             This is a list of the using directives that were in scope for this method body.
             </summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeGen.MethodBody.OrderedLambdaRuntimeRudeEdits">
+            <summary>
+            Ordered by <see cref="P:Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo.LambdaId"/>.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CodeGen.MethodBody.HasStackalloc">
             <summary>
             True if there's a stackalloc somewhere in the method.
@@ -1041,7 +1062,7 @@
         </member>
         <member name="T:Microsoft.CodeAnalysis.CodeGen.CachedArrayField">
             <summary>
-            Definition of a field for storing an array caching the data from a metadata block.
+            Definition of a field for storing an array caching the data from a metadata block or array of constants.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CodeGen.DefaultTypeDef">
@@ -1282,20 +1303,36 @@
             The id of the method, or null if the method wasn't assigned one.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousClosure(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.CodeGen.DebugId@)">
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousClosure(Microsoft.CodeAnalysis.SyntaxNode,System.Nullable{Microsoft.CodeAnalysis.CodeGen.DebugId},System.Collections.Immutable.ImmutableArray{System.String},Microsoft.CodeAnalysis.CodeGen.DebugId@,System.Nullable{Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit}@)">
             <summary>
             Finds a closure in the previous generation that corresponds to the specified syntax.
             </summary>
+            <param name="closureSyntax">Syntax of the closure scope.</param>
+            <param name="parentClosureId">Id of the parent closure.</param>
+            <param name="structCaptures">Names of variables hoisted into the closure, or default if the closure is a class.</param>
+            <param name="closureId">Id of the closure assigned in the generation that defined the closure.</param>
+            <param name="runtimeRudeEdit">
+            Not-null if the previous closure is found, but is incompatible with the shape of the closure in the current source.
+            The previous closure can't be reused (a new one needs to be emitted) and IL bodies of lambdas of the previous closure are updated to throw an exception.
+            The exception message is specified in <see cref="P:Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.Message"/>.
+            </param>
             <remarks>
             See LambdaFrame.AssertIsLambdaScopeSyntax for kinds of syntax nodes that represent closures.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousLambda(Microsoft.CodeAnalysis.SyntaxNode,System.Boolean,Microsoft.CodeAnalysis.CodeGen.DebugId@)">
+        <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.TryGetPreviousLambda(Microsoft.CodeAnalysis.SyntaxNode,System.Boolean,System.Int32,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.DebugId},Microsoft.CodeAnalysis.CodeGen.DebugId@,System.Nullable{Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit}@)">
             <summary>
             Finds a lambda in the previous generation that corresponds to the specified syntax.
-            The <paramref name="lambdaOrLambdaBodySyntax"/> is either a lambda syntax (<paramref name="isLambdaBody"/> is false),
-            or lambda body syntax (<paramref name="isLambdaBody"/> is true).
             </summary>
+            <param name="lambdaOrLambdaBodySyntax">Syntax of the lambda or its body.</param>
+            <param name="isLambdaBody">True if <paramref name="lambdaOrLambdaBodySyntax"/> is a lambda body syntax, false if it is a lambda syntax.</param>
+            <param name="closureOrdinal">The ordinal of the closure the lambda is emitted to.</param>
+            <param name="lambdaId">Id of the lambda assigned in the generation that defined the lambda.</param>
+            <param name="runtimeRudeEdit">
+            Not-null if the previous lambda is found, but is incompatible with the shape of the lambda in the current source.
+            The previous lambda can't be reused (a new one needs to be emitted) and the previous lambda IL body is updated to throw an exception.
+            The exception message is specified in <see cref="P:Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.Message"/>.
+            </param>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator.GetFirstUnusedStateMachineState(System.Boolean)">
             <summary>
@@ -5681,6 +5718,12 @@
             </summary>
             <returns><see cref="T:Microsoft.CodeAnalysis.Emit.CommonPEModuleBuilder"/> if successful.</returns>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Compilation.CatchAnalyzerExceptions">
+            <summary>
+            False when the "debug-analyzers" feature flag is set.
+            When that flag is set, the compiler will not catch exceptions from analyzer execution to allow creating dumps.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Compilation.CompareSyntaxTreeOrdering(Microsoft.CodeAnalysis.SyntaxTree,Microsoft.CodeAnalysis.SyntaxTree)">
             <summary>
             The compiler needs to define an ordering among different partial class in different syntax trees
@@ -6689,6 +6732,16 @@
         <member name="M:Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation.UncompressStateMachineStates(System.Collections.Immutable.ImmutableArray{System.Byte})">
             <exception cref="T:System.IO.InvalidDataException">Invalid data.</exception>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Emit.DefinitionMap.MetadataLambdasAndClosures.LambdaSymbols">
+            <summary>
+            Ordered by id.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.DefinitionMap._metadataLambdasAndClosures">
+            <summary>
+            Caches <see cref="T:Microsoft.CodeAnalysis.Emit.DefinitionMap.MetadataLambdasAndClosures"/> for named PE types.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.DefinitionMap.TryGetMethodHandle(Microsoft.CodeAnalysis.Symbols.IMethodSymbolInternal,System.Reflection.Metadata.MethodDefinitionHandle@)">
             <summary>
             Gets a <see cref="T:System.Reflection.Metadata.MethodDefinitionHandle"/> for a given <paramref name="method"/>,
@@ -6704,7 +6757,7 @@
             the immediately preceding one.
             </remarks>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Emit.DefinitionMap.GetDeletedSynthesizedMethods(Microsoft.CodeAnalysis.Symbols.IMethodSymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo})">
+        <member name="M:Microsoft.CodeAnalysis.Emit.DefinitionMap.GetDeletedSynthesizedMethods(Microsoft.CodeAnalysis.Symbols.IMethodSymbolInternal,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Emit.EncLambdaInfo})">
             <summary>
             Enumerates method symbols synthesized for the body of a given <paramref name="oldMethod"/> in the previous generation that are not synthesized for the current method body (if any).
             </summary>
@@ -6869,6 +6922,55 @@
             <summary>
             Handles of types that were changed (updated or inserted) in this delta.
             </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.EncClosureInfo.DebugInfo">
+            <summary>
+            Info to write to the PDB.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.EncClosureInfo.ParentDebugId">
+            <summary>
+            Id of the parent closure. Only relevant when emitting EnC delta.
+            </summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.Emit.EncClosureInfo.StructCaptures">
+            <summary>
+            Metadata names of fields of a struct closure that store variables captured by the closure. Null for class closures.
+            Only relevant when emitting EnC delta.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.EncClosureMapValue.IsCompatibleWith(System.Nullable{Microsoft.CodeAnalysis.CodeGen.DebugId},System.Collections.Immutable.ImmutableArray{System.String})">
+            <summary>
+            True if the closure being built is compatible with the previous one.
+            </summary>
+            <returns>
+            True if
+            - The parent closure hasn't changed
+            - Both closures are struct closures or neither is.
+            - The set of variables captured by the new struct closure <paramref name="structCaptures"/>
+              must be a subset of previously captured variables <see cref="P:Microsoft.CodeAnalysis.Emit.EncClosureMapValue.StructCaptures"/>
+              (the runtime doesn't allow adding fields to structs).
+            </returns>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.EncLambdaMapValue.IsCompatibleWith(System.Int32,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.DebugId})">
+            <summary>
+            True if the lambda being built is compatible with the previous one.
+            </summary>
+            <returns>
+            True if
+            - The closure ordinal of the previous lambda is the same as the current one.
+              It is not necessary to check that the generation of the closure matches. 
+              
+              Two closures of the same ordinal that differ in generation can only exist because the first closure was deleted (or regenerated due to a rude edit) in
+              an earlier generation and the latter closure corresponding to the same scope was added in a subsequent generation.
+              The above condition ensures that the current lambda syntax maps to an existing lambda syntax in the previous generation.
+              The closure the previous lambda is emitted to couldn't have been deleted.
+              
+              Guarantees that the containing type of the synthesized method remains unchanged.
+            
+            - The sequence of struct closures the local function captures is preserved.
+              Guarantees that the signature of the synthesized method remains unchanged.
+            </returns>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Emit.LambdaSyntaxFacts.TryGetCorrespondingLambdaBody(Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode)">
             <summary>
@@ -7180,6 +7282,18 @@
             Returns null if member doesn't belong to an embedded NoPia type.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit">
+            <summary>
+            Describes rude edit to be reported at runtime.
+            </summary>
+            <param name="message">Error message.</param>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.#ctor(System.String)">
+            <summary>
+            Describes rude edit to be reported at runtime.
+            </summary>
+            <param name="message">Error message.</param>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.Emit.SemanticEdit">
             <summary>
             Describes a symbol edit between two compilations. 
@@ -7214,6 +7328,12 @@
             that declare a local or generate a long lived local.
             </remarks>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.RuntimeRudeEdit">
+            <summary>
+            Associates a syntax node in the later compilation to an error that should be
+            reported at runtime by the IL generated for the node, if any.
+            </summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.Instrumentation">
             <summary>
             Instrumentation update to be applied to a method.
@@ -7221,7 +7341,7 @@
             <see cref="P:Microsoft.CodeAnalysis.Emit.SemanticEdit.Kind"/> must be <see cref="F:Microsoft.CodeAnalysis.Emit.SemanticEditKind.Update"/>.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.Emit.SemanticEdit.#ctor(Microsoft.CodeAnalysis.Emit.SemanticEditKind,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.ISymbol,System.Func{Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode},Microsoft.CodeAnalysis.Emit.MethodInstrumentation)">
+        <member name="M:Microsoft.CodeAnalysis.Emit.SemanticEdit.#ctor(Microsoft.CodeAnalysis.Emit.SemanticEditKind,Microsoft.CodeAnalysis.ISymbol,Microsoft.CodeAnalysis.ISymbol,System.Func{Microsoft.CodeAnalysis.SyntaxNode,Microsoft.CodeAnalysis.SyntaxNode},System.Func{Microsoft.CodeAnalysis.SyntaxNode,System.Nullable{Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit}},Microsoft.CodeAnalysis.Emit.MethodInstrumentation)">
             <summary>
             Initializes an instance of <see cref="T:Microsoft.CodeAnalysis.Emit.SemanticEdit"/>.
             </summary>
@@ -11064,6 +11184,76 @@
             System.Int32, System.Index or System.Range value.
             </summary>
         </member>
+        <member name="T:Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation">
+            <summary>
+            Represents a collection expression.
+            <para>
+              Current usage:
+              (1) C# collection expression.
+            </para>
+            </summary>
+            <remarks>
+            <para>This node is associated with the following operation kinds:</para>
+            <list type="bullet">
+            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.CollectionExpression"/></description></item>
+            </list>
+            <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+            change it in the future.</para>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructMethod">
+            <summary>
+            Method used to construct the collection.
+            <para>
+              If the collection type is an array, span, array interface, or type parameter, the method is null;
+              if the collection type has a [CollectionBuilder] attribute, the method is the builder method;
+              otherwise, the method is the collection type constructor.
+            </para>
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.Elements">
+            <summary>
+            Collection expression elements.
+            <para>
+              If the element is an expression, the entry is the expression, with a conversion to
+              the target element type if necessary;
+              otherwise, the entry is an ISpreadOperation.
+            </para>
+            </summary>
+        </member>
+        <member name="T:Microsoft.CodeAnalysis.Operations.ISpreadOperation">
+            <summary>
+            Represents a collection expression spread element.
+            <para>
+              Current usage:
+              (1) C# spread element.
+            </para>
+            </summary>
+            <remarks>
+            <para>This node is associated with the following operation kinds:</para>
+            <list type="bullet">
+            <item><description><see cref="F:Microsoft.CodeAnalysis.OperationKind.Spread"/></description></item>
+            </list>
+            <para>This interface is reserved for implementation by its associated APIs. We reserve the right to
+            change it in the future.</para>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ISpreadOperation.Operand">
+            <summary>
+            Collection being spread.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementType">
+            <summary>
+            Type of the elements in the collection.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementConversion">
+            <summary>
+            Conversion from the type of the collection element to the target element type
+            of the containing collection expression.
+            </summary>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.Operations.BlockOperation.CreateTemporaryBlock(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.IOperation},Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.SyntaxNode)">
             <summary>
             This creates a block that can be used for temporary, internal applications that require a block composed of
@@ -12491,7 +12681,7 @@
             <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
             all declared symbols.</item>
             <item>in the case of type declarations with a primary constructor, both the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/>
-            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary contructor will be returned.</item>
+            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary constructor will be returned.</item>
             </list>
             </summary>
             <param name="declaration">A syntax node that is a declaration. This can be any type
@@ -12509,7 +12699,7 @@
             <item>in the case of field declaration syntax nodes, which can declare multiple symbols, this method returns
             all declared symbols.</item>
             <item>in the case of type declarations with a primary constructor, both the <see cref="T:Microsoft.CodeAnalysis.INamedTypeSymbol"/>
-            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary contructor will be returned.</item>
+            for the type, and the <see cref="T:Microsoft.CodeAnalysis.IMethodSymbol"/> for the primary constructor will be returned.</item>
             </list>
             </summary>
             <param name="declaration">A syntax node that is a declaration. This can be any type
@@ -17262,7 +17452,7 @@
             Add another DiagnosticBag to the bag and free the argument.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.DiagnosticBag.ToReadOnlyAndFree``1">
+        <member name="M:Microsoft.CodeAnalysis.DiagnosticBag.ToReadOnlyAndFree``1(System.Boolean)">
             <summary>
             Seal the bag so no further errors can be added, while clearing it and returning the old set of errors.
             Return the bag to the pool.
@@ -18760,7 +18950,7 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.Text.SourceText.GetChecksum">
             <summary>
-            SHA1 or SHA256 checksum (determined by <see cref="P:Microsoft.CodeAnalysis.Text.SourceText.ChecksumAlgorithm"/>.  Computed using the original bytes
+            Cryptographic checksum determined by <see cref="P:Microsoft.CodeAnalysis.Text.SourceText.ChecksumAlgorithm"/>.  Computed using the original bytes
             that were used to produce this <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/> (if any of the <c>From</c> methods were used that
             take a <c>byte[]</c> or <see cref="T:System.IO.Stream"/>).  Otherwise, computed by writing this <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/>
             back to a <see cref="T:System.IO.Stream"/> (using the provided <see cref="P:Microsoft.CodeAnalysis.Text.SourceText.Encoding"/>), and computing the hash off of
@@ -18779,6 +18969,20 @@
             <para/>
             As such, this function should only be used by clients who need to know the exact SHA hash from the original
             content bytes, and for no other purposes. 
+            </remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.Text.SourceText.GetContentHash">
+            <summary>
+            Produces a hash of this <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/> based solely on the contents it contains.  Two different
+            <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/> instances that are <see cref="M:Microsoft.CodeAnalysis.Text.SourceText.ContentEquals(Microsoft.CodeAnalysis.Text.SourceText)"/> will have the same content hash. Two
+            instances of <see cref="T:Microsoft.CodeAnalysis.Text.SourceText"/> with different content are virtually certain to not have the same
+            hash.  This hash can be used for fingerprinting of text instances, but does not provide cryptographic
+            guarantees.
+            </summary>
+            <remarks>
+            This hash is safe to use across platforms and across processes, as long as the same version of Roslyn is
+            used in all those locations.  As such, it is safe to use as a fast proxy for comparing text instances in
+            different memory spaces.  Different versions of Roslyn may produce different content hashes.
             </remarks>
         </member>
         <member name="M:Microsoft.CodeAnalysis.Text.SourceText.ToString">
@@ -20513,6 +20717,12 @@
         <member name="F:Microsoft.CodeAnalysis.OperationKind.InlineArrayAccess">
             <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.IInlineArrayAccessOperation"/>.</summary>
         </member>
+        <member name="F:Microsoft.CodeAnalysis.OperationKind.CollectionExpression">
+            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation"/>.</summary>
+        </member>
+        <member name="F:Microsoft.CodeAnalysis.OperationKind.Spread">
+            <summary>Indicates an <see cref="T:Microsoft.CodeAnalysis.Operations.ISpreadOperation"/>.</summary>
+        </member>
         <member name="T:Microsoft.CodeAnalysis.InternalUtilities.ConcurrentLruCache`2">
             <summary>
             Cache with a fixed size that evicts the least recently used members.
@@ -21642,6 +21852,16 @@
         </member>
         <member name="M:Microsoft.CodeAnalysis.PEModule.GetBaseTypeOfTypeOrThrow(System.Reflection.Metadata.TypeDefinitionHandle)">
             <exception cref="T:System.BadImageFormatException">An exception from metadata reader.</exception>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.PEModule.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(System.Reflection.Metadata.EntityHandle,Microsoft.CodeAnalysis.IAttributeNamedArgumentDecoder,System.Boolean,System.Boolean)">
+            <remarks>Should be kept in sync with <see cref="M:Microsoft.CodeAnalysis.PEModule.IsMoreImportantObsoleteKind(Microsoft.CodeAnalysis.ObsoleteAttributeKind,Microsoft.CodeAnalysis.ObsoleteAttributeKind)"/></remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.PEModule.IsMoreImportantObsoleteKind(Microsoft.CodeAnalysis.ObsoleteAttributeKind,Microsoft.CodeAnalysis.ObsoleteAttributeKind)">
+            <summary>
+            Indicates whether the first attribute should be prioritized over the second one.
+            Same order of priority as
+              <see cref="M:Microsoft.CodeAnalysis.PEModule.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(System.Reflection.Metadata.EntityHandle,Microsoft.CodeAnalysis.IAttributeNamedArgumentDecoder,System.Boolean,System.Boolean)"/>
+            </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.PEModule.GetMemberNotNullAttributeValues(System.Reflection.Metadata.EntityHandle)">
             <summary>
@@ -27028,6 +27248,11 @@
         <member name="P:Microsoft.CodeAnalysis.Symbols.IFieldSymbolInternal.IsVolatile">
             <summary>
             Returns true if this field was declared as "volatile". 
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.Symbols.IFieldSymbolInternal.Type">
+            <summary>
+            Field type.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.Symbols.IMethodSymbolInternal.IsIterator">
@@ -33089,8 +33314,7 @@
         </member>
         <member name="T:Microsoft.CodeAnalysis.SyntaxToken">
             <summary>
-            Represents a token in the syntax tree. This is the language agnostic equivalent of <see
-            cref="T:Microsoft.CodeAnalysis.CSharp.SyntaxToken"/> and <see cref="T:Microsoft.CodeAnalysis.VisualBasic.SyntaxToken"/>.
+            Represents a token in the syntax tree.
             </summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.SyntaxToken.RawKind">
@@ -36039,6 +36263,18 @@
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncCannotResumeSuspendedIteratorMethod">
             <summary>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncDeletedMethodInvoked">
+            <summary>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncDeletedLambdaInvoked">
+            <summary>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncLambdaRudeEdit">
+            <summary>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.EncLambdaRudeEdit_CapturedVariables">
+            <summary>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CodeAnalysisResources.GeneratorNameColumnHeader">
             <summary>Generator</summary>
         </member>
@@ -37245,6 +37481,11 @@
             <summary>
             Returns types of awaiter slots allocated on the state machine,
             or null if the method isn't the kickoff method of a state machine.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Cci.IMethodBody.OrderedLambdaRuntimeRudeEdits">
+            <summary>
+            Ordered by <see cref="P:Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo.LambdaId"/>.
             </summary>
         </member>
         <member name="P:Microsoft.Cci.IMethodBody.CodeCoverageSpans">
@@ -40061,6 +40302,43 @@
             The mutation operations are not thread-safe.
             </summary>
         </member>
+        <member name="T:Roslyn.Utilities.SingleInitNullable`1">
+            <summary>
+            A lazily initialized version of <see cref="T:System.Nullable`1"/> which uses the same space as a <see cref="T:System.Nullable`1"/>.
+            </summary>
+        </member>
+        <member name="F:Roslyn.Utilities.SingleInitNullable`1._initialized">
+            <summary>
+            One of three values:
+            <list type="bullet">
+            <item>0. <see cref="F:Roslyn.Utilities.SingleInitNullable`1._value"/> is not initialized yet.</item>
+            <item>1. <see cref="F:Roslyn.Utilities.SingleInitNullable`1._value"/> is currently being initialized by some thread.</item>
+            <item>2. <see cref="F:Roslyn.Utilities.SingleInitNullable`1._value"/> has been initialized.</item>
+            </list>
+            </summary>
+        </member>
+        <member name="F:Roslyn.Utilities.SingleInitNullable`1._value">
+            <summary>
+            Actual stored value.  Only safe to read once <see cref="F:Roslyn.Utilities.SingleInitNullable`1._initialized"/> is set to 2.
+            </summary>
+        </member>
+        <member name="M:Roslyn.Utilities.SingleInitNullable`1.Initialize``1(System.Func{``0,`0},``0)">
+            <summary>
+            Ensure that the given target value is initialized in a thread-safe manner.
+            </summary>
+            <param name="valueFactory">A factory delegate to create a new instance of the target value. Note that this
+            delegate may be called more than once by multiple threads, but only one of those values will successfully be
+            written to the target.</param>
+            <returns>The target value.</returns>
+            <remarks>
+            An alternative approach here would be to pass <paramref name="valueFactory"/> and <paramref name="arg"/> into
+            <see cref="M:Roslyn.Utilities.SingleInitNullable`1.GetOrStore(`0)"/>, and to only compute the value if the winning thread.  However, this has two potential
+            downsides.  First, the computation of the value might take an indeterminate amount of time.  This would require
+            other threads to then busy-spin for that same amount of time.  Second, we would have to make the code very
+            resilient to failure paths (including cancellation), ensuring that the type reset itself <em>safely</em> to the
+            initial state so that other threads were not perpetually stuck in the busy state.
+            </remarks>
+        </member>
         <member name="M:Roslyn.Utilities.StreamExtensions.TryReadAll(System.IO.Stream,System.Byte[],System.Int32,System.Int32)">
             <summary>
             Attempts to read all of the requested bytes from the stream into the buffer
@@ -40273,6 +40551,308 @@
             <summary>
             Process compiler extension.
             </summary>
+        </member>
+        <member name="T:System.IO.Hashing.NonCryptographicHashAlgorithm">
+            <summary>
+              Represents a non-cryptographic hash algorithm.
+            </summary>
+        </member>
+        <member name="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes">
+            <summary>
+              Gets the number of bytes produced from this hash algorithm.
+            </summary>
+            <value>The number of bytes produced from this hash algorithm.</value>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.#ctor(System.Int32)">
+            <summary>
+              Called from constructors in derived classes to initialize the
+              <see cref="T:System.IO.Hashing.NonCryptographicHashAlgorithm"/> class.
+            </summary>
+            <param name="hashLengthInBytes">
+              The number of bytes produced from this hash algorithm.
+            </param>
+            <exception cref="T:System.ArgumentOutOfRangeException">
+              <paramref name="hashLengthInBytes"/> is less than 1.
+            </exception>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.Append(System.ReadOnlySpan{System.Byte})">
+            <summary>
+              When overridden in a derived class,
+              appends the contents of <paramref name="source"/> to the data already
+              processed for the current hash computation.
+            </summary>
+            <param name="source">The data to process.</param>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.Reset">
+            <summary>
+              When overridden in a derived class,
+              resets the hash computation to the initial state.
+            </summary>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetCurrentHashCore(System.Span{System.Byte})">
+            <summary>
+              When overridden in a derived class,
+              writes the computed hash value to <paramref name="destination"/>
+              without modifying accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <remarks>
+              <para>
+                Implementations of this method must write exactly
+                <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/> bytes to <paramref name="destination"/>.
+                Do not assume that the buffer was zero-initialized.
+              </para>
+              <para>
+                The <see cref="T:System.IO.Hashing.NonCryptographicHashAlgorithm"/> class validates the
+                size of the buffer before calling this method, and slices the span
+                down to be exactly <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/> in length.
+              </para>
+            </remarks>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.Append(System.Byte[])">
+            <summary>
+              Appends the contents of <paramref name="source"/> to the data already
+              processed for the current hash computation.
+            </summary>
+            <param name="source">The data to process.</param>
+            <exception cref="T:System.ArgumentNullException">
+              <paramref name="source"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.Append(System.IO.Stream)">
+            <summary>
+              Appends the contents of <paramref name="stream"/> to the data already
+              processed for the current hash computation.
+            </summary>
+            <param name="stream">The data to process.</param>
+            <exception cref="T:System.ArgumentNullException">
+              <paramref name="stream"/> is <see langword="null"/>.
+            </exception>
+            <seealso cref="M:System.IO.Hashing.NonCryptographicHashAlgorithm.AppendAsync(System.IO.Stream,System.Threading.CancellationToken)"/>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.AppendAsync(System.IO.Stream,System.Threading.CancellationToken)">
+            <summary>
+              Asychronously reads the contents of <paramref name="stream"/>
+              and appends them to the data already
+              processed for the current hash computation.
+            </summary>
+            <param name="stream">The data to process.</param>
+            <param name="cancellationToken">
+              The token to monitor for cancellation requests.
+              The default value is <see cref="P:System.Threading.CancellationToken.None"/>.
+            </param>
+            <returns>
+              A task that represents the asynchronous append operation.
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+              <paramref name="stream"/> is <see langword="null"/>.
+            </exception>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetCurrentHash">
+            <summary>
+              Gets the current computed hash value without modifying accumulated state.
+            </summary>
+            <returns>
+              The hash value for the data already provided.
+            </returns>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.TryGetCurrentHash(System.Span{System.Byte},System.Int32@)">
+            <summary>
+              Attempts to write the computed hash value to <paramref name="destination"/>
+              without modifying accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <param name="bytesWritten">
+              On success, receives the number of bytes written to <paramref name="destination"/>.
+            </param>
+            <returns>
+              <see langword="true"/> if <paramref name="destination"/> is long enough to receive
+              the computed hash value; otherwise, <see langword="false"/>.
+            </returns>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetCurrentHash(System.Span{System.Byte})">
+            <summary>
+              Writes the computed hash value to <paramref name="destination"/>
+              without modifying accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <returns>
+              The number of bytes written to <paramref name="destination"/>,
+              which is always <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/>.
+            </returns>
+            <exception cref="T:System.ArgumentException">
+              <paramref name="destination"/> is shorter than <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/>.
+            </exception>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetHashAndReset">
+            <summary>
+              Gets the current computed hash value and clears the accumulated state.
+            </summary>
+            <returns>
+              The hash value for the data already provided.
+            </returns>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.TryGetHashAndReset(System.Span{System.Byte},System.Int32@)">
+            <summary>
+              Attempts to write the computed hash value to <paramref name="destination"/>.
+              If successful, clears the accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <param name="bytesWritten">
+              On success, receives the number of bytes written to <paramref name="destination"/>.
+            </param>
+            <returns>
+              <see langword="true"/> and clears the accumulated state
+              if <paramref name="destination"/> is long enough to receive
+              the computed hash value; otherwise, <see langword="false"/>.
+            </returns>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetHashAndReset(System.Span{System.Byte})">
+            <summary>
+              Writes the computed hash value to <paramref name="destination"/>
+              then clears the accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <returns>
+              The number of bytes written to <paramref name="destination"/>,
+              which is always <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/>.
+            </returns>
+            <exception cref="T:System.ArgumentException">
+              <paramref name="destination"/> is shorter than <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/>.
+            </exception>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetHashAndResetCore(System.Span{System.Byte})">
+            <summary>
+              Writes the computed hash value to <paramref name="destination"/>
+              then clears the accumulated state.
+            </summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+            <remarks>
+              <para>
+                Implementations of this method must write exactly
+                <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/> bytes to <paramref name="destination"/>.
+                Do not assume that the buffer was zero-initialized.
+              </para>
+              <para>
+                The <see cref="T:System.IO.Hashing.NonCryptographicHashAlgorithm"/> class validates the
+                size of the buffer before calling this method, and slices the span
+                down to be exactly <see cref="P:System.IO.Hashing.NonCryptographicHashAlgorithm.HashLengthInBytes"/> in length.
+              </para>
+              <para>
+                The default implementation of this method calls
+                <see cref="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetCurrentHashCore(System.Span{System.Byte})"/> followed by <see cref="M:System.IO.Hashing.NonCryptographicHashAlgorithm.Reset"/>.
+                Overrides of this method do not need to call either of those methods,
+                but must ensure that the caller cannot observe a difference in behavior.
+              </para>
+            </remarks>
+        </member>
+        <member name="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetHashCode">
+            <summary>
+              This method is not supported and should not be called.
+              Call <see cref="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetCurrentHash"/> or <see cref="M:System.IO.Hashing.NonCryptographicHashAlgorithm.GetHashAndReset"/>
+              instead.
+            </summary>
+            <returns>This method will always throw a <see cref="T:System.NotSupportedException"/>.</returns>
+            <exception cref="T:System.NotSupportedException">In all cases.</exception>
+        </member>
+        <member name="T:System.IO.Hashing.XxHash128">
+            <summary>Provides an implementation of the XXH128 hash algorithm for generating a 128-bit hash.</summary>
+            <remarks>
+            For methods that persist the computed numerical hash value as bytes,
+            the value is written in the Big Endian byte order.
+            </remarks>
+        </member>
+        <member name="F:System.IO.Hashing.XxHash128.HashLengthInBytes">
+            <summary>XXH128 produces 16-byte hashes.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:System.IO.Hashing.XxHash128"/> class using the default seed value 0.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.#ctor(System.Int64)">
+            <summary>Initializes a new instance of the <see cref="T:System.IO.Hashing.XxHash128"/> class using the specified seed.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Hash(System.Byte[])">
+            <summary>Computes the XXH128 hash of the provided <paramref name="source"/> data.</summary>
+            <param name="source">The data to hash.</param>
+            <returns>The XXH128 128-bit hash code of the provided data.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="source"/> is null.</exception>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Hash(System.Byte[],System.Int64)">
+            <summary>Computes the XXH128 hash of the provided data using the provided seed.</summary>
+            <param name="source">The data to hash.</param>
+            <param name="seed">The seed value for this hash computation.</param>
+            <returns>The XXH128 128-bit hash code of the provided data.</returns>
+            <exception cref="T:System.ArgumentNullException"><paramref name="source"/> is null.</exception>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Hash(System.ReadOnlySpan{System.Byte},System.Int64)">
+            <summary>Computes the XXH128 hash of the provided <paramref name="source"/> data using the optionally provided <paramref name="seed"/>.</summary>
+            <param name="source">The data to hash.</param>
+            <param name="seed">The seed value for this hash computation. The default is zero.</param>
+            <returns>The XXH128 128-bit hash code of the provided data.</returns>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Hash(System.ReadOnlySpan{System.Byte},System.Span{System.Byte},System.Int64)">
+            <summary>Computes the XXH128 hash of the provided <paramref name="source"/> data into the provided <paramref name="destination"/> using the optionally provided <paramref name="seed"/>.</summary>
+            <param name="source">The data to hash.</param>
+            <param name="destination">The buffer that receives the computed 128-bit hash code.</param>
+            <param name="seed">The seed value for this hash computation. The default is zero.</param>
+            <returns>The number of bytes written to <paramref name="destination"/>.</returns>
+            <exception cref="T:System.ArgumentException"><paramref name="destination"/> is shorter than <see cref="F:System.IO.Hashing.XxHash128.HashLengthInBytes"/> (16 bytes).</exception>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.TryHash(System.ReadOnlySpan{System.Byte},System.Span{System.Byte},System.Int32@,System.Int64)">
+            <summary>Attempts to compute the XXH128 hash of the provided <paramref name="source"/> data into the provided <paramref name="destination"/> using the optionally provided <paramref name="seed"/>.</summary>
+            <param name="source">The data to hash.</param>
+            <param name="destination">The buffer that receives the computed 128-bit hash code.</param>
+            <param name="bytesWritten">When this method returns, contains the number of bytes written to <paramref name="destination"/>.</param>
+            <param name="seed">The seed value for this hash computation. The default is zero.</param>
+            <returns><see langword="true"/> if <paramref name="destination"/> is long enough to receive the computed hash value (16 bytes); otherwise, <see langword="false"/>.</returns>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Reset">
+            <summary>Resets the hash computation to the initial state.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.Append(System.ReadOnlySpan{System.Byte})">
+            <summary>Appends the contents of <paramref name="source"/> to the data already processed for the current hash computation.</summary>
+            <param name="source">The data to process.</param>
+        </member>
+        <member name="M:System.IO.Hashing.XxHash128.GetCurrentHashCore(System.Span{System.Byte})">
+            <summary>Writes the computed 128-bit hash value to <paramref name="destination"/> without modifying accumulated state.</summary>
+            <param name="destination">The buffer that receives the computed hash value.</param>
+        </member>
+        <member name="P:System.IO.Hashing.XxHashShared.DefaultSecret">
+            <summary>The default secret for when no seed is provided.</summary>
+            <remarks>This is the same as a custom secret derived from a seed of 0.</remarks>
+        </member>
+        <member name="M:System.IO.Hashing.XxHashShared.Multiply32To64(System.UInt32,System.UInt32)">
+            <summary>Calculates a 32-bit to 64-bit long multiply.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHashShared.Avalanche(System.UInt64)">
+            <summary>"This is a fast avalanche stage, suitable when input bits are already partially mixed."</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHashShared.Multiply64To128ThenFold(System.UInt64,System.UInt64)">
+            <summary>Calculates a 64-bit to 128-bit multiply, then XOR folds it.</summary>
+        </member>
+        <member name="M:System.IO.Hashing.XxHashShared.Accumulate(System.UInt64*,System.Byte*,System.Byte*,System.Int32,System.Boolean,System.Int32)">
+            <summary>Optimized version of looping over <see cref="M:System.IO.Hashing.XxHashShared.Accumulate512(System.UInt64*,System.Byte*,System.Byte*)"/>.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.Accumulators">
+            <summary>The accumulators. Length is <see cref="F:System.IO.Hashing.XxHashShared.AccumulatorCount"/>.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.Secret">
+            <summary>Used to store a custom secret generated from a seed. Length is <see cref="F:System.IO.Hashing.XxHashShared.SecretLengthBytes"/>.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.Buffer">
+            <summary>The internal buffer. Length is <see cref="F:System.IO.Hashing.XxHashShared.InternalBufferLengthBytes"/>.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.BufferedCount">
+            <summary>The amount of memory in <see cref="F:System.IO.Hashing.XxHashShared.State.Buffer"/>.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.StripesProcessedInCurrentBlock">
+            <summary>Number of stripes processed in the current block.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.TotalLength">
+            <summary>Total length hashed.</summary>
+        </member>
+        <member name="F:System.IO.Hashing.XxHashShared.State.Seed">
+            <summary>The seed employed (possibly 0).</summary>
         </member>
         <member name="T:System.Runtime.CompilerServices.InternalImplementationOnlyAttribute">
             <summary>

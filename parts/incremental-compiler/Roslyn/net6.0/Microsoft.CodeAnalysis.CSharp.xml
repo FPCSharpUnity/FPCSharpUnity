@@ -5646,7 +5646,7 @@
             Check if it is a regular collection of expressions or there are nested initializers.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.TryEmitReadonlySpanAsBlobWrapper(Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Boolean,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.BoundExpression)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.TryEmitOptimizedReadonlySpanCreation(Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Boolean,Microsoft.CodeAnalysis.CSharp.BoundExpression,System.Boolean@,Microsoft.CodeAnalysis.CSharp.BoundExpression,Microsoft.CodeAnalysis.CSharp.BoundExpression)">
             <summary>Tries to emit a ReadOnlySpan construction as a wrapper for a blob rather than as a wrapper for an array construction.</summary>
             <param name="spanType">The type of the span being constructed.</param>
             <param name="wrappedExpression">The expression being wrapped in a span.</param>
@@ -5670,10 +5670,9 @@
         <member name="M:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.IsTypeAllowedInBlobWrapper(Microsoft.CodeAnalysis.SpecialType)">
             <summary>Gets whether the element type of an array is appropriate for storing in a blob.</summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.TryGetRawDataForArrayInit(Microsoft.CodeAnalysis.CSharp.BoundArrayInitialization,System.Collections.Immutable.ImmutableArray{System.Byte}@)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.GetRawDataForArrayInit(System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.BoundExpression})">
             <summary>
-             Returns a byte blob that matches serialized content of single array initializer.    
-             returns -1 if the initializer is null or not an array of literals
+            Returns a byte blob that matches serialized content of single array initializer of constants.
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.IsConditionalConstrainedCallThatMustUseTempForReferenceTypeReceiverWalker">
@@ -18975,7 +18974,7 @@
             generate code for them.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.MethodCompiler.GenerateMethodBody(Microsoft.CodeAnalysis.CSharp.Emit.PEModuleBuilder,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.BoundStatement,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.StateMachineStateDebugInfo},Microsoft.CodeAnalysis.CSharp.StateMachineTypeSymbol,Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.CodeGen.DebugDocumentProvider,Microsoft.CodeAnalysis.CSharp.ImportChain,System.Boolean,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.SourceSpan},Microsoft.CodeAnalysis.CSharp.Symbols.SynthesizedEntryPointSymbol.AsyncForwardEntryPoint)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.MethodCompiler.GenerateMethodBody(Microsoft.CodeAnalysis.CSharp.Emit.PEModuleBuilder,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.BoundStatement,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Emit.EncLambdaInfo},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.Emit.EncClosureInfo},System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.StateMachineStateDebugInfo},Microsoft.CodeAnalysis.CSharp.StateMachineTypeSymbol,Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,Microsoft.CodeAnalysis.CodeGen.DebugDocumentProvider,Microsoft.CodeAnalysis.CSharp.ImportChain,System.Boolean,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CodeGen.SourceSpan},Microsoft.CodeAnalysis.CSharp.Symbols.SynthesizedEntryPointSymbol.AsyncForwardEntryPoint)">
             <summary>
             entryPointOpt is only considered for synthesized methods (to recognize the synthesized MoveNext method for async Main)
             </summary>
@@ -19326,6 +19325,14 @@
             This compound assignment must have been created from C# code.
             </remarks>
         </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetElementConversion(Microsoft.CodeAnalysis.Operations.ISpreadOperation)">
+            <summary>
+            Gets the underlying element <see cref="T:Microsoft.CodeAnalysis.CSharp.Conversion"/> information from this <see cref="T:Microsoft.CodeAnalysis.Operations.ISpreadOperation"/>.
+            </summary>
+            <remarks>
+            This spread operation must have been created from C# code.
+            </remarks>
+        </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetIndexerGroup(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax,System.Threading.CancellationToken)">
             <summary>
             Returns the list of accessible, non-hidden indexers that could be invoked with the given expression as receiver.
@@ -19621,6 +19628,11 @@
         <member name="M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.QueryContinuationSyntax,System.Threading.CancellationToken)">
             <summary>
             Get the query range variable declared in a query continuation clause.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(Microsoft.CodeAnalysis.SemanticModel,Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax,System.Threading.CancellationToken)">
+            <summary>
+            Given a local function declaration syntax, get the corresponding symbol.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions.Emit(Microsoft.CodeAnalysis.CSharp.CSharpCompilation,System.String,System.String,System.String,System.String,System.Collections.Generic.IEnumerable{Microsoft.CodeAnalysis.ResourceDescription},System.Threading.CancellationToken)">
@@ -22408,7 +22420,7 @@
              C# language specification. A closure is the lowered form of a nested function, consisting of a
              synthesized method and a set of environments containing the captured variables.
              
-             The entry point is the public method <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})"/>.  It operates as follows:
+             The entry point is the public method <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncLambdaInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})"/>.  It operates as follows:
              
              First, an analysis of the whole method body is performed that determines which variables are
              captured, what their scopes are, and what the nesting relationship is between scopes that
@@ -22441,7 +22453,7 @@
              In addition, the rewriting deposits into <see cref="P:Microsoft.CodeAnalysis.CSharp.TypeCompilationState.SynthesizedMethods"/>
              a (<see cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol"/>, <see cref="T:Microsoft.CodeAnalysis.CSharp.BoundStatement"/>) pair for each generated method.
              
-             <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})"/> produces its output in two forms.  First, it returns a new bound statement
+             <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncLambdaInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})"/> produces its output in two forms.  First, it returns a new bound statement
              for the caller to use for the body of the original method.  Second, it returns a collection of
              (<see cref="T:Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol"/>, <see cref="T:Microsoft.CodeAnalysis.CSharp.BoundStatement"/>) pairs for additional methods that the lambda rewriter produced.
              These additional methods contain the bodies of the lambdas moved into ordinary methods of their
@@ -22623,11 +22635,14 @@
             Calculated in <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.MakeAndAssignEnvironments"/>.
             </summary>
         </member>
-        <member name="F:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.ClosureEnvironment.CapturesParent">
+        <member name="F:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.ClosureEnvironment.Parent">
             <summary>
-            True if this environment captures a reference to a class environment
-            declared in a higher scope. Assigned by
-            <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.ComputeLambdaScopesAndFrameCaptures"/>
+            Assigned by <see cref="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.ComputeLambdaScopesAndFrameCaptures"/>.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.ClosureEnvironment.CapturesParent">
+            <summary>
+            True if this environment references a class environment declared in a higher scope.
             </summary>
         </member>
         <member name="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.VisitNestedFunctions(Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.Scope,System.Action{Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.Scope,Microsoft.CodeAnalysis.CSharp.ClosureConversion.Analysis.NestedFunction})">
@@ -22757,7 +22772,7 @@
             the proxy list.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaDebugInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.Rewrite(Microsoft.CodeAnalysis.CSharp.BoundStatement,Microsoft.CodeAnalysis.CSharp.Symbols.NamedTypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.ParameterSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,System.Int32,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol,Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncLambdaInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.LambdaRuntimeRudeEditInfo},Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo},Microsoft.CodeAnalysis.CodeGen.VariableSlotAllocator,Microsoft.CodeAnalysis.CSharp.TypeCompilationState,Microsoft.CodeAnalysis.CSharp.BindingDiagnosticBag,System.Collections.Generic.HashSet{Microsoft.CodeAnalysis.CSharp.Symbols.LocalSymbol})">
             <summary>
             Rewrite the given node to eliminate lambda expressions.  Also returned are the method symbols and their
             bound bodies for the extracted lambda bodies. These would typically be emitted by the caller such as
@@ -22771,13 +22786,14 @@
             <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
             <param name="substitutedSourceMethod">If this is non-null, then <paramref name="method"/> will be treated as this for uses of parent symbols. For use in EE.</param>
             <param name="lambdaDebugInfoBuilder">Information on lambdas defined in <paramref name="method"/> needed for debugging.</param>
+            <param name="lambdaRuntimeRudeEditsBuilder">EnC rude edit information on lambdas defined in <paramref name="method"/>.</param>
             <param name="closureDebugInfoBuilder">Information on closures defined in <paramref name="method"/> needed for debugging.</param>
-            <param name="slotAllocatorOpt">Slot allocator.</param>
+            <param name="slotAllocator">Slot allocator.</param>
             <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
             <param name="diagnostics">Diagnostic bag for diagnostics</param>
             <param name="assignLocals">The set of original locals that should be assigned to proxies if lifted</param>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.SynthesizeClosureEnvironments(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.CodeGen.ClosureDebugInfo})">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.ClosureConversion.SynthesizeClosureEnvironments(Microsoft.CodeAnalysis.PooledObjects.ArrayBuilder{Microsoft.CodeAnalysis.Emit.EncClosureInfo})">
             <summary>
             Adds <see cref="T:Microsoft.CodeAnalysis.CSharp.SynthesizedClosureEnvironment"/> synthesized types to the compilation state
             and creates hoisted fields for all locals captured by the environments.
@@ -22884,6 +22900,11 @@
         <member name="T:Microsoft.CodeAnalysis.CSharp.LambdaCapturedVariable">
             <summary>
             A field of a frame class that represents a variable that has been captured in a lambda.
+            </summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.LambdaCapturedVariable.HasMethodBodyDependency">
+            <summary>
+            When the containing top-level method body is updated we don't need to attempt to update field (it has no "body").
             </summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.CSharp.SynthesizedClosureEnvironment">
@@ -23699,7 +23720,20 @@
             collection has a known length, although possibly including spreads.
             </summary>
         </member>
-        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.CreateAndPopulateList(Microsoft.CodeAnalysis.CSharp.BoundCollectionExpression,Microsoft.CodeAnalysis.CSharp.Symbols.TypeWithAnnotations)">
+        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.TryGetSpanConversion(Microsoft.CodeAnalysis.CSharp.Symbols.TypeSymbol,Microsoft.CodeAnalysis.CSharp.Symbols.MethodSymbol@)">
+            <summary>
+            Returns true if type is convertible to Span or ReadOnlySpan.
+            If non-identity conversion, also returns a non-null asSpanMethod.
+            </summary>
+            <remarks>We are assuming that the well-known types we are converting to/from do not have constraints on their type parameters.</remarks>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.PrepareCopyToOptimization(Microsoft.CodeAnalysis.CSharp.BoundCollectionExpressionSpreadElement,Microsoft.CodeAnalysis.CSharp.BoundExpression)">
+            <summary>
+            Verifies presence of methods necessary for the CopyTo optimization
+            without performing mutating actions e.g. appending to side effects or locals builders.
+            </summary>
+        </member>
+        <member name="M:Microsoft.CodeAnalysis.CSharp.LocalRewriter.CreateAndPopulateList(Microsoft.CodeAnalysis.CSharp.BoundCollectionExpression,Microsoft.CodeAnalysis.CSharp.Symbols.TypeWithAnnotations,System.Collections.Immutable.ImmutableArray{Microsoft.CodeAnalysis.CSharp.BoundNode})">
             <summary>
             Create and populate an list from a collection expression.
             The collection may or may not have a known length.
@@ -43497,6 +43531,9 @@
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ICompoundAssignmentOperationIsNotCSharpCompoundAssignment">
             <summary>{0} is not a valid C# compound assignment operation</summary>
         </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ISpreadOperationIsNotCSharpSpread">
+            <summary>{0} is not a valid C# spread operation</summary>
+        </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_FilterIsConstantFalse">
             <summary>Filter expression is a constant 'false', consider removing the catch clause</summary>
         </member>
@@ -45303,10 +45340,10 @@
             <summary>Inline array conversion operator will not be used for conversion from expression of the declaring type.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_InlineArrayNotSupportedByLanguage">
-            <summary>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</summary>
+            <summary>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.WRN_InlineArrayNotSupportedByLanguage_Title">
-            <summary>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</summary>
+            <summary>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</summary>
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_InlineArrayForEachNotSupported">
             <summary>foreach statement on an inline array of type '{0}' is not supported</summary>
@@ -45361,6 +45398,9 @@
         </member>
         <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.ERR_InvalidExperimentalDiagID">
             <summary>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</summary>
+        </member>
+        <member name="P:Microsoft.CodeAnalysis.CSharp.CSharpResources.IDS_ImplicitIndexerInitializer">
+            <summary>implicit indexer initializer</summary>
         </member>
         <member name="T:Microsoft.CodeAnalysis.Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer">
             <summary>

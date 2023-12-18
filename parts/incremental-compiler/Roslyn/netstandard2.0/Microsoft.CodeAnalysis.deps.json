@@ -12,7 +12,7 @@
           "Microsoft.CodeAnalysis.Analyzers": "3.3.4",
           "Microsoft.CodeAnalysis.NetAnalyzers": "8.0.0-preview.23468.1",
           "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers": "3.3.4-beta1.22504.1",
-          "Microsoft.DotNet.XliffTasks": "1.0.0-beta.23502.1",
+          "Microsoft.DotNet.XliffTasks": "9.0.0-beta.23613.3",
           "Microsoft.Net.Compilers.Toolset": "4.8.0-3.final",
           "Microsoft.VisualStudio.Threading.Analyzers": "17.9.12-alpha",
           "NETStandard.Library": "2.0.3",
@@ -75,7 +75,7 @@
       "Microsoft.CodeAnalysis.NetAnalyzers/8.0.0-preview.23468.1": {},
       "Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers/3.3.4-beta1.22504.1": {},
       "Microsoft.CodeAnalysis.PublicApiAnalyzers/3.11.0-beta1.23364.2": {},
-      "Microsoft.DotNet.XliffTasks/1.0.0-beta.23502.1": {},
+      "Microsoft.DotNet.XliffTasks/9.0.0-beta.23613.3": {},
       "Microsoft.Net.Compilers.Toolset/4.8.0-3.final": {},
       "Microsoft.NETCore.Platforms/1.1.0": {},
       "Microsoft.VisualStudio.Threading.Analyzers/17.9.12-alpha": {},
@@ -218,12 +218,12 @@
       "path": "microsoft.codeanalysis.publicapianalyzers/3.11.0-beta1.23364.2",
       "hashPath": "microsoft.codeanalysis.publicapianalyzers.3.11.0-beta1.23364.2.nupkg.sha512"
     },
-    "Microsoft.DotNet.XliffTasks/1.0.0-beta.23502.1": {
+    "Microsoft.DotNet.XliffTasks/9.0.0-beta.23613.3": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-XJ6lKfIzcFBASNuZFpCbuwpHpqeYXOoq64HhkX8f6vmRaYeycE+xMw4W/ideWokMsNRQXnFey5vKjox5FuV4mg==",
-      "path": "microsoft.dotnet.xlifftasks/1.0.0-beta.23502.1",
-      "hashPath": "microsoft.dotnet.xlifftasks.1.0.0-beta.23502.1.nupkg.sha512"
+      "sha512": "sha512-CTn3OzUjTDqt5zB8hFtR3fptZ9e9fIcWwOtmGTUhncOc04G6nlQmLq8D7ypj5UTYtRT3W5jaKtNSIUkpnl4Xlg==",
+      "path": "microsoft.dotnet.xlifftasks/9.0.0-beta.23613.3",
+      "hashPath": "microsoft.dotnet.xlifftasks.9.0.0-beta.23613.3.nupkg.sha512"
     },
     "Microsoft.Net.Compilers.Toolset/4.8.0-3.final": {
       "type": "package",
