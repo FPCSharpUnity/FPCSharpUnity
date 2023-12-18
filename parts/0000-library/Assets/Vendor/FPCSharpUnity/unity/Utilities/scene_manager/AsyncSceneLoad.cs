@@ -9,8 +9,7 @@ namespace FPCSharpUnity.unity.Utilities {
   [
     PublicAPI, 
     Closed(
-      typeof(AsyncSceneLoadWithAutomaticActivationSingle), 
-      typeof(AsyncSceneLoadWithAutomaticActivationAdditive),
+      typeof(AsyncSceneLoadWithAutomaticActivation),
       typeof(AsyncSceneLoadWithManualActivation)
     )
   ] public interface AsyncSceneLoad {

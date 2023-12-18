@@ -1,4 +1,4 @@
-using ExhaustiveMatching;
+using FPCSharpUnity.core.exts;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Extensions {
@@ -64,7 +64,9 @@ namespace FPCSharpUnity.unity.Extensions {
         case TextureFormat.ASTC_HDR_12x12:
           return true;
         default:
-          throw ExhaustiveMatch.Failed(format);
+          throw format.argumentOutOfRange();
+          // Unity removes old enums.
+          // throw ExhaustiveMatch.Failed(format);
       }
     }
   }
