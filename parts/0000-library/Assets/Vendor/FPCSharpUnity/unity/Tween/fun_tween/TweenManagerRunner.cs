@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.macros;
+using FPCSharpUnity.unity.core.Utilities;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -43,13 +44,16 @@ namespace FPCSharpUnity.unity.Tween.fun_tween {
         return instance;
 
         static TweenManagerRunner create() {
-          if (Application.isPlaying) {
+          if (ApplicationUtils.isQuittingOrNotPlaying) {
+            var reason = Application.isPlaying ? "application is quitting" : "in edit mode";
+            throw new Exception(
+              $"Running tweens while {reason} is not supported."
+            );
+          }
+          else {
             var go = new GameObject(nameof(TweenManagerRunner));
             DontDestroyOnLoad(go);
             return go.AddComponent<TweenManagerRunner>();
-          }
-          else {
-            throw new Exception("Running tweens in edit mode is not supported.");
           }
         }
       }
