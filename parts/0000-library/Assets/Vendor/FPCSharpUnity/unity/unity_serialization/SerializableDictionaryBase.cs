@@ -78,11 +78,16 @@ namespace FPCSharpUnity.unity.unity_serialization {
 
     public bool onObjectValidateIsThreadSafe => false;
 
-    public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) {
-      if (_keyValuePairs.Select(_ => _.key).Distinct().ToArray().Length < _keyValuePairs.Length) {
-        yield return new ErrorMsg($"Duplicate keys are not allowed in {nameof(SerializableDictionary<A, B>)}");
-      }
-    }
+    public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) =>
+      _keyValuePairs
+        .GroupBy(_ => _.key)
+        .collect(gr => {
+          var arr = gr.ToArray();
+          return (arr.Length > 1).optM(() => new ErrorMsg(
+            $"Duplicate keys are not allowed in {nameof(SerializableDictionary<A, B>)}! "
+            + $"Values: {s(arr.Select(a => a.key.ToString()).mkStringEnumNewLines())}"
+          ));
+        });
 
     [Serializable, Record] public partial class Pair {
 #pragma warning disable 649
