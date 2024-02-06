@@ -1,4 +1,5 @@
 ﻿using System;
+using Unity.Profiling;
 using UnityEngine.Profiling;
 
 namespace FPCSharpUnity.unity.Utilities {
@@ -11,6 +12,7 @@ namespace FPCSharpUnity.unity.Utilities {
   /// }
   /// ]]></code>
   /// </summary>
+  [IgnoredByDeepProfiler]
   public struct ProfiledScope : IDisposable {
     public ProfiledScope(string name) {
       Profiler.BeginSample(name);
