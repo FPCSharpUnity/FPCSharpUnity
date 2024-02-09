@@ -128,7 +128,7 @@ namespace FPCSharpUnity.unity.Editor.VisualTweenTimeline {
       float timeClickOffset;
 
       void OnPlaymodeStateChanged(PlayModeStateChange change) {
-        using var _ = new ProfiledScope(Macros.classAndMethodName);
+        ProfiledScope.profileUsingM(Macros.classAndMethodName);
         backing.OnEnable();
       }
 

@@ -357,7 +357,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       return errors.Distinct().ToImmutableList();
 
       void validateMissingPrefabAssets() {
-        using var ps = new ProfiledScope(Macros.classAndMethodNameShort);
+        ProfiledScope.profileUsingM(Macros.classAndMethodNameShort);
           
         foreach (var obj in distinctObjects) {
           switch (obj) {
@@ -405,7 +405,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       
       foreach (var customValidator in customObjectValidatorOpt) {
 #if DO_PROFILE
-        using (new ProfiledScope(nameof(customValidator)))
+        using (ProfiledScope.profileM(nameof(customValidator)))
 #endif
         {
           if (customValidator.isThreadSafe) run();
@@ -430,7 +430,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       {
         if (component is MonoBehaviour mb)
 #if DO_PROFILE
-          using (new ProfiledScope(nameof(checkRequireComponents)))
+          using (ProfiledScope.profileM(nameof(checkRequireComponents)))
 #endif
         {
           var componentType = structureCache.getTypeFor(component.GetType());
@@ -444,13 +444,13 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       }
 
 #if DO_PROFILE
-      using (new ProfiledScope("Serialized object"))
+      using (ProfiledScope.profileM("Serialized object"))
 #endif
       {
         SerializedObject serObj;
 
 #if DO_PROFILE
-        using (new ProfiledScope("Create serialized object"))
+        using (ProfiledScope.profileM("Create serialized object"))
 #endif
         {
           serObj = new SerializedObject(obj: component);
@@ -459,7 +459,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         SerializedProperty sp;
 
 #if DO_PROFILE
-        using (new ProfiledScope("Get iterator"))
+        using (ProfiledScope.profileM("Get iterator"))
 #endif
         {
           sp = serObj.GetIterator();
@@ -468,7 +468,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
         var isPlayableDirector = component is PlayableDirector;
 
 #if DO_PROFILE
-        using (new ProfiledScope("Iteration"))
+        using (ProfiledScope.profileM("Iteration"))
 #endif
         {
           while (sp.NextVisible(enterChildren: true)) {
@@ -550,7 +550,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       Option<UniqueValuesCache> uniqueValuesCache = default
     ) {
 #if DO_PROFILE
-      using var _ = new ProfiledScope(nameof(validateFields));
+      ProfiledScope.profileUsingM(nameof(validateFields));
 #endif
       Option.ensureValue(ref uniqueValuesCache);
       fieldHierarchy ??= new FieldHierarchy(ImmutableStack<string>.Empty);
@@ -562,7 +562,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
       if (objectBeingValidated is OnObjectValidate onObjectValidatable) {
 #if DO_PROFILE
-        using (new ProfiledScope(nameof(OnObjectValidate)))
+        using (ProfiledScope.profileM(nameof(OnObjectValidate)))
 #endif
         {
           if (onObjectValidatable.onObjectValidateIsThreadSafe) run();
@@ -588,7 +588,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
           // Unity events use unity API
           jobController.enqueueMainThreadJob(() => {
 #if DO_PROFILE
-            using (new ProfiledScope(nameof(checkUnityEvent)))
+            using (ProfiledScope.profileM(nameof(checkUnityEvent)))
 #endif
             {
               foreach (var error in checkUnityEvent(createError, fieldHierarchy.asString(), unityEvent)) {
@@ -601,7 +601,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
       ImmutableArrayC<StructureCache.Field> fields;
 #if DO_PROFILE
-      using (new ProfiledScope("get object fields"))
+      using (ProfiledScope.profileM("get object fields"))
 #endif
       {
         fields = structureCache.getFieldsFor(objectBeingValidated);
@@ -609,7 +609,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
       ImmutableHashSet<string> blacklistedFields;
 #if DO_PROFILE
-      using (new ProfiledScope("get blacklisted object fields"))
+      using (ProfiledScope.profileM("get blacklisted object fields"))
 #endif
       {
         blacklistedFields = 
@@ -635,7 +635,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       StructureCache.Field field
     ) {
 #if DO_PROFILE
-      using var _ = new ProfiledScope(nameof(validateField));
+      ProfiledScope.profileUsingM(nameof(validateField));
 #endif
       if (blacklistedFields.Contains(field.fieldInfo.Name)) return;
 
@@ -645,7 +645,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       // todo: mark if it's thread safe
       foreach (var customValidator in customObjectValidatorOpt) {
 #if DO_PROFILE
-        using (new ProfiledScope(nameof(customValidator)))
+        using (ProfiledScope.profileM(nameof(customValidator)))
 #endif
         {
           if (customValidator.isThreadSafe) run();
@@ -672,7 +672,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       {
         if (uniqueValuesCache.valueOut(out var cache)) {
 #if DO_PROFILE
-          using (new ProfiledScope(nameof(uniqueValuesCache)))
+          using (ProfiledScope.profileM(nameof(uniqueValuesCache)))
 #endif
           {
             foreach (var attribute in field.uniqueValueAttributes) {
@@ -683,7 +683,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       }
       if (fieldValue is string s) {
 #if DO_PROFILE
-        using (new ProfiledScope(nameof(field.unityTagAttributes)))
+        using (ProfiledScope.profileM(nameof(field.unityTagAttributes)))
 #endif
         {
           var unityTagAttributes = field.unityTagAttributes;
@@ -736,7 +736,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
       if (field.isSerializable) {
 #if DO_PROFILE
-        using (new ProfiledScope(nameof(field.isSerializable)))
+        using (ProfiledScope.profileM(nameof(field.isSerializable)))
 #endif
         {
           void addNotNullError() => addError(() => createError.nullField(fieldHierarchy.asString()));
@@ -867,7 +867,7 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       Option<UniqueValuesCache> uniqueValuesCache
     ) {
 #if DO_PROFILE
-      using var _ = new ProfiledScope(nameof(validateListElementsFields));
+      ProfiledScope.profileUsingM(nameof(validateListElementsFields));
 #endif
       var listItemType = structureCache.getListItemType(list);
 
