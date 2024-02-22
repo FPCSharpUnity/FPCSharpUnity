@@ -37,6 +37,8 @@ namespace FPCSharpUnity.unity.Components.ui {
     
       /// <inheritdoc cref="ExpandElementsRectSizeInSecondaryAxis"/>
       ExpandElementsRectSizeInSecondaryAxis expandElements { get; }
+      
+      bool onEnableResetPosition { get; }
     }
     
     /// <summary> <see cref="DynamicLayout"/>'s scroll and items placement behaviour. </summary>

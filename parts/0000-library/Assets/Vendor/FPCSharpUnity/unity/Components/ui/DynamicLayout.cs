@@ -64,11 +64,15 @@ namespace FPCSharpUnity.unity.Components.ui {
     [SerializeField, InfoBox(
       DynamicLayout_ExpandElementsRectSizeInSecondaryAxisExts.SUMMARY_EXPAND_ELEMENTS_RECT_SIZE_IN_SECONDARY_AXIS
     ), PublicAccessor] ExpandElementsRectSizeInSecondaryAxis _expandElements;
+    // Default as true did not work for some reason.
+    [SerializeField, InfoBox("When False, Resets scroll position OnEnable")] bool _onEnableDoNotResetPosition;
 // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
     #endregion
     
     public Padding padding { get => _padding; set => _padding = value; }
+    
+    public bool onEnableResetPosition => !_onEnableDoNotResetPosition;
 
     public bool isHorizontal => scrollRect.horizontal;
 
@@ -84,6 +88,7 @@ namespace FPCSharpUnity.unity.Components.ui {
       public ScrollRect scrollRect => backing.scrollRect;
       public RectTransform container => backing.container;
       public RectTransform maskRect => backing.maskRect;
+      public bool onEnableResetPosition => backing.onEnableResetPosition;
 
       public Padding padding {
         get => backing.padding;
@@ -112,7 +117,18 @@ namespace FPCSharpUnity.unity.Components.ui {
       // When we add elements to layout and enable it on the same frame,
       // layout does not work correctly due to rect sizes == 0.
       // Unable to solve this properly. NextFrame is a workaround. 
-      void onEnable(GameObject gameObject) => ASync.NextFrame(gameObject, updateLayout);
+      void onEnable(GameObject gameObject) {
+        if (backing.onEnableResetPosition) {
+          var rect = backing.scrollRect;
+          if (rect.vertical) {
+            rect.verticalNormalizedPosition = 0;
+          }
+          if (rect.horizontal) {
+            rect.horizontalNormalizedPosition = 0;
+          }
+        }
+        ASync.NextFrame(gameObject, updateLayout);
+      }
 
       public Init(
         DynamicLayout backing,
