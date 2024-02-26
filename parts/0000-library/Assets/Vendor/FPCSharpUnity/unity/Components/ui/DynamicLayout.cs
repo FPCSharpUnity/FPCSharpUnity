@@ -119,15 +119,19 @@ namespace FPCSharpUnity.unity.Components.ui {
       // Unable to solve this properly. NextFrame is a workaround. 
       void onEnable(GameObject gameObject) {
         if (backing.onEnableResetPosition) {
-          var rect = backing.scrollRect;
-          if (rect.vertical) {
-            rect.verticalNormalizedPosition = 0;
-          }
-          if (rect.horizontal) {
-            rect.horizontalNormalizedPosition = 0;
-          }
+          resetScrollPosition();
         }
         ASync.NextFrame(gameObject, updateLayout);
+      }
+
+      public void resetScrollPosition() {
+        var rect = backing.scrollRect;
+        if (rect.vertical) {
+          rect.verticalNormalizedPosition = 0;
+        }
+        if (rect.horizontal) {
+          rect.horizontalNormalizedPosition = 0;
+        }
       }
 
       public Init(
