@@ -216,7 +216,16 @@ namespace FPCSharpUnity.unity.Concurrent;
     var reqDisposed = false;
     op.completed += _ => {
       var responseCode = req.responseCode;
-      if (req.result.toNonSuccessfulResult().valueOut(out var nonSuccessfulResult)) {
+      var responseCodeAccepted = acceptedResponseCodes.contains(responseCode);
+      if (
+        req.result.toNonSuccessfulResult().valueOut(out var nonSuccessfulResult)
+        && (
+          nonSuccessfulResult == UnityWebRequestNonSuccessfulResult.ProtocolError && responseCodeAccepted 
+            // In some cases we accept response code 404, but Unity API says it is a `ProtocolError`.
+            ? false 
+            : true
+        )
+      ) {
         // Capture data before disposing the request.
         var url = new Url(req.url);
         var error =
@@ -237,7 +246,7 @@ namespace FPCSharpUnity.unity.Concurrent;
         disposeReq("non-successful result");
         promise.complete(error);
       }
-      else if (!acceptedResponseCodes.contains(responseCode)) {
+      else if (!responseCodeAccepted) {
         // Capture data before disposing the request.
         var error = new WebRequestError(new UnacceptableResponseCode(
           new Url(req.url), responseCode: responseCode, headers: req.GetResponseHeaders().ToImmutableDictionary(),
