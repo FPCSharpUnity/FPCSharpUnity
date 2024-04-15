@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using FPCSharpUnity.core.collection;
 using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.log;
+using FPCSharpUnity.core.utils;
 using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.unity.Utilities;
@@ -48,6 +50,17 @@ namespace FPCSharpUnity.unity.unity_serialization {
           return pair;
         })
         .Where(kv => kv.key != null)
+#if UNITY_EDITOR // - Don't throw exceptions here, because it will break the inspector editor and we can't fix it easily.
+        .GroupBy(kv => kv.key)
+        .Select(gr => {
+          var array = gr.toImmutableArrayC();
+          if (array.Count > 1) {
+            // Our `Log.d` throws `UnityException: get_inBatchMode is not allowed to be called during serialization`
+            Debug.LogError($"Duplicate keys are not allowed in {nameof(SerializableDictionary<A, B>)}: `{gr.Key}`!");
+          }
+          return array[0];
+        })
+#endif
         .ToImmutableDictionary(_ => _.key, _ => _.value);
     } }
 
