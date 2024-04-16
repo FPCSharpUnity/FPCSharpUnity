@@ -232,7 +232,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         float secAxisSpacing, Func<TElementData, SizeProvider> extractSizeProvider
       ) {
         var containerRect = containersRectTransform.rect;
-
+        
         // Depending on orientation it's top or left
         float secAxisPaddingStart;
         // Depending on orientation it's bottom or right
@@ -256,6 +256,12 @@ namespace FPCSharpUnity.unity.Components.ui {
           scrAxisCurrentOffset = padding.top;
         }
         
+        // log.error(
+        //   $"{containersRectTransform.parent.parent.name}: {containerRect.echo()}, {visibleRect.echo()}, "
+        //   + $"{secAxisMaxSize.echo()}, {secAxisMaxSizeMinusPadding.echo()}", 
+        //   containersRectTransform
+        // );
+        
         var scrAxisCurrentRowSize = 0f;
         var secAxisCurrentOffset = secAxisPaddingStart;
 
@@ -271,6 +277,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         ) {
           var data = getElement(idx, dataA);
           var sizeProvider = extractSizeProvider(data);
+          
           var secAxisItemSize = 
             sizeProvider.itemSizeInSecondaryAxis.calculate(secAxisMaxSizeMinusPadding, isHorizontal);
 
@@ -360,6 +367,11 @@ namespace FPCSharpUnity.unity.Components.ui {
           }
              
           var placementVisible = visibleRect.Overlaps(cellRect, true);
+          
+          // log.error(
+          //   $"{containersRectTransform.parent.parent.name}: {sizeProvider.echo()}, {cellRect.echo()}",
+          //   containersRectTransform
+          // );
 
           iterationResult = forEachElementAction(data, placementVisible, cellRect, dataA, gotMovedToNextRow);
         }
@@ -436,6 +448,7 @@ namespace FPCSharpUnity.unity.Components.ui {
         rt.anchorMin = rt.anchorMax = Vector2.up;
         rt.localPosition = Vector3.zero;
         rt.anchoredPosition = cellRect.center;
+        // log.error($"set pos: {cellRect.echo()}", rt.gameObject);
 
 #if UNITY_EDITOR
         if (!rt.pivot.approximately(new Vector2(0.5f, 0.5f))) {
