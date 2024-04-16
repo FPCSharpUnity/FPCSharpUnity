@@ -247,11 +247,18 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       void negativeOffsetWithoutNotches(RectTransform item, bool custom, bool topAndBottom) {
         // reset old values, otherwise all sides will get negative offsets after we rotate the screen 
-        item.offsetMin = Vector2.zero;
-        item.offsetMax = Vector2.zero;
-        if (!notchLeft) negativeLeft(item, custom: custom);
-        if (!notchRight) negativeRight(item, custom: custom);
+        var offsetMin = Vector2.zero;
+        var offsetMax = Vector2.zero;
+        
+        if (!notchLeft) offsetMin.x = negativeLeftValue(custom);
+        if (!notchRight) offsetMax.x = negativeRightValue(custom);
+        
+        // Setting offset values multiple times per frame causes glitches in `DynamicLayout`
+        item.offsetMin = offsetMin;
+        item.offsetMax = offsetMax;
+        
         if (topAndBottom) {
+          // TODO: implement these via local variables.
           negativeTop(item);
           negativeBottom(item);          
         }
@@ -278,15 +285,19 @@ namespace FPCSharpUnity.unity.Components.ui {
 
       void negativeLeft(RectTransform item, bool custom = false) {
         var offset = item.offsetMin;
-        offset.x = (custom ? _customNegativeOffset.value : 1) * -min.x;
+        offset.x = negativeLeftValue(custom);
         item.offsetMin = offset;
       }
       
+      float negativeLeftValue(bool custom) => (custom ? _customNegativeOffset.value : 1) * -min.x;
+      
       void negativeRight(RectTransform item, bool custom = false) {
         var offset = item.offsetMax;
-        offset.x = (custom ? _customNegativeOffset.value : 1) * max.x;
+        offset.x = negativeRightValue(custom);
         item.offsetMax = offset;
       }
+      
+      float negativeRightValue(bool custom) => (custom ? _customNegativeOffset.value : 1) * max.x;
       
       void negativeTop(RectTransform item) {
         var offset = item.offsetMin;

@@ -188,6 +188,10 @@ namespace FPCSharpUnity.unity.Components.ui {
             expandElements: expandElements,
             isHorizontal: isHorizontal, containerSizeInScrollableAxis: size, rectSize: rectSize
           );
+          // log.error(
+          //   $"{scrollRect.transform.parent.name}: {rectSize.echo()}, {size.echo()}, {container.sizeDelta.echo()}",
+          //   scrollRect.gameObject
+          // ); 
           updateLayout();
         });
       }
