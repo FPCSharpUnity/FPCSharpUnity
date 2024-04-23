@@ -28,6 +28,8 @@ namespace FPCSharpUnity.unity.unity_serialization {
     ] protected Pair[] _keyValuePairs = {};
     // ReSharper restore NotNullMemberIsNotInitialized
 #pragma warning restore 649
+
+    public Pair[] getPairs() => _keyValuePairs;
     
     protected ImmutableDictionary<A, B> getValuesAsDictionary { get {
       using var _ = SerializableDictionaryBase.markerGetValuesAsDictionary.Auto();
