@@ -2,7 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FPCSharpUnity.unity.Utilities;
 using Sirenix.OdinInspector;
+using UnityEditor;
 
 namespace FPCSharpUnity.unity.unity_serialization;
 
@@ -25,5 +27,13 @@ public abstract partial class SerializableDictionaryBase<A, B> {
         )
         .ToDictionary(a => a.key, a => a.value)
     : new Dictionary<A, B>();
+  
+  public void _editor_addValue(UnityEngine.Object parentComponent, A key, B value) {
+    parentComponent.recordEditorChanges("Add value");
+    var list = _keyValuePairs.ToList();
+    list.Add(new Pair(key, value));
+    _keyValuePairs = list.ToArray();
+    valueChanged();
   }
+}
 #endif
