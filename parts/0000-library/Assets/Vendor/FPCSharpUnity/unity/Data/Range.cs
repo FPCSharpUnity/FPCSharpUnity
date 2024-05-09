@@ -198,6 +198,7 @@ namespace FPCSharpUnity.unity.Data {
     [PublicAPI] public float diff => _to - _from;
     [PublicAPI] public float at(float percentage) => from + diff * percentage;
     [PublicAPI] public float middle => (_from + _to) / 2f;
+    [PublicAPI] public float clamp(float value) => Mathf.Clamp(value, _from, _to);
 
     public override string ToString() => $"({from} to {to})";
 
