@@ -28,6 +28,10 @@ public partial class DynamicLayout : IMB_OnDrawGizmosSelected {
   ] string _editor_previewLayoutItems = "";
 
   partial void _editor_layoutUpdated<CommonDataType>(IReadOnlyList<CommonDataType> list) where CommonDataType : IElement {
+    if (!maskRect) {
+      // Object destroyed. Probably exiting play mode.
+      return;
+    }
     var width = isHorizontal ? maskRect.rect.height - _padding.vertical : maskRect.rect.width - _padding.horizontal;
     _editor_previewLayoutItems = 
       $"Viewport size in secondary axis: {width:0.#}px\n\n"

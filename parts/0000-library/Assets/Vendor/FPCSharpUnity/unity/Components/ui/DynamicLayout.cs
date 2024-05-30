@@ -167,7 +167,9 @@ namespace FPCSharpUnity.unity.Components.ui {
         container.gameObject.EnsureComponent<OnEnableForwarder>().onEvent.subscribe(tracker,
           _ => onEnable(container.gameObject)
         );
-        tracker.track(clearLayoutData);
+        tracker.track(() => {
+          if (layout.container) clearLayoutData();
+        });
 
         // We need oncePerFrame() because Unity doesn't allow doing operations like gameObject.SetActive()
         // from OnRectTransformDimensionsChange()
