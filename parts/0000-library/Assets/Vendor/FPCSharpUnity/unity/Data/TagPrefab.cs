@@ -20,7 +20,7 @@ namespace FPCSharpUnity.unity.Data {
 
 #pragma warning disable 649
     // ReSharper disable NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local
-    [SerializeField, NotNull, PublicAccessor, AssetsOnly, HideLabel, GUIColor(167f/255, 183f/255, 211f/255)] 
+    [SerializeField, PublicAccessor, AssetsOnly, HideLabel, GUIColor(167f/255, 183f/255, 211f/255)] 
     A _prefab;
     // ReSharper restore NotNullMemberIsNotInitialized, FieldCanBeMadeReadOnly.Local, ConvertToConstant.Local
 #pragma warning restore 649
@@ -31,7 +31,7 @@ namespace FPCSharpUnity.unity.Data {
     
     public bool onObjectValidateIsThreadSafe => false;
     public IEnumerable<ErrorMsg> onObjectValidate(Object containingComponent) {
-#if UNITY_EDITOR
+#if UNITY_EDITOR && false
       if (!_prefab) {
         yield return new ErrorMsg($"The {nameof(_prefab)} field is not set.");
         yield break;
