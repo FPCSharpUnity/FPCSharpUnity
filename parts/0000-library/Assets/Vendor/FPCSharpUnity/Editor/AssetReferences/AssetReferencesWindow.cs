@@ -6,7 +6,6 @@ using System.Reflection;
 using FPCSharpUnity.core.collection;
 using FPCSharpUnity.unity.Components.Interfaces;
 using FPCSharpUnity.core.exts;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.unity.Logger;
 using FPCSharpUnity.core.log;
 using FPCSharpUnity.core.reactive;
@@ -80,6 +79,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     static volatile bool processing, needsRepaint;
     static Option<AssetReferences> refsOpt;
     static readonly PCQueue worker = new PCQueue(1);
+    static bool useDefaultResolver = true;
     static readonly List<AssetReferences.BytesParserAndGuidResolver> enabledExtraResolvers = new();
 
     public static void processFiles(AssetUpdate data) {
@@ -111,7 +111,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
 
         refsOpt.voidFoldM(
           () => refsOpt = Some.a(AssetReferences.a(
-            data, progress, log, useDefaultResolver: true,
+            data, progress, log, useDefaultResolver: useDefaultResolver,
             extraResolvers: extraResolvers
           )),
           refs => refs.update(data, progress, log)
@@ -146,6 +146,10 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
         enabled.value = EditorGUILayout.Toggle("Enabled", enabled.value);
         if (!enabled.value) {
           GUILayout.Label("You can disable custom resolvers before enabling.");
+          {
+            useDefaultResolver = EditorGUILayout.Toggle("Default Resolver", useDefaultResolver);
+          }
+          
           var extraResolvers = AssetReferences.extraResolversForProject;
           if (extraResolvers.Count != enabledResolvers.Count) {
             enabledResolvers.Clear();
@@ -159,6 +163,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
             enabledResolvers[i] = EditorGUILayout.Toggle(extraResolvers[i].GetType().Name, enabledResolvers[i]);
           }
           if (EditorGUI.EndChangeCheck()) refreshEnabledList();
+          refreshEnabledList();
 
           void refreshEnabledList() {
             enabledExtraResolvers.Clear();
