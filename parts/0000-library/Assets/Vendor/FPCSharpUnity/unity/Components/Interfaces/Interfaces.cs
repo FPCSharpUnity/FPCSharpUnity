@@ -50,19 +50,19 @@ namespace FPCSharpUnity.unity.Components.Interfaces {
   public interface IMB_OnCanvasGroupChanged { void OnCanvasGroupChanged(); }
 
   // OnCollisionEnter is called when this collider/rigidbody has begun touching another rigidbody/collider
-  public interface IMB_OnCollisionEnter { void OnCollisionEnter(Collision collision); }
+  // public interface IMB_OnCollisionEnter { void OnCollisionEnter(Collision collision); }
 
   // OnCollisionEnter2D is called when this collider2D/rigidbody2D has begun touching another rigidbody2D/collider2D (2D physics only)
   public interface IMB_OnCollisionEnter2D { void OnCollisionEnter2D(Collision2D collision); }
 
   // OnCollisionExit is called when this collider/rigidbody has stopped touching another rigidbody/collider
-  public interface IMB_OnCollisionExit { void OnCollisionExit(Collision collision); }
+  // public interface IMB_OnCollisionExit { void OnCollisionExit(Collision collision); }
 
   // OnCollisionExit2D is called when this collider2D/rigidbody2D has stopped touching another rigidbody2D/collider2D (2D physics only)
   public interface IMB_OnCollisionExit2D { void OnCollisionExit2D(Collision2D collision); }
 
   // OnCollisionStay is called once per frame for every collider/rigidbody that is touching rigidbody/collider
-  public interface IMB_OnCollisionStay { void OnCollisionStay(Collision collision); }
+  // public interface IMB_OnCollisionStay { void OnCollisionStay(Collision collision); }
 
   // OnCollisionStay2D is called once per frame for every collider2D/rigidbody2D that is touching rigidbody2D/collider2D (2D physics only)
   public interface IMB_OnCollisionStay2D { void OnCollisionStay2D(Collision2D collision); }
@@ -71,7 +71,7 @@ namespace FPCSharpUnity.unity.Components.Interfaces {
   public interface IMB_OnConnectedToServer { void OnConnectedToServer(); }
 
   // OnControllerColliderHit is called when the controller hits a collider while performing a Move
-  public interface IMB_OnControllerColliderHit { void OnControllerColliderHit(ControllerColliderHit hit); }
+  // public interface IMB_OnControllerColliderHit { void OnControllerColliderHit(ControllerColliderHit hit); }
 
   // This function is called when the MonoBehaviour will be destroyed
   public interface IMB_OnDestroy { void OnDestroy(); }
@@ -158,19 +158,19 @@ namespace FPCSharpUnity.unity.Components.Interfaces {
   public interface IMB_OnTransformParentChanged { void OnTransformParentChanged(); }
 
   // OnTriggerEnter is called when the Collider other enters the trigger
-  public interface IMB_OnTriggerEnter { void OnTriggerEnter(Collider other); }
+  // public interface IMB_OnTriggerEnter { void OnTriggerEnter(Collider other); }
 
   // OnTriggerEnter2D is called when the Collider2D other enters the trigger (2D physics only)
   public interface IMB_OnTriggerEnter2D { void OnTriggerEnter2D(Collider2D collision); }
 
   // OnTriggerExit is called when the Collider other has stopped touching the trigger
-  public interface IMB_OnTriggerExit { void OnTriggerExit(Collider other); }
+  // public interface IMB_OnTriggerExit { void OnTriggerExit(Collider other); }
 
   // OnTriggerExit2D is called when the Collider2D other has stopped touching the trigger (2D physics only)
   public interface IMB_OnTriggerExit2D { void OnTriggerExit2D(Collider2D collision); }
 
   // OnTriggerStay is called once per frame for every Collider other that is touching the trigger
-  public interface IMB_OnTriggerStay { void OnTriggerStay(Collider other); }
+  // public interface IMB_OnTriggerStay { void OnTriggerStay(Collider other); }
 
   // OnTriggerStay2D is called once per frame for every Collider2D other that is touching the trigger (2D physics only)
   public interface IMB_OnTriggerStay2D { void OnTriggerStay2D(Collider2D collision); }
