@@ -35,5 +35,11 @@ public abstract partial class SerializableDictionaryBase<A, B> {
     _keyValuePairs = list.ToArray();
     valueChanged();
   }
+  
+  public void _editor_clear(UnityEngine.Object parentComponent) {
+    parentComponent.recordEditorChanges("Clear dictionary");
+    _keyValuePairs = [];
+    valueChanged();
+  }
 }
 #endif
