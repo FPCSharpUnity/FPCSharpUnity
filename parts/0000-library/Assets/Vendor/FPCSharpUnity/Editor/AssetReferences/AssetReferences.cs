@@ -123,6 +123,25 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       }
       return res.ToImmutable();
     }
+    
+    public ImmutableArray<AssetGuid> findAllChildren(AssetGuid[] guid) {
+      var visited = new HashSet<string>();
+      var q = new Queue<AssetGuid>();
+      foreach (var g in guid) q.Enqueue(g);
+      var res = ImmutableArray.CreateBuilder<AssetGuid>();
+      while (q.Count > 0) {
+        var currentGuid = q.Dequeue();
+        if (visited.Contains(currentGuid)) continue;
+        visited.Add(currentGuid);
+        res.Add(currentGuid);
+        if (children.children.TryGetValue(currentGuid, out var currentChildren)) {
+          foreach (var child in currentChildren.guidsInFile.Keys) {
+            if (!visited.Contains(child)) q.Enqueue(child);
+          }
+        }
+      }
+      return res.ToImmutable();
+    }
 
     [Record] public sealed partial class Chain {
       public readonly NonEmpty<System.Collections.Immutable.ImmutableList<AssetGuid>> guids;

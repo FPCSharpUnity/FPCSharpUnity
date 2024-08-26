@@ -65,7 +65,11 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
       }
       
       public Type getListItemType(IList list) {
-        var type = getTypeFor(list.GetType());
+        return getListItemType(list.GetType());
+      }
+      
+      public Type getListItemType(System.Type systemType) {
+        var type = getTypeFor(systemType);
         if (type.firstGenericTypeArgument.valueOut(out var genericType)) {
           return getTypeFor(genericType);
         }
