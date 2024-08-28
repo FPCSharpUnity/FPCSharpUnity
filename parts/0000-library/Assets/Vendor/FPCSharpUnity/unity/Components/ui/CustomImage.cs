@@ -693,8 +693,14 @@ namespace FPCSharpUnity.unity.Components.ui
                     }
                     return s_WhiteTexture;
                 }
-
-                return activeSprite.texture;
+                
+                var tex = activeSprite.texture;
+                if (tex == null) {
+                    return color == Color.white ? s_TransparentTexture : s_WhiteTexture;
+                }
+                else {
+                    return tex;
+                }
             }
         }
 
@@ -1907,6 +1913,9 @@ namespace FPCSharpUnity.unity.Components.ui
                 var g = m_TrackedTexturelessImages[i];
                 if (null != g.activeSprite && spriteAtlas.CanBindTo(g.activeSprite))
                 {
+                    // Do not call SetAllDirty to improve performance
+                    // SetVerticesDirty is needed, because g.activeSprite.textureRect is 0 before we load texture.
+                    g.SetVerticesDirty();
                     g.SetMaterialDirty();
                     // g.SetAllDirty();
                     m_TrackedTexturelessImages.RemoveAt(i);
