@@ -1907,7 +1907,8 @@ namespace FPCSharpUnity.unity.Components.ui
                 var g = m_TrackedTexturelessImages[i];
                 if (null != g.activeSprite && spriteAtlas.CanBindTo(g.activeSprite))
                 {
-                    g.SetAllDirty();
+                    g.SetMaterialDirty();
+                    // g.SetAllDirty();
                     m_TrackedTexturelessImages.RemoveAt(i);
                 }
             }
