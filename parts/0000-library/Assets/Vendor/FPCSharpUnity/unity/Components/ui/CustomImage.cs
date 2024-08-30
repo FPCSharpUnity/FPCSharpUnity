@@ -936,7 +936,8 @@ namespace FPCSharpUnity.unity.Components.ui
 
         private void TrackSprite()
         {
-            if (activeSprite != null && activeSprite.texture == null)
+            // Always track, because we replace atlas at runtime
+            if (activeSprite != null && isActiveAndEnabled) // && activeSprite.texture == null)
             {
                 TrackImage(this);
                 m_Tracked = true;
@@ -1903,22 +1904,18 @@ namespace FPCSharpUnity.unity.Components.ui
         }
 
         // To track textureless images, which will be rebuild if sprite atlas manager registered a Sprite Atlas that will give this image new texture
-        static List<CustomImage> m_TrackedTexturelessImages = new List<CustomImage>();
+        // To track textureless images, which will be rebuild if sprite atlas manager registered a Sprite Atlas that will give this image new texture
+        static HashSet<CustomImage> m_TrackedTexturelessImages = new();
         static bool s_Initialized;
 
         static void RebuildImage(SpriteAtlas spriteAtlas)
         {
-            for (var i = m_TrackedTexturelessImages.Count - 1; i >= 0; i--)
-            {
-                var g = m_TrackedTexturelessImages[i];
-                if (null != g.activeSprite && spriteAtlas.CanBindTo(g.activeSprite))
-                {
+            foreach (var g in m_TrackedTexturelessImages) {
+                if (spriteAtlas.CanBindTo(g.activeSprite)) {
                     // Do not call SetAllDirty to improve performance
-                    // SetVerticesDirty is needed, because g.activeSprite.textureRect is 0 before we load texture.
-                    g.SetVerticesDirty();
                     g.SetMaterialDirty();
                     // g.SetAllDirty();
-                    m_TrackedTexturelessImages.RemoveAt(i);
+                    // m_TrackedTexturelessImages.RemoveAt(i);
                 }
             }
         }
