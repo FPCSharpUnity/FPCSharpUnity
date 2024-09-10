@@ -24,6 +24,29 @@ using static FPCSharpUnity.core.typeclasses.Str;
 using ImmutableList = System.Collections.Immutable.ImmutableList;
 
 namespace FPCSharpUnity.unity.Editor.AssetReferences {
+  
+  /// <summary>File ID that is used internally in serialized Unity files.</summary>
+  [Record(ConstructorFlags.Constructor), NewTypeImplicitTo] 
+  public readonly partial struct FileId {
+    public readonly long id;
+      
+    /// <summary>
+    /// All Texture references use this id.
+    /// Sprite references use other ids.
+    /// </summary>
+    public static readonly FileId texture = new(2800000);
+      
+    /// <summary>
+    /// Custom references do not have file ids.
+    /// </summary>
+    public static readonly FileId notAvailable = new(0);
+  }
+  
+  [GenConstructor] public partial struct ParseBufferResult {
+    public readonly AssetGuid guid;
+    public readonly FileId fileId;
+  }
+  
   public partial class AssetReferences {
     /// <summary>Amount of workers (CPU threads) used.</summary>
     public readonly int workers;
@@ -328,7 +351,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
     public abstract class BytesParserAndGuidResolver {
       /// <summary>
       /// Initialize parser before starting to process all files in parallel. This is useful when you have code which
-      /// should be ran once and on main Unity thread only.
+      /// should be run once and on main Unity thread only.
       /// </summary>
       public abstract void initBeforeParsing();
       
@@ -337,7 +360,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       /// <para/>
       /// This function is called in parallel from multiple threads.
       /// </summary>
-      public abstract ImmutableArrayC<AssetGuid> parseBuffer(byte[] buffer, int length);
+      public abstract ImmutableArrayC<ParseBufferResult> parseBuffer(byte[] buffer, int length);
     }
     
     
@@ -412,9 +435,9 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       ) {
         foreach (var resolver in extraResolvers) {
           var resolverResults = resolver.parseBuffer(simpleBuffer.buffer, length: simpleBuffer.length);
-          foreach (var assetGuid in resolverResults) {
-            var fileIds = guidsInFile.guidsInFile.getOrUpdateM(assetGuid, () => new());
-            fileIds.Add(FileId.notAvailable);
+          foreach (var res in resolverResults) {
+            var fileIds = guidsInFile.guidsInFile.getOrUpdateM(res.guid, () => new());
+            fileIds.Add(res.fileId);
           }
         }
       }
@@ -500,24 +523,6 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
       public readonly AssetGuid assetGuid;
       public readonly AssetPath assetPath;
       public readonly GuidsInFile childGuids;
-    }
-    
-    /// <summary>File ID that is used internally in serialized Unity files.</summary>
-    [Record(ConstructorFlags.Constructor), NewTypeImplicitTo] 
-    public readonly partial struct FileId {
-      public readonly long id;
-      
-      /// <summary>
-      /// All Texture references use this id.
-      /// Sprite references use other ids.
-      /// </summary>
-      public static readonly FileId texture = new(2800000);
-      
-      /// <summary>
-      /// Custom references do not have file ids.
-      /// </summary>
-      public static readonly FileId notAvailable = new(0);
-
     }
     
     /// <summary>
