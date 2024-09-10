@@ -220,7 +220,7 @@ namespace FPCSharpUnity.unity.Editor.AssetReferences {
                 return refs.children.children.get(parent)
                   .flatMapM(_ => _.guidsInFile.get(child))
                   .mapM(set => {
-                    var containsTexture = set.Contains(AssetReferences.FileId.texture);
+                    var containsTexture = set.Contains(FileId.texture);
                     // Sprite references will have random file ids.
                     var containsSprite = set.Count > (containsTexture ? 1 : 0);
                     return (containsTexture, containsSprite) switch {
