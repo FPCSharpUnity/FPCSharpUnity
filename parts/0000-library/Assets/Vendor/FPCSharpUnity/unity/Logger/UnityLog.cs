@@ -17,7 +17,7 @@ namespace FPCSharpUnity.unity.Logger {
     /// Prefix to all messages so we could differentiate what comes from
     /// our logging framework in Unity console.
     /// </summary>
-    const string MESSAGE_PREFIX = "[FPC#Log]";
+    public const string MESSAGE_PREFIX = "[FPC#Log]";
     
     public static readonly ProfilerMarker markerConvertUnityMessageToLogEvent = new ("convertUnityMessageToLogEvent");
 
