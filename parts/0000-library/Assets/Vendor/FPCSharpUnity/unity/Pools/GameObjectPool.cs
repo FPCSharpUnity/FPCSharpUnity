@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using FPCSharpUnity.core.data;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.unity.Logger;
 using GenerationAttributes;
@@ -201,7 +202,10 @@ namespace FPCSharpUnity.unity.Pools {
       return result;
     }
 
-    public void release(T value) {
+    public void release(
+      T value, 
+      [Implicit] CallerData callerData = default
+    ) {
       try {
         maybeProfiledScope?.begin();
         sleep?.Invoke(value);
@@ -223,7 +227,7 @@ namespace FPCSharpUnity.unity.Pools {
       catch (Exception e) {
         // We don't want to spam the log with errors when the game has already been stopped.
         if (!ApplicationUtils.isQuitting) {
-          log.error("Could not release object to the pool. You probably unloaded the scene.", e);
+          log.error("Could not release object to the pool. You probably unloaded the scene. " + callerData.asShortString(), e);
         }
       }
       finally {
@@ -243,6 +247,6 @@ namespace FPCSharpUnity.unity.Pools {
       values.Clear();
     }
 
-    public Disposable<T> BorrowDisposable() => new Disposable<T>(borrow(), release);
+    public Disposable<T> BorrowDisposable() => new Disposable<T>(borrow(), _ => release(_));
   }
 }
