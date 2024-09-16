@@ -214,12 +214,15 @@ namespace FPCSharpUnity.unity.Concurrent;
     var op = req.SendWebRequest();
     // Was `req.Dispose()` invoked?
     var reqDisposed = false;
+    var cancelled = false;
     op.completed += _ => {
+      if (cancelled) return;
       var responseCode = req.responseCode;
       var responseCodeAccepted = acceptedResponseCodes.contains(responseCode);
       if (
         req.result.toNonSuccessfulResult().valueOut(out var nonSuccessfulResult)
         && (
+          // ReSharper disable once SimplifyConditionalTernaryExpression
           nonSuccessfulResult == UnityWebRequestNonSuccessfulResult.ProtocolError && responseCodeAccepted 
             // In some cases we accept response code 404, but Unity API says it is a `ProtocolError`.
             ? false 
@@ -274,6 +277,7 @@ namespace FPCSharpUnity.unity.Concurrent;
     return CancellableFuture.a(f, cancel);
 
     void cancel() {
+      cancelled = true;
       // Only do something if the request is not already disposed of.
       if (!reqDisposed) {
         // Aborted UnityWebRequests are considered to have encountered a system error. Either the isNetworkError or
