@@ -211,10 +211,11 @@ namespace FPCSharpUnity.unity.Components.ui {
       
       // This will allow us to catch runtime UI offset bugs, which can't be validated at build time.
       if (addedNegativeOffset) {
-        if (log.willLog(LogLevel.INFO)) {
+        var level = Application.isEditor ? LogLevel.ERROR : LogLevel.INFO;
+        if (log.willLog(level)) {
           var errors = validateAllThis().toImmutableArrayC();
           if (!errors.isEmpty()) {
-            log.error($"Runtime check for illegal offsets found potential bugs: {errors.mkStringEnumNewLines()}", this);
+            log.log(level, $"Runtime check for illegal offsets found potential bugs: {errors.mkStringEnumNewLines()}", this);
           }
         }
       }
