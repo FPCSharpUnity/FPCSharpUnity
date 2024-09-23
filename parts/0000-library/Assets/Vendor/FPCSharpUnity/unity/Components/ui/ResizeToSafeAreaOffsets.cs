@@ -197,7 +197,7 @@ namespace FPCSharpUnity.unity.Components.ui {
           }
         }
         
-        log.mInfo(
+        log.mDebug(
           $"Result: {notchLeft.echo()}, {notchRight.echo()}, {orientation.echo()}, "
           + $"{safeArea.echo()}, Screen.width={width}, Screen.height={height}, "
           + $"cutouts={Screen.cutouts.Select(a => a.ToString()).mkString(", ")}, "
