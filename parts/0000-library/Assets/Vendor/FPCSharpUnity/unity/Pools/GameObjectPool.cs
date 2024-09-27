@@ -131,6 +131,8 @@ namespace FPCSharpUnity.unity.Pools {
     
     /// <summary> Profiled scope invoked on <see cref="borrow"/> and <see cref="release"/> operations. </summary>
     readonly IProfiledScope? maybeProfiledScope;
+
+    int instantiatedCount;
     
     [LazyProperty] static ILog log => Log.d.withScope(nameof(GameObjectPool));
 
@@ -172,8 +174,15 @@ namespace FPCSharpUnity.unity.Pools {
         release(createAndInit());
       }
     }
+    
+    public bool instantiateOneIfNotFull(int maxPoolSize) {
+      if (instantiatedCount >= maxPoolSize) return true;
+      release(createAndInit());
+      return false;
+    }
 
     T createAndInit() {
+      instantiatedCount++;
       var result = create();
       var go = toGameObject(result);
       var t = go.transform;
