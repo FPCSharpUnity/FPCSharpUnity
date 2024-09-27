@@ -125,22 +125,34 @@
           "System.Collections.Immutable": "7.0.0"
         },
         "runtime": {
-          "CodeGenerator.dll": {}
+          "CodeGenerator.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "GenerationAttributes/1.0.0": {
         "runtime": {
-          "GenerationAttributes.dll": {}
+          "GenerationAttributes.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "GenerationAttributes.Java/1.0.0": {
         "runtime": {
-          "GenerationAttributes.Java.dll": {}
+          "GenerationAttributes.Java.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "Macros/1.0.0": {
         "runtime": {
-          "Macros.dll": {}
+          "Macros.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
         }
       },
       "Microsoft.CodeAnalysis.CSharp/42.42.42.42": {
