@@ -61,7 +61,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       var windowY = displayHeight * windowCenterYPosition / pixelsPerUnit - windowHeight / 2;
 
       window.position = new Rect(windowX, windowY, windowWidth, windowHeight);
-      window.ShowPopup();
+      window.Show();
       return future;
     }
 
