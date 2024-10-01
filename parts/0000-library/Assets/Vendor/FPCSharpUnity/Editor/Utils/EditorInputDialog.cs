@@ -3,8 +3,6 @@ using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
-using FPCSharpUnity.core.log;
-using FPCSharpUnity.unity.Logger;
 using UnityEditor;
 using UnityEngine;
 
@@ -35,7 +33,8 @@ namespace FPCSharpUnity.unity.Editor.Utils {
     /// </returns>
     [PublicAPI] public static Future<Option<string>> show(
       string title, Option<string> helpText = default, string submitText = "Submit", string cancelText = "Cancel",
-      float windowCenterXPosition = 0.5f, float windowCenterYPosition = 0.5f, float width = 0.8f, float height = 0.8f
+      float windowCenterXPosition = 0.5f, float windowCenterYPosition = 0.5f, float width = 0.8f, float height = 0.8f,
+      string initialValue = ""
     ) {
       var window = CreateInstance<EditorInputDialog>();
       var future = Future.async(out window.promise);
@@ -43,6 +42,7 @@ namespace FPCSharpUnity.unity.Editor.Utils {
       window.helpText = helpText;
       window.submitText = submitText;
       window.cancelText = cancelText;
+      window.currentValue = initialValue;
       var resolution = Screen.currentResolution;
 
       // Window.position is broken when 'Preferences/Ui scaling' is not 100%.
