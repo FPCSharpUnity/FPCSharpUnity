@@ -11,6 +11,7 @@ namespace FPCSharpUnity.unity.Editor {
     public int callbackOrder => 0;
 
     public void OnPostGenerateGradleAndroidProject(string path) {
+#if !UNITY_6000_0_OR_NEWER
       var libGradle = PathStr.a(path) / "fp_csharp_unity_osx.androidlib" / "build.gradle";
 
       editFile(
@@ -27,6 +28,7 @@ dependencies {
 "
         )
       );
+#endif
     }
 
     public static void editFile(PathStr path, params (string from, string to)[] replacements) {
