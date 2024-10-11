@@ -716,11 +716,11 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.serialization.tweeners {
       _target.updatePropertyBlock(_shaderProperty, value, static (mpb, prop, v) => mpb.SetVector(prop, v));
   }
   
-  [Serializable]
-  public sealed class AudioSourceVolume : SerializedTweenerFloat<AudioSource> {
-    protected override float get => _target.volume;
-    protected override void set(float value) => _target.volume = value;
-  }
+  // [Serializable]
+  // public sealed class AudioSourceVolume : SerializedTweenerFloat<AudioSource> {
+  //   protected override float get => _target.volume;
+  //   protected override void set(float value) => _target.volume = value;
+  // }
   
   [Serializable]
   public class TweenManager : SerializedTweenerV2Base<FunTweenManagerV2> {
