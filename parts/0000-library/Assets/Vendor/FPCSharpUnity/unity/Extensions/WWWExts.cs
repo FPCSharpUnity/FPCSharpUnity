@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if WWW_ENABLED
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using FPCSharpUnity.unity.Concurrent;
@@ -82,3 +83,4 @@ namespace FPCSharpUnity.unity.Extensions {
     public Option<string> this[string key] => headers.get_(key);
   }
 }
+#endif

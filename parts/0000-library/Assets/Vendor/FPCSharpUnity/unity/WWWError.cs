@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if WWW_ENABLED
+using UnityEngine;
 
 // obsolete WWW
 #pragma warning disable 618
@@ -19,3 +20,4 @@ namespace FPCSharpUnity.unity {
     public override string ToString() => $"{nameof(WWWError)}[{error}]";
   }
 }
+#endif

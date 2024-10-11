@@ -1,4 +1,5 @@
-﻿using FPCSharpUnity.unity.Data;
+﻿#if WWW_ENABLED
+using FPCSharpUnity.unity.Data;
 using FPCSharpUnity.unity.Extensions;
 using FPCSharpUnity.core.exts;
 using FPCSharpUnity.core.functional;
@@ -46,3 +47,4 @@ namespace FPCSharpUnity.unity.Configuration {
     : base(url, "Content-Type", expected, Some.a(actual)) {}
   }
 }
+#endif

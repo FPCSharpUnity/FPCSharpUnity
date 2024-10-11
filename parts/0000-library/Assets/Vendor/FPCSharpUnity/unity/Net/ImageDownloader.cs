@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if WWW_ENABLED
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using FPCSharpUnity.unity.Concurrent;
@@ -91,3 +92,4 @@ namespace FPCSharpUnity.unity.Net {
     }
   }
 }
+#endif

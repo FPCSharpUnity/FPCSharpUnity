@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if WWW_ENABLED
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -150,3 +151,4 @@ namespace FPCSharpUnity.unity.Configuration {
     ) => future.map(e => e.mapRightM(t => t.www.text));
   }
 }
+#endif

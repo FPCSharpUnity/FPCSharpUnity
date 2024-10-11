@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿#if WWW_ENABLED
+using System.Collections;
 using FPCSharpUnity.unity.Extensions;
 using JetBrains.Annotations;
 using FPCSharpUnity.core.concurrent;
@@ -40,3 +41,4 @@ namespace FPCSharpUnity.unity.Concurrent {
       ));
   }
 }
+#endif
