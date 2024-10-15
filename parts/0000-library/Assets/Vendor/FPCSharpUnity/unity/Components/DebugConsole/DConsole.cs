@@ -296,7 +296,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     /// </param>
     /// <param name="prefab">Which prefab to use. Uses the default one from resources if not provided.</param>
     [Conditional(DEFINE_ENABLE_DCONSOLE)]
-    public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null) {
+    public void show(Option<string> unlockCode, DebugConsoleBinding prefab = null, string filterText = "") {
       // Just maximize it if we already have an instance. 
       {if (currentViewRx.value.valueOut(out var currentInstance)) {
         currentInstance.view.toggleMaximized();
@@ -318,7 +318,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       var tracker = view.gameObject.asDisposableTracker();
       
       var commandsList = setupList(
-        None._, view.commands, clearFilterText: true,
+        None._, view.commands, overrideFilterText: Some.a(""),
         () => selectedGroup.foldM(ImmutableList<ButtonBinding>.Empty, _ => _.commandButtons)
       );
       
@@ -326,7 +326,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
       var api = apiForClosures = new DConsoleCommandAPIImpl(view, rerender: rerender);
       Object.DontDestroyOnLoad(view);
 
-      commandButtonList = setupGroups(clearCommandsFilterText: true);
+      commandButtonList = setupGroups(overrideFilterText: Some.a(filterText));
       
       var logEntryPool = GameObjectPool.a(GameObjectPool.Init<VerticalLayoutLogEntry>.noReparenting(
         nameof(DConsole) + " log entry pool",
@@ -356,7 +356,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
 
       currentViewRx.value = Some.a(new ViewInstance(view, layout, logEntryPool, tracker));
 
-      BoundButtonList setupGroups(bool clearCommandsFilterText) {
+      BoundButtonList setupGroups(Option<string> overrideFilterText) {
         var groupButtons = commands.dictionary.OrderBySafe(_ => _.Key).Select(commandGroup => {
           var validGroupCommands = commandGroup.Value.Where(cmd => cmd.canShow()).ToArray();
           var button = addButton(view.buttonPrefab, view.commandGroups.holder.transform);
@@ -371,7 +371,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
           }
         }).ToImmutableList();
         var list = setupList(
-          unlockCode, view.commandGroups, clearFilterText: clearCommandsFilterText, 
+          unlockCode, view.commandGroups, overrideFilterText: overrideFilterText, 
           () => groupButtons
         );
         return new BoundButtonList(groupButtons, list);
@@ -386,7 +386,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
         commands = new Commands();
         invokeOnShowCallbacks(commands);
         
-        var groups = commandButtonList = setupGroups(clearCommandsFilterText: false);
+        var groups = commandButtonList = setupGroups(overrideFilterText: None._);
         reselectPreviousGroup(groups, maybeSelectedGroupName);
       }
 
@@ -419,12 +419,12 @@ namespace FPCSharpUnity.unity.Components.DebugConsole {
     }
     
     static SetUpList setupList(
-      Option<string> unlockCodeOpt, DebugConsoleListBinding listBinding, bool clearFilterText,
+      Option<string> unlockCodeOpt, DebugConsoleListBinding listBinding, Option<string> overrideFilterText,
       Func<IEnumerable<ButtonBinding>> contents
     ) {
       listBinding.clearFilterButton.onClick.AddListener(onClearFilter);
       listBinding.filterInput.onValueChanged.AddListener(update);
-      if (clearFilterText) listBinding.filterInput.text = "";
+      {if (overrideFilterText.valueOut(out var query)) listBinding.filterInput.text = query;}
       applyFilter();
 
       var sub = new Subscription(() => {
