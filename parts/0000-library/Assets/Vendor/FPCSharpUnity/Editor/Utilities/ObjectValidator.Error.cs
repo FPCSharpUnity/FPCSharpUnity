@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace FPCSharpUnity.unity.Utilities.Editor {
   public static partial class ObjectValidator {
-    [Record(ConstructorFlags.None, GenerateToString = false)]
+    [Record(ConstructorFlags.None, GenerateToString = false, GenerateComparer = true, GenerateGetHashCode = true)]
     public readonly partial struct Error {
       public enum Type : byte {
         MissingComponent,

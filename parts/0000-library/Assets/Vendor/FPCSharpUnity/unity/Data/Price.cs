@@ -5,7 +5,7 @@ using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Data {
-  [Record(GenerateToString = false)] public readonly partial struct Price {
+  [Record(GenerateToString = false, GenerateComparer = true, GenerateGetHashCode = true)] public readonly partial struct Price {
     public readonly int cents;
     
     public override string ToString() => $"{nameof(Price)}({cents * 0.01})";

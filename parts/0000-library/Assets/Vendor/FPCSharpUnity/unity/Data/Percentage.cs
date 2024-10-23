@@ -6,7 +6,7 @@ using FPCSharpUnity.core.typeclasses;
 using UnityEngine;
 
 namespace FPCSharpUnity.unity.Data {
-  [Serializable, Record]
+  [Serializable, Record(GenerateComparer = true)]
   public partial struct Percentage {
     [SerializeField, Range(0, 1), PublicAccessor] float _value;
 

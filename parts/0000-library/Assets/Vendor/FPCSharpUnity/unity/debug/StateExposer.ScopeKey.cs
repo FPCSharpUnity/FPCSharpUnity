@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 namespace FPCSharpUnity.unity.debug;
 
 public partial class StateExposer {
-  [PublicAPI, Record] public sealed partial class ScopeKey {
+  [PublicAPI, Record(GenerateComparer = true, GenerateGetHashCode = true)] public sealed partial class ScopeKey {
     public readonly string name;
     public readonly Option<WeakReference<Object>> unityObject;
 

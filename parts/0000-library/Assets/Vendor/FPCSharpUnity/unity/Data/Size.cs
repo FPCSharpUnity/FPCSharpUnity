@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace FPCSharpUnity.unity.Data; 
 
-[Record(GenerateToString = false)] public readonly partial struct Size {
+[Record(GenerateToString = false, GenerateComparer = true, GenerateGetHashCode = true)] public readonly partial struct Size {
   public readonly int width, height;
 
   public override string ToString() { return $"{nameof(Size)}[{width}x{height}]"; }
