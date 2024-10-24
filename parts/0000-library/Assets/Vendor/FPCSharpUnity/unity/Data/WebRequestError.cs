@@ -80,7 +80,7 @@ namespace FPCSharpUnity.unity.Data {
   /// <summary>
   /// <see cref="UnityWebRequest.get_result"/> did not return <see cref="UnityWebRequest.Result.Success"/>.
   /// </summary>
-  [Record(ConstructorFlags.Constructor)] public readonly partial struct NonSuccessResult {
+  [Record(ConstructorFlags.Constructor, GenerateToString = true)] public readonly partial struct NonSuccessResult {
     /// <summary>Url of the request.</summary>
     public readonly Url url;
 

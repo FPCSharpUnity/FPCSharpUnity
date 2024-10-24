@@ -68,12 +68,13 @@ namespace FPCSharpUnity.unity.Utilities.Editor {
 
   // WIP
   public partial class FieldValidator {
-    [Record] public readonly partial struct CacheKey {
+    [Record(GenerateComparer = true, GenerateGetHashCode = true)]
+    public readonly partial struct CacheKey {
       public readonly FieldInfo fi;
       public readonly bool isListElement;
     }
 
-    static readonly Dictionary<CacheKey, FieldValidator> cache = new Dictionary<CacheKey, FieldValidator>();
+    static readonly Dictionary<CacheKey, FieldValidator> cache = new();
 
     public static FieldValidator a(FieldInfo fi, bool isListElement) =>
       cache.getOrUpdate(new CacheKey(fi, isListElement), k => new FieldValidator(k.fi, k.isListElement));

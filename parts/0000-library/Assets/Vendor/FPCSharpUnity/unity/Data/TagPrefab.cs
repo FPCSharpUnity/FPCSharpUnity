@@ -14,7 +14,7 @@ namespace FPCSharpUnity.unity.Data {
   /// <summary>Mark that A is a prefab.</summary>
   /// You need to extend this class and mark it as <see cref="SerializableAttribute"/>
   /// to serialize it, because Unity does not serialize generic classes.
-  [Record, PublicAPI, InlineProperty, Serializable]
+  [Record(GenerateComparer = true, GenerateGetHashCode = true), PublicAPI, InlineProperty, Serializable]
   public partial class TagPrefab<A> : TagPrefab, OnObjectValidate where A : Object {
     #region Unity Serialized Fields
 

@@ -7,7 +7,7 @@ namespace FPCSharpUnity.unity.Components.DebugConsole;
 public partial class DConsole {
   public enum Direction { Left, Up, Right, Down }
   
-  [Record, NewTypeStringWrapper]
+  [Record(GenerateComparer = true, GenerateGetHashCode = true), NewTypeStringWrapper]
   public readonly partial struct GroupName {
     public readonly string name;
   }
