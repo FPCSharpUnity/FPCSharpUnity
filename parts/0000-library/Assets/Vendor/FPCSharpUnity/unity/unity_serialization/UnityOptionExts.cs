@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using GenerationAttributes;
 
@@ -9,4 +11,7 @@ public static class UnityOptionExts {
   /// </summary>
   [StatementMethodMacroScriban(FPCSharpUnity.core.exts.OptionExts.FOR_EACH_MACRO)]
   public static void ifSomeM<A>(this UnityOption<A> opt, Action<A> action) => throw new MacroException();
+  
+  public static A? getOrNull<A>(this UnityOption<A> option) where A : class =>
+    option.isSome ? option.__unsafeGet : null;
 }
