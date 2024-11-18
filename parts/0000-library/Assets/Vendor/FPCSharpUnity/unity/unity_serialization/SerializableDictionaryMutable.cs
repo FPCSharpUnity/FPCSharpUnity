@@ -22,6 +22,8 @@ public partial class SerializableDictionaryMutable<K, V>
 {
   [LazyProperty, PublicReadOnlyAccessor] IRxRef<ImmutableDictionary<K, V>> _dict =>
     RxRef.a(getValuesAsDictionary);
+
+  public IReadOnlyDictionary<K, V> dictCurrent => _dict.value;
     
   public SerializableDictionaryMutable(Pair[] keyValuePairs) : base(keyValuePairs) { }
 

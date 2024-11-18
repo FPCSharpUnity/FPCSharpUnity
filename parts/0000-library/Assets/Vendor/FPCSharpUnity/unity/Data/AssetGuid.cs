@@ -4,11 +4,13 @@ using GenerationAttributes;
 
 namespace FPCSharpUnity.unity.Data {
   /// <summary>Asset GUID obtained from Unity asset database.</summary>
-  [Record(ConstructorFlags.Constructor), NewTypeImplicitTo] 
+  [Record(ConstructorFlags.Constructor, GenerateGetHashCode = false), NewTypeImplicitTo] 
   public readonly partial struct AssetGuid : IStr {
     public readonly string guid;
 
     public string asString() => guid;
+
+    public override int GetHashCode() => guid.GetHashCode();
 
     
     /// <summary>

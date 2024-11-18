@@ -67,7 +67,7 @@ namespace FPCSharpUnity.unity.Components {
         _ => throw ExhaustiveMatch.Failed(_formula)
       };
     
-      foreach (var kvp in _variables.dict.value) {
+      foreach (var kvp in _variables.dictCurrent) {
         value = _formula switch {
           Formula.Max => Mathf.Max(kvp.Value.value, value),
           Formula.Min => Mathf.Min(kvp.Value.value, value),
@@ -115,7 +115,7 @@ namespace FPCSharpUnity.unity.Components {
       ValueDropdownList<string> allIds { get {
         var list = new ValueDropdownList<string>();
         if (_setter) {
-          foreach (var kvp in _setter.variables.dict.value) { list.Add(kvp.Key); }
+          foreach (var kvp in _setter.variables.dictCurrent) { list.Add(kvp.Key); }
         }
         return list;
       } }
