@@ -1,0 +1,1 @@
+-keep class fp_csharp_unity.** { *; }
