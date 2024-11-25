@@ -2,8 +2,17 @@
 
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 
 namespace FPCSharpUnity.unity.editor {
+  public static class NamedBuildTargetExts {
+    public static TextureImporterPlatformSettings createSettings(this NamedBuildTarget target) {
+      var settings = new TextureImporterPlatformSettings();
+      settings.name = target.TargetName;
+      return settings;
+    }
+  }
+
   public static class TextureImporterExts {
     public class Platform {
       //https://docs.unity3d.com/ScriptReference/TextureImporterPlatformSettings-name.html
