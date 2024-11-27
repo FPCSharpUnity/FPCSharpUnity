@@ -197,10 +197,10 @@ namespace FPCSharpUnity.unity.Components.ui {
           }
         }
         
-        log.mDebug(
+        log.error(
           $"Result: {notchLeft.echo()}, {notchRight.echo()}, {orientation.echo()}, "
           + $"{safeArea.echo()}, Screen.width={width}, Screen.height={height}, "
-          + $"cutouts={Screen.cutouts.Select(a => a.ToString()).mkString(", ")}, "
+          + $"cutouts={cutouts.Select(a => a.ToString()).mkString(", ")}, "
           + $"{useManualCutoutsDetection.echo()}, {offsetFromLeft.echo()}, {offsetFromRight.echo()}"
         );
         
