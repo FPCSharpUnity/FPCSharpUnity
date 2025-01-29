@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using FPCSharpUnity.core.functional;
 using FPCSharpUnity.core.reactive;
 using UnityEngine;
@@ -22,6 +23,8 @@ public abstract class PointerDownUp : MonoBehaviour, IPointerDownHandler, IPoint
   /// </summary>
   protected readonly List<PointerEventData> pointerData = new();
 
+  PointerEventData? lastPointerUpOpt;
+
   public readonly Subject<Unit> onExit = new();
 
   public void OnPointerDown(PointerEventData eventData) {
@@ -41,6 +44,7 @@ public abstract class PointerDownUp : MonoBehaviour, IPointerDownHandler, IPoint
   }
 
   public void OnPointerUp(PointerEventData eventData) {
+    lastPointerUpOpt = eventData;
     pointerData.Remove(eventData);
     onPointerUp(eventData);
   }
@@ -53,8 +57,15 @@ public abstract class PointerDownUp : MonoBehaviour, IPointerDownHandler, IPoint
   }
 
   public void clearActivePointers() {
+    var go = gameObject;
     foreach (var pointer in pointerData) {
-      pointer.eligibleForClick = false;
+      if (pointer.pointerPress == go) {
+        pointer.eligibleForClick = false;
+      }
+    }
+    if (lastPointerUpOpt != null && lastPointerUpOpt.pointerPress == go) {
+      lastPointerUpOpt.eligibleForClick = false;
+      lastPointerUpOpt = null;
     }
     pointerData.Clear();
   }
