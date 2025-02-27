@@ -107,7 +107,7 @@ namespace FPCSharpUnity.unity.Pools {
           if (!a) Log.d.error(
             $"Component {typeof(A)} is destroyed in {nameof(GameObjectPool)} '{init.name}'!"
           ); 
-          return a.gameObject;
+          return a!.gameObject;
         }
       );
   }
