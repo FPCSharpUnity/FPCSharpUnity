@@ -15,7 +15,4 @@ namespace FPCSharpUnity.unity.unity_serialization {
 #pragma warning restore 649
     #endregion
   }
-  [Serializable] public class SpriteAndRendererOption : UnityOption<SpriteAndRenderer> {}
-  [Serializable] public class SpritesAndRenderersOption : UnityOption<SpriteAndRenderer[]> {}
-  
 }

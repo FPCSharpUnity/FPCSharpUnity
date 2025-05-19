@@ -12,7 +12,7 @@ namespace FPCSharpUnity.unity.Data {
 
     public static readonly Config.Parser<JsonValue, Percentage> parser = Config.floatParser.map(f => new Percentage(f));
 
-    public string asString() => Str.s(Mathf.RoundToInt(_value)) + "%";
+    public string asString() => Str.s(Mathf.RoundToInt(_value * 1000) / 10f) + "%";
 
     public static Percentage oneHundred => new(1f);
     public static Percentage zero => new(0f);
