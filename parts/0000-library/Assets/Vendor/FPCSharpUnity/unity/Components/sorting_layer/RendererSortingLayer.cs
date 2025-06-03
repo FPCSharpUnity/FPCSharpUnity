@@ -10,7 +10,7 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
     protected override void recordEditorChanges() =>
       renderer.recordEditorChanges("Renderer sorting layer changed");
 
-    protected override void apply(SortingLayerReference sortingLayer) =>
+    protected override void apply(ISortingLayerReference sortingLayer) =>
       sortingLayer.applyTo(renderer);
 
     protected override SortingLayerAndOrder extract() {

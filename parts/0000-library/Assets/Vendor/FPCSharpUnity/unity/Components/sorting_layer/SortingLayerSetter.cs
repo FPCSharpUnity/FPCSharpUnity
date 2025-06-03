@@ -54,14 +54,14 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
     }
 
 
-    public Option<SortingLayerReference> sortingLayerOverride { get; set; } = None._;
+    public Option<ISortingLayerReference> sortingLayerOverride { get; set; } = None._;
 
-    public void setSortingLayerOverride(SortingLayerReference sortingLayer) {
+    public void setSortingLayerOverride(ISortingLayerReference sortingLayer) {
       sortingLayerOverride = Some.a(sortingLayer);
       apply(sortingLayer);
     }
 
-    [PublicAPI] protected abstract void apply(SortingLayerReference sortingLayer);
+    [PublicAPI] protected abstract void apply(ISortingLayerReference sortingLayer);
     protected abstract SortingLayerAndOrder extract();
     protected abstract void recordEditorChanges();
 

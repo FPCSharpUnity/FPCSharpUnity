@@ -58,6 +58,10 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
 
     public int sortingLayer => _sortingLayer;
     public int orderInLayer => _orderInLayer;
+    
+    public RuntimeSortingLayerReference withOffset(int offset) {
+      return new RuntimeSortingLayerReference(_sortingLayer, _orderInLayer + offset);
+    }
   }
   
   [Serializable]
@@ -75,6 +79,16 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
 
     public int sortingLayer => _sortingLayer;
     public int orderInLayer => _orderInLayer;
+  }
+  
+  public class RuntimeSortingLayerReference : ISortingLayerReference {
+    public int sortingLayer { get; }
+    public int orderInLayer { get; }
+    
+    public RuntimeSortingLayerReference(int sortingLayer, int orderInLayer) {
+      this.sortingLayer = sortingLayer;
+      this.orderInLayer = orderInLayer;
+    }
   }
 
   public interface ISortingLayerReference {

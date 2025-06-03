@@ -10,7 +10,7 @@ namespace FPCSharpUnity.unity.Components.sorting_layer {
     protected override void recordEditorChanges() =>
       canvas.recordEditorChanges("Canvas sorting layer changed");
 
-    protected override void apply(SortingLayerReference sortingLayer) {
+    protected override void apply(ISortingLayerReference sortingLayer) {
       canvas.overrideSorting = true;
       sortingLayer.applyTo(canvas);
     }
