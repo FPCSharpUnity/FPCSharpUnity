@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using FPCSharpUnity.unity.Functional;
 using FPCSharpUnity.core.functional;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -14,7 +13,7 @@ namespace FPCSharpUnity.unity.Tween.fun_tween.path {
     [SerializeField] bool _relative, _closed;
     [SerializeField, Range(50, 1000)] int pathResolution = 250;
     [SerializeField] Vector3Path.InterpolationMethod _method;
-    [SerializeField, ListDrawerSettings(ShowIndexLabels = true)] List<Vector3> _nodes = new List<Vector3>();
+    [SerializeField, ListDrawerSettings(ShowIndexLabels = true)] public List<Vector3> _nodes = new();
     // ReSharper restore FieldCanBeMadeReadOnly.Local
 #pragma warning restore 649
     #endregion
